@@ -22,6 +22,7 @@ public class SingletonBase<T> : MonoBehaviour where T : Component
 
         }
     }
+    
     protected virtual void Awake()
     {
         if (_instance == null)
