@@ -13,10 +13,9 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float jumpForce = 12f;
     [SerializeField] private float fallMultiplier = 2.5f;
     [SerializeField] private float lowJumpMultiplier = 5f;
-    [SerializeField] private Transform groundCheck;
-    [SerializeField] private float groundRadius = 0.3f; // 발밑 바닥 체크 원의 크기 (기본값 0.3)
     [SerializeField] private LayerMask groundLayer;
     [SerializeField] private bool isGrounded; // 인스펙터 실시간 확인용
+    private int groundContactCount = 0; // 추가: 콜라이더 충돌 카운트로 바닥 판정
 
     private bool isJumpPressed;
 
@@ -27,11 +26,15 @@ public class PlayerController : MonoBehaviour
     private bool isAttacking;
 
     private Rigidbody2D rb;
+    private Animator animator; // 추가: 애니메이터 연동용
     private PlayerControls controls;
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
+        animator = GetComponent<Animator>(); // 추가
+        // 만약 모델/애니메이터가 자식 오브젝트에 있다면 아래 줄로 교체하세요:
+        // animator = GetComponentInChildren<Animator>();
     }
 
     private void OnEnable()
@@ -63,17 +66,19 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        // 바닥 판정 업데이트
-        if (groundCheck != null)
+        isGrounded = groundContactCount > 0;
+        animator.SetBool("IsGrounded", isGrounded);
+        if (isGrounded && isJumpPressed && rb.linearVelocity.y <= 0f)
         {
-            isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundRadius, groundLayer);
+            isJumpPressed = false;
+            animator.SetBool("IsJump", false);
         }
-
-        // 이동 방향에 맞춰 좌우 뒤돌아보기 (공격 중이 아닐 때만)
         if (!isAttacking && moveInput.x != 0)
         {
             CheckMovementFlip();
         }
+
+        animator.SetBool("IsWalking", moveInput.x != 0);
     }
 
     private void FixedUpdate()
@@ -91,6 +96,24 @@ public class PlayerController : MonoBehaviour
             rb.linearVelocity += Vector2.up * Physics2D.gravity.y * (lowJumpMultiplier - 1) * Time.fixedDeltaTime;
         }
     }
+
+    #region Ground Collision (추가: OverlapCircle 대신 콜라이더 충돌로 바닥 판정)
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (((1 << collision.gameObject.layer) & groundLayer) != 0)
+        {
+            groundContactCount++;
+        }
+    }
+
+    private void OnCollisionExit2D(Collision2D collision)
+    {
+        if (((1 << collision.gameObject.layer) & groundLayer) != 0)
+        {
+            groundContactCount = Mathf.Max(0, groundContactCount - 1);
+        }
+    }
+    #endregion
 
     #region Flip Logic (방향 전환)
     private void CheckMovementFlip()
@@ -129,12 +152,15 @@ public class PlayerController : MonoBehaviour
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
             isJumpPressed = true;
+            animator.SetTrigger("Jump"); // 추가
+            animator.SetBool("IsJump", isJumpPressed); // 추가
         }
     }
 
     private void CancelJump()
     {
         isJumpPressed = false;
+        animator.SetBool("IsJump", isJumpPressed); // 추가
     }
     #endregion
 
@@ -142,6 +168,8 @@ public class PlayerController : MonoBehaviour
     private void Attack()
     {
         if (isAttacking) return;
+
+        animator.SetTrigger("Attack"); // 추가
 
         // 마우스의 현재 월드 좌표 계산
         Vector3 mouseScreenPos = Mouse.current.position.ReadValue();
@@ -200,17 +228,14 @@ public class PlayerController : MonoBehaviour
     }
     #endregion
 
+    // TODO: 특수공격(Cry), 사망(Die) 처리 함수가 생기면 아래처럼 트리거를 호출하세요.
+    // animator.SetTrigger("Cry");
+    // animator.SetTrigger("Die");
+
     private void OnDrawGizmosSelected()
     {
         // 에디터 뷰 조절용 사거리 시각화 (빨간색 원)
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, maxAttackRange);
-
-        // 발밑 바닥 체크 시각화 (초록색 원)
-        if (groundCheck != null)
-        {
-            Gizmos.color = Color.green;
-            Gizmos.DrawWireSphere(groundCheck.position, groundRadius);
-        }
     }
 }
