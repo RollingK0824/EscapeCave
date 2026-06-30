@@ -8,7 +8,7 @@ public class SingletonBase<T> : MonoBehaviour where T : Component
     {
         get
         {
-            if (Instance == null)
+            if (_instance == null)
             {
                 _instance = FindFirstObjectByType<T>();
                 if (_instance == null)
