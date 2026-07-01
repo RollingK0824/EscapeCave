@@ -1,8 +1,10 @@
+using Managers;
 using System.Collections;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class PlayerController : MonoBehaviour
+public class PlayerController : MonoBehaviour, IEchoable
 {
     [Header("Movement")]
     [SerializeField] private float moveSpeed = 8f;
@@ -29,6 +31,14 @@ public class PlayerController : MonoBehaviour
     private Animator animator; // 추가: 애니메이터 연동용
     private PlayerControls controls;
 
+    [SerializeField] private float _soundIntensity;
+
+
+    public float SoundIntensity => _soundIntensity;
+
+    [SerializeField] private float _soundSpeed;
+    public float SoundSpeed => _soundSpeed;
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -51,6 +61,7 @@ public class PlayerController : MonoBehaviour
             controls.Player.Jump.canceled += ctx => CancelJump();
 
             controls.Player.Attack.performed += ctx => Attack();
+            controls.Player.Cry.performed += ctx => Cry();
         }
 
         controls.Enable();
@@ -194,10 +205,19 @@ public class PlayerController : MonoBehaviour
         {
             targetPos = mouseWorldPos;
         }
-
+        Echo();
         StartCoroutine(TongueRoutine(targetPos));
     }
+    #region Cry Logic
+    private void Cry()
+    {
+        if (isAttacking) return; // 공격 중이면 울음 방지 (필요 없으면 제거)
 
+        animator.SetTrigger("Cry");
+        Debug.Log("Cry called");
+        Echo();
+    }
+    #endregion
     private IEnumerator TongueRoutine(Vector3 targetPosition)
     {
         isAttacking = true;
@@ -229,7 +249,7 @@ public class PlayerController : MonoBehaviour
     #endregion
 
     // TODO: 특수공격(Cry), 사망(Die) 처리 함수가 생기면 아래처럼 트리거를 호출하세요.
-    // animator.SetTrigger("Cry");
+    
     // animator.SetTrigger("Die");
 
     private void OnDrawGizmosSelected()
@@ -237,5 +257,10 @@ public class PlayerController : MonoBehaviour
         // 에디터 뷰 조절용 사거리 시각화 (빨간색 원)
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, maxAttackRange);
+    }
+
+    public void Echo()
+    {
+        EchoManager.Instance.TriggerSound(transform.position,SoundIntensity,SoundSpeed);
     }
 }
