@@ -415,19 +415,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MapGenerator
   tilemap: {fileID: 2093582574}
-  groundRuleTile: {fileID: 11400000, guid: 18f57f85643a43e4ca97b3e1d46baf02, type: 2}
-  movingPlatformPrefab: {fileID: 7885111729563044918, guid: 58ad06cc5def3cb4eaed2cd083c32b63, type: 3}
+  wallRuleTile: {fileID: 11400000, guid: 0cf6ddbaed62ec24fbef3bebc9ecca9f, type: 2}
+  platformRuleTile: {fileID: 11400000, guid: 18f57f85643a43e4ca97b3e1d46baf02, type: 2}
+  keyPrefab: {fileID: 7885111729563044918, guid: 58ad06cc5def3cb4eaed2cd083c32b63, type: 3}
+  doorPrefab: {fileID: 7885111729563044918, guid: 58ad06cc5def3cb4eaed2cd083c32b63, type: 3}
+  hideoutPrefab: {fileID: 7885111729563044918, guid: 58ad06cc5def3cb4eaed2cd083c32b63, type: 3}
+  chaseObstaclePrefab: {fileID: 7885111729563044918, guid: 58ad06cc5def3cb4eaed2cd083c32b63, type: 3}
   width: 300
   height: 15
-  minPlatformLength: -1
-  maxPlatformLength: 4
-  startNoiseScale: 0.3
-  startThreshold: 0.5
-  caveWallStrength: 0
-  enableDifficultyCurve: 1
-  endNoiseScale: 0.18
-  endThreshold: 0.52
-  maxMovingPlatformChance: 0.4
+  tunnelRadius: 6
+  maxJumpDistanceX: 4
+  maxJumpDistanceY: 3
+  eventSpawnChance: 0.05
+  minDistanceBetweenEvents: 15
 --- !u!4 &2027245942
 Transform:
   m_ObjectHideFlags: 0
@@ -542,49 +542,17 @@ Tilemap:
   m_Enabled: 1
   m_Tiles: {}
   m_AnimatedTiles: {}
-  m_TileAssetArray:
-  - m_RefCount: 0
-    m_Data: {fileID: 0}
-  m_TileSpriteArray:
-  - m_RefCount: 0
-    m_Data: {fileID: 0}
-  - m_RefCount: 0
-    m_Data: {fileID: 0}
-  - m_RefCount: 0
-    m_Data: {fileID: 0}
-  - m_RefCount: 0
-    m_Data: {fileID: 0}
-  - m_RefCount: 0
-    m_Data: {fileID: 0}
-  m_TileMatrixArray:
-  - m_RefCount: 0
-    m_Data:
-      e00: 1.304645e-27
-      e01: 0
-      e02: 1.3046542e-27
-      e03: 1.7179902e+10
-      e10: 9.8e-44
-      e11: 0
-      e12: 9.8e-44
-      e13: 7.57e-43
-      e20: -7.0082206e-26
-      e21: 0
-      e22: -0.022087514
-      e23: -3.2354102e-28
-      e30: 4.5914e-41
-      e31: 0
-      e32: 7.57e-43
-      e33: 7.57e-43
-  m_TileColorArray:
-  - m_RefCount: 0
-    m_Data: {r: 1e-45, g: 1e-45, b: 1e-45, a: 1e-45}
+  m_TileAssetArray: []
+  m_TileSpriteArray: []
+  m_TileMatrixArray: []
+  m_TileColorArray: []
   m_TileObjectToInstantiateArray:
   - m_RefCount: 0
     m_Data: {fileID: 0}
   m_AnimationFrameRate: 1
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Origin: {x: -5, y: -4, z: 0}
-  m_Size: {x: 8, y: 6, z: 1}
+  m_Origin: {x: 0, y: 0, z: 0}
+  m_Size: {x: 0, y: 0, z: 1}
   m_TileAnchor: {x: 0.5, y: 0.5, z: 0}
   m_TileOrientation: 0
   m_TileOrientationMatrix:
