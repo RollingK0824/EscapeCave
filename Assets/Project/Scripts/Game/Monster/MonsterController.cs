@@ -27,7 +27,7 @@ public class MonsterController : MonoBehaviour
     public MonsterState CurrentState { get; set; } = MonsterState.IDLE;
     public MonsterData Data => _data;
 
-    public event Action<float> OnTrigger1;
+    //public event Action<float> OnTrigger1;
     //public event Action<Platform> OnTrigger2;
     //public event Action OnDeath;
 
