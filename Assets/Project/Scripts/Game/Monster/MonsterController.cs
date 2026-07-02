@@ -39,7 +39,7 @@ public class MonsterController : MonoBehaviour
 
         if (_data != null)
         {
-            Rb.gravityScale = _data.garavityScale;
+            Rb.gravityScale = _data.gravityScale;
         }
     }
 

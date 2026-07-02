@@ -44,6 +44,6 @@ public class MonsterData : ScriptableObject
     public float wakeUpDuration = 0.5f;
 
     [Header("물리")]
-    public float garavityScale = 1f;
+    public float gravityScale = 1f;
     public bool useGravity = true;
 }
