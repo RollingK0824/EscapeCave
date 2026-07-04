@@ -224,7 +224,7 @@ public class PlayerController : MonoBehaviour, IEchoable
     {
         isAttacking = true;
         tongueVisual.enabled = true;
-
+        
         Vector3 flippedMouthOffset = new Vector3(
             isFacingRight ? mouthOffset.x : -mouthOffset.x,
             mouthOffset.y,
@@ -253,8 +253,6 @@ public class PlayerController : MonoBehaviour, IEchoable
         Debug.Log($"판정 지점: {targetPosition}, 감지된 개수: {hits.Length}");
         foreach (var hit in hits)
         {
-            Debug.Log($"감지됨: {hit.name}, 태그: {hit.tag}");
-
             if (hit.CompareTag("Enemy"))
             {
                 Debug.Log($"{hit.name} 타격 성공!");
@@ -293,27 +291,20 @@ public class PlayerController : MonoBehaviour, IEchoable
         {
             if (item != null)
             {
-                var sr = item.GetComponent<SpriteRenderer>();
-                Sprite icon = sr != null ? sr.sprite : null;
-
-                bool added = Managers.InventoryManager.Instance.AddItem(icon);
-
-                if (added)
-                {
-                    Debug.Log($"{item.name} 습득 완료");
-                    Destroy(item.gameObject);
-                }
+                Debug.Log($"{item.name} 습득 완료");
+                Destroy(item.gameObject);
             }
         }
-        tongueVisual.enabled = false; 
+
+        tongueVisual.enabled = false;
         isAttacking = false;
     }
 
     #endregion
 
-        // TODO: 특수공격(Cry), 사망(Die) 처리 함수가 생기면 아래처럼 트리거를 호출하세요.
+    // TODO: 특수공격(Cry), 사망(Die) 처리 함수가 생기면 아래처럼 트리거를 호출하세요.
 
-        // animator.SetTrigger("Die");
+    // animator.SetTrigger("Die");
 
     private void OnDrawGizmosSelected()
     {

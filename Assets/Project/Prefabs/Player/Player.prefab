@@ -81,13 +81,12 @@ GameObject:
   - component: {fileID: 5956534862358465158}
   - component: {fileID: 3033706036056681546}
   - component: {fileID: 1499513239588401213}
+  - component: {fileID: 6361626337086652813}
   - component: {fileID: 5857552233038908980}
   - component: {fileID: 4000886614005539833}
-  - component: {fileID: -8986344500428986058}
-  - component: {fileID: -9168198421336317623}
   m_Layer: 0
-  m_Name: Player
-  m_TagString: Player
+  m_Name: TongueTip
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -262,6 +261,32 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &6361626337086652813
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1638231951008869081}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd55c984b4f196b4f89ede9df414a922, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerController
+  moveSpeed: 5
+  jumpForce: 7
+  fallMultiplier: 2.5
+  lowJumpMultiplier: 5
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 64
+  isGrounded: 0
+  maxAttackRange: 1.5
+  attackDuration: 0.2
+  tongueVisual: {fileID: 5857552233038908980}
+  mouthOffset: {x: 0.1, y: 0.02, z: 0}
+  _soundIntensity: 0
+  _soundSpeed: 0
 --- !u!120 &5857552233038908980
 LineRenderer:
   serializedVersion: 3
