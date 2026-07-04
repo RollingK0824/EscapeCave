@@ -32,6 +32,10 @@ public class StageManifestSO : ScriptableObject
     public int stageHeight = 80;
     public int tunnelRadius = 6;
 
+    public float noiseScale = 0.05f;   // 값이 작을수록 완만하고 넓은 곡선, 클수록 뾰족하고 잦은 굴곡
+    public int maxBottomHeight = 8;    // 바닥 지형이 위로 솟구칠 수 있는 최대 높이 (칸 수)
+    public int minBottomHeight = 3;    // 아무리 낮아도 보장되는 최소 바닥 두께
+
     [Header("순서대로 등장할 오브젝트 리스트")]
     public List<StageEvent> eventSequence;
 }
