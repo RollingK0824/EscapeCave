@@ -20,7 +20,9 @@ public class MonsterController : MonoBehaviour
     [Header("데이터")]
     [SerializeField] private MonsterData _data;
 
+
     public Rigidbody2D Rb { get; private set; }
+    public SpriteRenderer SpriteRenderer { get; private set; }
     public Animator Animator { get; private set; }
     private BehaviorGraphAgent _btAgent;
 
@@ -34,13 +36,34 @@ public class MonsterController : MonoBehaviour
     private void Awake()
     {
         Rb = GetComponent<Rigidbody2D>();
+        SpriteRenderer = GetComponentInChildren<SpriteRenderer>();
+
         Animator = GetComponent<Animator>();
         _btAgent = GetComponent<BehaviorGraphAgent>();
 
-        if (_data != null)
+        //if (_data != null)
+        //{
+        //    Rb.gravityScale = _data.GravityScale;
+        //}
+    }
+
+    public void Move(Vector2 direction, float speed)
+    {
+        Rb.linearVelocity = new Vector2(direction.x * speed, Rb.linearVelocity.y);
+        FlipSprite(direction);
+    }
+
+    public void FlipSprite(Vector2 direction)
+    {
+        if (direction.x != 0)
         {
-            Rb.gravityScale = _data.gravityScale;
+            SpriteRenderer.flipX = direction.x < 0;
         }
+    }
+
+    public void Stop()
+    {
+        Rb.linearVelocity = Vector2.zero;
     }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -50,13 +73,13 @@ public class MonsterController : MonoBehaviour
 
         _btAgent.SetVariableValue("Self", gameObject);
         //_btAgent.SetVariableValue("PlayerTransform", player);
-        _btAgent.SetVariableValue("MoveSpeed", _data.moveSpeed);
-        _btAgent.SetVariableValue("AttackRange", _data.attackRange);
-        _btAgent.SetVariableValue("ChargeSpeed", _data.chargeSpeed);
-        _btAgent.SetVariableValue("ChargeDuration", _data.chargeDuration);
-        _btAgent.SetVariableValue("StunDuration", _data.stunDuration);
-        _btAgent.SetVariableValue("WakeUpDuration", _data.wakeUpDuration);
-        _btAgent.SetVariableValue("DetectionRange", _data.detectionRange);
+        _btAgent.SetVariableValue("MoveSpeed", _data.MoveSpeed);
+        _btAgent.SetVariableValue("AttackRange", _data.AttackRange);
+        _btAgent.SetVariableValue("ChargeSpeed", _data.ChargeSpeed);
+        _btAgent.SetVariableValue("ChargeDuration", _data.ChargeDuration);
+        _btAgent.SetVariableValue("StunDuration", _data.StunDuration);
+        //_btAgent.SetVariableValue("WakeUpDuration", _data.WakeUpDuration);
+        _btAgent.SetVariableValue("DetectionRange", _data.DetectionRange);
 
         _btAgent.SetVariableValue("Trigger1Detected", false);
         _btAgent.SetVariableValue("Trigger2Detected", false);
@@ -87,7 +110,7 @@ public class MonsterController : MonoBehaviour
 
     public void TakeDamage(int damage, Vector2 hitDirection)
     {
-        if (_data.isInvincible)
+        if (_data.IsInvincible)
         {
             return;
         }
@@ -100,31 +123,31 @@ public class MonsterController : MonoBehaviour
         CurrentState = MonsterState.STUNNED;
 
         Rb.linearVelocity = Vector2.zero;
-        Rb.AddForce(hitDirection * _data.knockbackForce, ForceMode2D.Impulse);
+        Rb.AddForce(hitDirection * _data.KnockbackForce, ForceMode2D.Impulse);
 
-        yield return new WaitForSeconds(_data.knockbackDuration);
+        yield return new WaitForSeconds(_data.KnockbackDuration);
 
-        switch (_data.hitReaction)
-        {
-            case HitReaction.Die:
-                {
-                    Die();
-                    break;
-                }
-            case HitReaction.Stun:
-                {
-                    Rb.linearVelocity = Vector2.zero;
-                    _btAgent.SetVariableValue("isStunned", true);
-                    CurrentState = MonsterState.STUNNED;
-                    break;
-                }
-            case HitReaction.ReturnToChase:
-                {
-                    Rb.linearVelocity = Vector2.zero;
-                    CurrentState = MonsterState.CHASE;
-                    break;
-                }
-        }
+        //switch (_data.HitReaction)
+        //{
+        //    case HitReaction.Die:
+        //        {
+        //            Die();
+        //            break;
+        //        }
+        //    case HitReaction.Stun:
+        //        {
+        //            Rb.linearVelocity = Vector2.zero;
+        //            _btAgent.SetVariableValue("isStunned", true);
+        //            CurrentState = MonsterState.STUNNED;
+        //            break;
+        //        }
+        //    case HitReaction.ReturnToChase:
+        //        {
+        //            Rb.linearVelocity = Vector2.zero;
+        //            CurrentState = MonsterState.CHASE;
+        //            break;
+        //        }
+        //}
 
     }
 

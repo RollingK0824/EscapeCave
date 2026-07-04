@@ -49,8 +49,5 @@ public partial class AggroResetAction : Action
         return Status.Running;
     }
 
-    protected override void OnEnd()
-    {
-    }
 }
 

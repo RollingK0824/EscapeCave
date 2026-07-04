@@ -8,23 +8,23 @@ using Unity.Properties;
 [NodeDescription(name: "VerticalPatrol", story: "[Self] patrols vertically with [PatrolSpeed] and [PatrolRange]", category: "Action/Monster/Patrol", id: "d0f64c0321fce6c3d58efb6dad6347df")]
 public partial class VerticalPatrolAction : Action
 {
-    [SerializeReference] public BlackboardVariable<GameObject> Self;
-    [SerializeReference] public BlackboardVariable<float> PatrolSpeed;
-    [SerializeReference] public BlackboardVariable<float> PatrolRange;
+    //[SerializeReference] public BlackboardVariable<GameObject> Self;
+    [SerializeReference] public BlackboardVariable<MonsterController> Monster;
 
-    private Rigidbody2D _rb;
+    private MonsterController _monster;
     private Vector2 _startPosition;
     private int _direction;
 
     protected override Status OnStart()
     {
-        _rb = Self.Value.GetComponent<Rigidbody2D>();
-        if (_rb == null)
+        _monster = Monster.Value;
+
+        if (_monster == null)
         {
             return Status.Failure;
         }
 
-        _startPosition = Self.Value.transform.position;
+        _startPosition = _monster.transform.position;
         _direction = 1;
 
         return Status.Running;
@@ -32,29 +32,26 @@ public partial class VerticalPatrolAction : Action
 
     protected override Status OnUpdate()
     {
-        float currentY = Self.Value.transform.position.y;
+        float currentY = _monster.transform.position.y;
         float delta = currentY - _startPosition.y;
 
-        if (delta >= PatrolRange.Value)
+        if (delta >= _monster.Data.PatrolRange)
         {
             _direction = -1;
         }
-        else if (delta <= PatrolRange.Value)
+        else if (delta <= _monster.Data.PatrolRange)
         {
             _direction = 1;
         }
 
-        _rb.linearVelocity = new Vector2(_rb.linearVelocity.x, _direction * PatrolSpeed.Value);
+        _monster.Rb.linearVelocity = new Vector2(_monster.Rb.linearVelocity.x, _direction * _monster.Data.PatrolSpeed);
 
         return Status.Running;
     }
 
     protected override void OnEnd()
     {
-        if (_rb != null)
-        {
-            _rb.linearVelocity = Vector2.zero;
-        }
+        _monster?.Stop();
     }
 }
 

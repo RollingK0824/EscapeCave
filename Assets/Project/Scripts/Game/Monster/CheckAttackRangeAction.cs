@@ -5,23 +5,22 @@ using Action = Unity.Behavior.Action;
 using Unity.Properties;
 
 [Serializable, GeneratePropertyBag]
-[NodeDescription(name: "CheckAttackRange", story: "[Self] checks if [PlayerTransform] is within [AttackRange]", category: "Action/Monster/Chase", id: "d492d4bd9cada61a7b26c86727dde287")]
+[NodeDescription(name: "CheckAttackRange", story: "[Self] checks if [PlayerTransform] is within [MonsterData]", category: "Action", id: "d492d4bd9cada61a7b26c86727dde287")]
 public partial class CheckAttackRangeAction : Action
 {
     [SerializeReference] public BlackboardVariable<GameObject> Self;
     [SerializeReference] public BlackboardVariable<Transform> PlayerTransform;
-    [SerializeReference] public BlackboardVariable<float> AttackRange;
-
+    [SerializeReference] public BlackboardVariable<MonsterData> MonsterData;
     protected override Status OnUpdate()
     {
-        if (Self.Value == null || PlayerTransform.Value == null)
+        if (Self.Value == null || PlayerTransform.Value == null || MonsterData.Value == null)
         {
             return Status.Failure;
         }
 
         float distance = Vector2.Distance(Self.Value.transform.position, PlayerTransform.Value.position);
 
-        if (distance <= AttackRange.Value)
+        if (distance <= MonsterData.Value.AttackRange)
         {
             return Status.Success;
         }

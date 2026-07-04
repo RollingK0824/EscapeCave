@@ -2,8 +2,9 @@ using UnityEngine;
 
 public enum MonsterType
 {
+    Base,
     Bat,
-    Spider,
+    Mouse,
     Fish,
     Crab,
     Bear
@@ -12,7 +13,7 @@ public enum MonsterType
 public enum HitReaction
 {
     ReturnToChase,  // 물고기
-    Stun,   // 거미
+    Stun,   // 쥐
     Die,    // 박쥐
 }
 
@@ -20,30 +21,32 @@ public enum HitReaction
 public class MonsterData : ScriptableObject
 {
     [Header("기본")]
-    public string monsterName;
-    public MonsterType monsterType;
-    public bool isInvincible = false;
+    public string MonsterName;
+    public MonsterType MonsterType;
+    public bool IsInvincible = false;
 
     [Header("이동")]
-    public float moveSpeed = 3f;
-    public float detectionRange = 5f;
+    public float MoveSpeed = 3f;
+    public float DetectionRange = 5f;
+    public float PatrolSpeed;
+    public float PatrolRange;
 
     [Header("공격")]
-    public float attackRange = 1.5f;
-    public float pauseDuration = 1f;
-    public float chargeSpeed = 10f;
-    public float chargeDuration = 0.5f;
+    public float AttackRange = 1.5f;
+    public float PauseDuration = 1f;
+    public float ChargeSpeed = 10f;
+    public float ChargeDuration = 0.5f;
 
     [Header("피격")]
-    public float knockbackForce = 5f;
-    public float knockbackDuration = 0.2f;
-    public HitReaction hitReaction;
+    public float KnockbackForce = 5f;
+    public float KnockbackDuration = 0.2f;
+    //public HitReaction hitReaction;
 
     [Header("행동")]
-    public float stunDuration = 2f;
+    public float StunDuration = 2f;
     public float wakeUpDuration = 0.5f;
 
     [Header("물리")]
-    public float gravityScale = 1f;
-    public bool useGravity = true;
+    public float GravityScale = 1f;
+    public bool UseGravity = true;
 }
