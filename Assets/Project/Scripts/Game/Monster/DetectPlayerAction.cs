@@ -9,22 +9,33 @@ using Unity.Properties;
 public partial class DetectPlayerAction : Action
 {
     [SerializeReference] public BlackboardVariable<GameObject> Self;
+    [SerializeReference] public BlackboardVariable<Transform> PlayerTransform;
     [SerializeReference] public BlackboardVariable<float> DetectionRange;
     [SerializeReference] public BlackboardVariable<bool> Trigger1Detected;
     [SerializeReference] public BlackboardVariable<bool> Trigger2Detected;
 
-    protected override Status OnStart()
-    {
-        return Status.Running;
-    }
-
     protected override Status OnUpdate()
     {
-        return Status.Success;
-    }
+        if (Self.Value == null || PlayerTransform.Value == null)
+        {
+            return Status.Failure;
+        }
 
-    protected override void OnEnd()
-    {
+        bool triggerDetected = Trigger1Detected.Value || Trigger2Detected.Value;
+        if (!triggerDetected)
+        {
+            return Status.Failure;
+        }
+
+        float distance = Vector2.Distance(Self.Value.transform.position,
+            PlayerTransform.Value.position);
+
+        if (distance <= DetectionRange.Value)
+        {
+            return Status.Success;
+        }
+
+        return Status.Failure;
     }
 }
 
