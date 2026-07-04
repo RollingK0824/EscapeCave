@@ -81,17 +81,40 @@ public class PlayerController : MonoBehaviour, IEchoable
     {
         isGrounded = groundContactCount > 0;
         animator.SetBool("IsGrounded", isGrounded);
-        if (isGrounded && isJumpPressed && rb.linearVelocity.y <= 0f)
-        {
-            isJumpPressed = false;
-            animator.SetBool("IsJump", false);
-        }
-        if (!isAttacking && moveInput.x != 0)
+
+        // ... 점프 로직 동일 ...
+
+        // 수정: 공격 중이라도 마우스를 따라 고개를 돌려야 한다면 isAttacking 조건 제거
+        // 만약 공격 모션이 고정되어야 한다면 그대로 두되, 아래 방향 체크 로직을 활용
+        if (moveInput.x != 0 && !isAttacking)
         {
             CheckMovementFlip();
         }
 
+        // 공격 중일 때 마우스 방향을 보고 싶다면 추가
+        if (isAttacking)
+        {
+            UpdateDirectionToMouse();
+        }
+
         animator.SetBool("IsWalking", moveInput.x != 0);
+    }
+
+    // 새로운 함수: 마우스 위치를 실시간 추적하여 방향 전환
+    private void UpdateDirectionToMouse()
+    {
+        Vector3 mouseScreenPos = Mouse.current.position.ReadValue();
+        mouseScreenPos.z = Mathf.Abs(Camera.main.transform.position.z);
+        Vector3 mouseWorldPos = Camera.main.ScreenToWorldPoint(mouseScreenPos);
+
+        if (mouseWorldPos.x > transform.position.x && !isFacingRight)
+        {
+            Flip();
+        }
+        else if (mouseWorldPos.x < transform.position.x && isFacingRight)
+        {
+            Flip();
+        }
     }
 
     private void FixedUpdate()
@@ -148,13 +171,22 @@ public class PlayerController : MonoBehaviour, IEchoable
             Flip();
         }
     }
-
+    
     private void Flip()
     {
+        // 1. 방향 상태를 반전시킵니다. (주석 해제)
         isFacingRight = !isFacingRight;
-        Vector3 localScale = transform.localScale;
-        localScale.x *= -1;
-        transform.localScale = localScale;
+    
+        SpriteRenderer sr = GetComponent<SpriteRenderer>();
+        if (sr != null)
+        {
+            // 2. 원본 스프라이트가 오른쪽을 보고 있다고 가정할 때, 
+            // 오른쪽을 볼 때(true)는 flipX가 false, 왼쪽을 볼 때(false)는 flipX가 true가 되어야 합니다.
+            sr.flipX = !isFacingRight; 
+        }
+    
+        // 만약 자식 오브젝트(입 위치 등)가 있어서 위치 보정이 필요하다면 
+        // mouthOffset의 x값을 반전시키는 로직은 그대로 유지하세요.
     }
     #endregion
 
@@ -224,7 +256,7 @@ public class PlayerController : MonoBehaviour, IEchoable
     {
         isAttacking = true;
         tongueVisual.enabled = true;
-        
+
         Vector3 flippedMouthOffset = new Vector3(
             isFacingRight ? mouthOffset.x : -mouthOffset.x,
             mouthOffset.y,
@@ -291,20 +323,27 @@ public class PlayerController : MonoBehaviour, IEchoable
         {
             if (item != null)
             {
-                Debug.Log($"{item.name} 습득 완료");
-                Destroy(item.gameObject);
-            }
-        }
+                var sr = item.GetComponent<SpriteRenderer>();
+                Sprite icon = sr != null ? sr.sprite : null;
 
-        tongueVisual.enabled = false;
+                bool added = Managers.InventoryManager.Instance.AddItem(icon);
+
+                if (added)
+                {
+                    Debug.Log($"{item.name} 습득 완료");
+                    Destroy(item.gameObject);
+                }
+            }
+        } // ← foreach 닫힘
+
+        tongueVisual.enabled = false;  // ← 이 줄이 foreach 밖에, 코루틴 마지막에 반드시 있어야 함 
         isAttacking = false;
     }
-
     #endregion
 
-    // TODO: 특수공격(Cry), 사망(Die) 처리 함수가 생기면 아래처럼 트리거를 호출하세요.
+        // TODO: 특수공격(Cry), 사망(Die) 처리 함수가 생기면 아래처럼 트리거를 호출하세요.
 
-    // animator.SetTrigger("Die");
+        // animator.SetTrigger("Die");
 
     private void OnDrawGizmosSelected()
     {
