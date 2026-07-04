@@ -299,6 +299,7 @@ public class PlayerController : MonoBehaviour, IEchoable
         tongueVisual.enabled = false;
         isAttacking = false;
     }
+
     #endregion
 
     // TODO: 특수공격(Cry), 사망(Die) 처리 함수가 생기면 아래처럼 트리거를 호출하세요.
@@ -314,6 +315,6 @@ public class PlayerController : MonoBehaviour, IEchoable
 
     public void Echo()
     {
-        EchoManager.Instance.TriggerSound(transform.position,SoundIntensity,SoundSpeed);
+        EchoManager.Instance.TriggerSound(transform.position, SoundIntensity, SoundSpeed);
     }
 }
