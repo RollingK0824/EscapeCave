@@ -28,8 +28,6 @@ public partial class StunAction : Action
 
     protected override Status OnUpdate()
     {
-        //float StunDuration = MonsterData.Value.StunDuration;
-
         _elapsed += Time.deltaTime;
 
         if (Monster.Value.IsStunFinished(_elapsed))
@@ -38,6 +36,11 @@ public partial class StunAction : Action
         }
 
         return Status.Running;
+    }
+
+    protected override void OnEnd()
+    {
+        Monster.Value?.ResetHitTrigger();
     }
 }
 

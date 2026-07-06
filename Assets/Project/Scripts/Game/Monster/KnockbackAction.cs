@@ -44,6 +44,7 @@ public partial class KnockbackAction : Action
     protected override void OnEnd()
     {
         Monster.Value?.EndKnockback();
+        Monster.Value?.ResetHitTrigger();
     }
 }
 

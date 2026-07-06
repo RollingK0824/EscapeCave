@@ -1,8 +1,5 @@
 using UnityEngine;
 using Unity.Behavior;
-//using System;
-//using Unity.AppUI.Core;
-//using UnityEditor.Build.Content;
 using System.Collections;
 
 public enum MonsterState
@@ -21,7 +18,6 @@ public class MonsterController : MonoBehaviour
     [SerializeField] private MonsterData _data;
     [SerializeField] private Transform _playerTransform;
 
-
     public Rigidbody2D Rb { get; private set; }
     public SpriteRenderer SpriteRenderer { get; private set; }
     public Animator Animator { get; private set; }
@@ -29,7 +25,6 @@ public class MonsterController : MonoBehaviour
 
     private float _outOfRangeElapsed;
 
-    //public MonsterState CurrentState { get; set; } = MonsterState.IDLE;
     private MonsterState _currentState = MonsterState.IDLE;
     
     public MonsterState CurrentState => _currentState;
@@ -43,10 +38,6 @@ public class MonsterController : MonoBehaviour
 
     private Vector2 _lastHitDirection;
 
-    //public event Action<float> OnTrigger1;
-    //public event Action<Platform> OnTrigger2;
-    //public event Action OnDeath;
-
     private void Awake()
     {
         Rb = GetComponent<Rigidbody2D>();
@@ -54,11 +45,6 @@ public class MonsterController : MonoBehaviour
 
         Animator = GetComponent<Animator>();
         _btAgent = GetComponent<BehaviorGraphAgent>();
-
-        //if (_data != null)
-        //{
-        //    Rb.gravityScale = _data.GravityScale;
-        //}
     }
 
     public void Move(Vector2 direction, float speed)
@@ -164,21 +150,8 @@ public class MonsterController : MonoBehaviour
         return false;
     }
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
     private void Start()
     {
-        //Transform player = GameManager.Instance.GetPlayer().transform;
-
-        //_btAgent.SetVariableValue("Self", gameObject);
-        //_btAgent.SetVariableValue("PlayerTransform", player);
-        //_btAgent.SetVariableValue("MoveSpeed", _data.MoveSpeed);
-        //_btAgent.SetVariableValue("AttackRange", _data.AttackRange);
-        //_btAgent.SetVariableValue("ChargeSpeed", _data.ChargeSpeed);
-        //_btAgent.SetVariableValue("ChargeDuration", _data.ChargeDuration);
-        //_btAgent.SetVariableValue("StunDuration", _data.StunDuration);
-        //_btAgent.SetVariableValue("DetectionRange", _data.DetectionRange);
-        //_btAgent.SetVariableValue("AggroResetTime", _data.AggroResetTime);
-        //_btAgent.SetVariableValue("WakeUpDuration", _data.WakeUpDuration);
         _btAgent.SetVariableValue("Monster", this );
         _btAgent.SetVariableValue("PlayerTransform", _playerTransform);
         _btAgent.SetVariableValue("SoundTrigger", false);
@@ -187,81 +160,21 @@ public class MonsterController : MonoBehaviour
         _btAgent.SetVariableValue("IsStunned", false);
         _btAgent.SetVariableValue("IsAwake", false);
         _btAgent.SetVariableValue("IsHit", false);
-
-        //var ts = GameManagerDependencyInfo.Instance.GetTriggerSystem();
-        //ts.OnSoundTriggered += HandleTrigger1;
-        //ts.OnVibrationTriggered += HandleTrigger2;
+        _btAgent.SetVariableValue("HitReaction", _data.HitReaction);
     }
-
-    //private void HandleTrigger1(float intensity)
-    //{
-    //    Transform player = GameManger.Instance.GetPlayer().transform;
-
-    //    if (Vector2.Distacne(transform.position, player.position) <= _data.detectionRange)
-    //    {
-    //        _btAgent.SetVariableValue("Trigger1Detected", true);
-    //    }
-
-    //    OnTrigger1?.Invoke(intensity);
-    //}
-
-    //private void HandleTriger2(Platform platform)
-    //{
-    //    OnTrigger2?.Invoke(platform);
-    //}
 
     public void TakeDamage(int damage, Vector2 hitDirection)
     {
-        if (_data.IsInvincible)
+        if (!_data.IsAttackable)
         {
             return;
         }
 
-        //StartCoroutine(KnockbackRoutine(hitDirection));
         _lastHitDirection = hitDirection;
         _btAgent.SetVariableValue("IsHit", true);
-        SetState(MonsterState.STUNNED);
     }
 
     public Vector2 GetLastHitDirection() => _lastHitDirection;
-
-    //private IEnumerator KnockbackRoutine(Vector2 hitDirection)
-    //{
-    //    CurrentState = MonsterState.STUNNED;
-
-    //    Rb.linearVelocity = Vector2.zero;
-    //    Rb.AddForce(hitDirection * _data.KnockbackForce, ForceMode2D.Impulse);
-
-    //    yield return new WaitForSeconds(_data.KnockbackDuration);
-
-        //switch (_data.HitReaction)
-        //{
-        //    case HitReaction.Die:
-        //        {
-        //            Die();
-        //            break;
-        //        }
-        //    case HitReaction.Stun:
-        //        {
-        //            Rb.linearVelocity = Vector2.zero;
-        //            _btAgent.SetVariableValue("isStunned", true);
-        //            CurrentState = MonsterState.STUNNED;
-        //            break;
-        //        }
-        //    case HitReaction.ReturnToChase:
-        //        {
-        //            Rb.linearVelocity = Vector2.zero;
-        //            CurrentState = MonsterState.CHASE;
-        //            break;
-        //        }
-        //}
-
-    //}
-
-    public void SetStunned()
-    {
-        _btAgent.SetVariableValue("IsStunned", true);
-    }
 
     public void ResetSoundTrigger()
     {
@@ -273,19 +186,15 @@ public class MonsterController : MonoBehaviour
         _btAgent.SetVariableValue("VibTrigger", false);
     }
 
+    public void ResetHitTrigger()
+    {
+        _btAgent.SetVariableValue("IsHit", false);
+    }
+
     public void Die()
     {
         SetState(MonsterState.DEAD);
-        //CurrentState = MonsterState.DEAD;
         _btAgent.enabled = false;
-        //OnDeath?.Invoke();
-
-        //var ts = GameManagerDependencyInfo.Instance?.GetTriggerSystem();
-        //if (ts != null)
-        //{
-        //    ts.OnSoundTriggered -= HandleTrigger1;
-        //    ts.OnVibrationTriggered -= HandleTrigger2;
-        //}
 
         GameObject.Destroy(gameObject);
     }
@@ -315,15 +224,5 @@ public class MonsterController : MonoBehaviour
     public void EndKnockback()
     {
         Stop();
-    }
-
-    private void OnDestroy()
-    {
-        //var ts = GameManager.Instance?.GetTriggerSystem();
-        //if (ts != null)
-        //{
-        //    ts.OnSoundTriggered -= HandleTrigger1;
-        //    ts.OnVibrationTriggered -= HandleTriger2;
-        //}
     }
 }
