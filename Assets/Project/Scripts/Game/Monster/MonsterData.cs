@@ -45,6 +45,7 @@ public class MonsterData : ScriptableObject
     [Header("행동")]
     public float StunDuration = 2f;
     public float wakeUpDuration = 0.5f;
+    public float AggroResetTime = 3f;
 
     [Header("물리")]
     public float GravityScale = 1f;

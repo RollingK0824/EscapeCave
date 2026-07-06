@@ -1,8 +1,8 @@
 using UnityEngine;
 using Unity.Behavior;
-using System;
-using Unity.AppUI.Core;
-using UnityEditor.Build.Content;
+//using System;
+//using Unity.AppUI.Core;
+//using UnityEditor.Build.Content;
 using System.Collections;
 
 public enum MonsterState
@@ -19,6 +19,7 @@ public class MonsterController : MonoBehaviour
 {
     [Header("데이터")]
     [SerializeField] private MonsterData _data;
+    [SerializeField] private Transform _playerTransform;
 
 
     public Rigidbody2D Rb { get; private set; }
@@ -26,8 +27,21 @@ public class MonsterController : MonoBehaviour
     public Animator Animator { get; private set; }
     private BehaviorGraphAgent _btAgent;
 
-    public MonsterState CurrentState { get; set; } = MonsterState.IDLE;
+    private float _outOfRangeElapsed;
+
+    //public MonsterState CurrentState { get; set; } = MonsterState.IDLE;
+    private MonsterState _currentState = MonsterState.IDLE;
+    
+    public MonsterState CurrentState => _currentState;
+    
+    public void SetState(MonsterState state)
+    {
+        _currentState = state;
+    }
+
     public MonsterData Data => _data;
+
+    private Vector2 _lastHitDirection;
 
     //public event Action<float> OnTrigger1;
     //public event Action<Platform> OnTrigger2;
@@ -63,7 +77,91 @@ public class MonsterController : MonoBehaviour
 
     public void Stop()
     {
-        Rb.linearVelocity = Vector2.zero;
+        Rb.linearVelocity = new Vector2(0f, Rb.linearVelocity.y);
+    }
+
+    public void VerticalPatrol(ref int direction, ref Vector2 startPosition)
+    {
+
+        float delta = transform.position.y - startPosition.y;
+
+        if (delta >= Data.PatrolRange)
+        {
+            direction = -1;
+        }
+        else if (delta <= -Data.PatrolRange)
+        {
+            direction = 1;
+        }
+
+        Rb.linearVelocity = new Vector2(Rb.linearVelocity.x, direction * Data.PatrolSpeed);
+    }
+
+    public void HorizontalPatrol(ref int direction, ref Vector2 startPosition)
+    {
+        float delta = transform.position.x - startPosition.x;
+
+        if (delta >= Data.PatrolRange)
+        {
+            direction = -1;
+        }
+        else if (delta <= -Data.PatrolRange)
+        {
+            direction = 1;
+        }
+
+        Rb.linearVelocity = new Vector2(direction * Data.PatrolSpeed, Rb.linearVelocity.y);
+        FlipSprite(new Vector2(direction, 0));
+    }
+
+    public bool IsPlayerDetectionRange(Transform playerTransform)
+    {
+        float distance = Vector2.Distance(transform.position, playerTransform.position);
+        return distance <= Data.DetectionRange;
+    }
+
+    public bool IsPauseDurationElapsed(float elapsedTime)
+    {
+        return elapsedTime >= Data.PauseDuration;
+    }
+
+    public Vector2 GetDirectionToTarget(Transform playerTransform)
+    {
+        float dirX = playerTransform.position.x - transform.position.x;
+        return new Vector2(Mathf.Sign(dirX), 0f);
+    }
+
+    public bool IsChargeDurationElapsed(float elapsedTime)
+    {
+        return elapsedTime >= Data.ChargeDuration;
+    }
+
+    public bool IsInAttackRange(Transform playerTransform)
+    {
+        float distance = Vector2.Distance(transform.position, playerTransform.position);
+        return distance <= Data.AttackRange;
+    }
+
+    public bool TryResetAggro(float deltaTime, Transform playerTransform)
+    {
+        float distance = Vector2.Distance(transform.position, playerTransform.position);
+
+        if (distance > Data.DetectionRange)
+        {
+            _outOfRangeElapsed += deltaTime;
+
+            if (_outOfRangeElapsed >= Data.AggroResetTime)
+            {
+                _outOfRangeElapsed = 0f;
+                return true;
+            }
+        }
+        else
+        {
+            _outOfRangeElapsed = 0f;
+        }
+
+        return false;
     }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -71,20 +169,24 @@ public class MonsterController : MonoBehaviour
     {
         //Transform player = GameManager.Instance.GetPlayer().transform;
 
-        _btAgent.SetVariableValue("Self", gameObject);
+        //_btAgent.SetVariableValue("Self", gameObject);
         //_btAgent.SetVariableValue("PlayerTransform", player);
-        _btAgent.SetVariableValue("MoveSpeed", _data.MoveSpeed);
-        _btAgent.SetVariableValue("AttackRange", _data.AttackRange);
-        _btAgent.SetVariableValue("ChargeSpeed", _data.ChargeSpeed);
-        _btAgent.SetVariableValue("ChargeDuration", _data.ChargeDuration);
-        _btAgent.SetVariableValue("StunDuration", _data.StunDuration);
+        //_btAgent.SetVariableValue("MoveSpeed", _data.MoveSpeed);
+        //_btAgent.SetVariableValue("AttackRange", _data.AttackRange);
+        //_btAgent.SetVariableValue("ChargeSpeed", _data.ChargeSpeed);
+        //_btAgent.SetVariableValue("ChargeDuration", _data.ChargeDuration);
+        //_btAgent.SetVariableValue("StunDuration", _data.StunDuration);
+        //_btAgent.SetVariableValue("DetectionRange", _data.DetectionRange);
+        //_btAgent.SetVariableValue("AggroResetTime", _data.AggroResetTime);
         //_btAgent.SetVariableValue("WakeUpDuration", _data.WakeUpDuration);
-        _btAgent.SetVariableValue("DetectionRange", _data.DetectionRange);
-
-        _btAgent.SetVariableValue("Trigger1Detected", false);
-        _btAgent.SetVariableValue("Trigger2Detected", false);
+        _btAgent.SetVariableValue("Monster", this );
+        _btAgent.SetVariableValue("PlayerTransform", _playerTransform);
+        _btAgent.SetVariableValue("SoundTrigger", false);
+        _btAgent.SetVariableValue("VibTrigger", false);
+        _btAgent.SetVariableValue("IsDetected", false);
         _btAgent.SetVariableValue("IsStunned", false);
         _btAgent.SetVariableValue("IsAwake", false);
+        _btAgent.SetVariableValue("IsHit", false);
 
         //var ts = GameManagerDependencyInfo.Instance.GetTriggerSystem();
         //ts.OnSoundTriggered += HandleTrigger1;
@@ -115,17 +217,22 @@ public class MonsterController : MonoBehaviour
             return;
         }
 
-        StartCoroutine(KnockbackRoutine(hitDirection));
+        //StartCoroutine(KnockbackRoutine(hitDirection));
+        _lastHitDirection = hitDirection;
+        _btAgent.SetVariableValue("IsHit", true);
+        SetState(MonsterState.STUNNED);
     }
 
-    private IEnumerator KnockbackRoutine(Vector2 hitDirection)
-    {
-        CurrentState = MonsterState.STUNNED;
+    public Vector2 GetLastHitDirection() => _lastHitDirection;
 
-        Rb.linearVelocity = Vector2.zero;
-        Rb.AddForce(hitDirection * _data.KnockbackForce, ForceMode2D.Impulse);
+    //private IEnumerator KnockbackRoutine(Vector2 hitDirection)
+    //{
+    //    CurrentState = MonsterState.STUNNED;
 
-        yield return new WaitForSeconds(_data.KnockbackDuration);
+    //    Rb.linearVelocity = Vector2.zero;
+    //    Rb.AddForce(hitDirection * _data.KnockbackForce, ForceMode2D.Impulse);
+
+    //    yield return new WaitForSeconds(_data.KnockbackDuration);
 
         //switch (_data.HitReaction)
         //{
@@ -149,26 +256,27 @@ public class MonsterController : MonoBehaviour
         //        }
         //}
 
-    }
+    //}
 
     public void SetStunned()
     {
         _btAgent.SetVariableValue("IsStunned", true);
     }
 
-    public void ResetTrigger1()
+    public void ResetSoundTrigger()
     {
-        _btAgent.SetVariableValue("Trigger1Detected", false);
+        _btAgent.SetVariableValue("SoundTrigger", false);
     }
 
-    public void ResetTrigger2()
+    public void ResetVibTrigger()
     {
-        _btAgent.SetVariableValue("Trigger2Detected", false);
+        _btAgent.SetVariableValue("VibTrigger", false);
     }
 
-    private void Die()
+    public void Die()
     {
-        CurrentState = MonsterState.DEAD;
+        SetState(MonsterState.DEAD);
+        //CurrentState = MonsterState.DEAD;
         _btAgent.enabled = false;
         //OnDeath?.Invoke();
 
@@ -179,7 +287,34 @@ public class MonsterController : MonoBehaviour
         //    ts.OnVibrationTriggered -= HandleTrigger2;
         //}
 
-        Destroy(gameObject, 0.5f);
+        GameObject.Destroy(gameObject);
+    }
+
+    public void StartStun()
+    {
+        Stop();
+    }
+    
+    public bool IsStunFinished(float elapsed)
+    {
+        return elapsed >= Data.StunDuration;
+    }
+
+    public void StartKnockback(Transform playerTransform)
+    {
+        Vector2 knockbackDirection = (transform.position - playerTransform.position).normalized;
+        Stop();
+        Rb.AddForce(knockbackDirection * Data.KnockbackForce, ForceMode2D.Impulse);
+    }
+
+    public bool IsKnockbackFinished(float elapsed)
+    {
+        return elapsed >= Data.KnockbackDuration;
+    }
+
+    public void EndKnockback()
+    {
+        Stop();
     }
 
     private void OnDestroy()

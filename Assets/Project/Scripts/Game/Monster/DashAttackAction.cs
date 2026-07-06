@@ -5,30 +5,24 @@ using Action = Unity.Behavior.Action;
 using Unity.Properties;
 
 [Serializable, GeneratePropertyBag]
-[NodeDescription(name: "DashAttack", story: "[Self] dashes toward player with [MonsterData]", category: "Action", id: "83e6ea642d1bbae573edbe35dda98b94")]
+[NodeDescription(name: "DashAttack", story: "[Monster] dashes toward player", category: "Action", id: "83e6ea642d1bbae573edbe35dda98b94")]
 public partial class DashAttackAction : Action
 {
-    [SerializeReference] public BlackboardVariable<GameObject> Self;
-    [SerializeReference] public BlackboardVariable<MonsterData> MonsterData;
+    //[SerializeReference] public BlackboardVariable<GameObject> Self;
+    [SerializeReference] public BlackboardVariable<MonsterController> Monster;
     [SerializeReference] public BlackboardVariable<Transform> PlayerTransform;
     
-    private Rigidbody2D _rb;
     private Vector2 _dashDirection;
     float _elapsed;
 
     protected override Status OnStart()
     {
-        if (Self.Value == null || PlayerTransform.Value == null)
-        {
-            return Status.Failure;
-        }
-        _rb = Self.Value.GetComponent<Rigidbody2D>();
-        if (_rb == null)
+        if (Monster.Value == null || PlayerTransform.Value == null)
         {
             return Status.Failure;
         }
 
-        _dashDirection = (PlayerTransform.Value.position - Self.Value.transform.position).normalized;
+        _dashDirection = Monster.Value.GetDirectionToTarget(PlayerTransform.Value);
         _elapsed = 0f;
 
         return Status.Running;
@@ -36,20 +30,13 @@ public partial class DashAttackAction : Action
 
     protected override Status OnUpdate()
     {
-        if (_rb == null)
-        {
-            return Status.Failure;
-        }
-
         _elapsed += Time.deltaTime;
 
-        if (_elapsed <= MonsterData.Value.ChargeDuration)
+        if (!Monster.Value.IsChargeDurationElapsed(_elapsed))
         {
-            _rb.linearVelocity = _dashDirection * MonsterData.Value.ChargeSpeed;
-
+            Monster.Value.Move(_dashDirection, Monster.Value.Data.ChargeSpeed);
             return Status.Running;
         }
-
 
         //float distance = Vector2.Distance(Self.Value.transform.position,
         //    PlayerTransform.Value.position);
@@ -65,10 +52,7 @@ public partial class DashAttackAction : Action
 
     protected override void OnEnd()
     {
-        if (_rb != null)
-        {
-            _rb.linearVelocity = Vector2.zero;
-        }
+        Monster.Value.Stop();
     }
 }
 

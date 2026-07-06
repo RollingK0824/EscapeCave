@@ -5,25 +5,23 @@ using Action = Unity.Behavior.Action;
 using Unity.Properties;
 
 [Serializable, GeneratePropertyBag]
-[NodeDescription(name: "Stun", story: "[Self] is stunned by [MonsterData]", category: "Action", id: "c905ba70dca7cbe8530ef27a95ce2b96")]
+[NodeDescription(name: "Stun", story: "[Monster] is stunned", category: "Action", id: "c905ba70dca7cbe8530ef27a95ce2b96")]
 public partial class StunAction : Action
 {
-    [SerializeReference] public BlackboardVariable<GameObject> Self;
-    [SerializeReference] public BlackboardVariable<MonsterData> MonsterData;
+    //[SerializeReference] public BlackboardVariable<GameObject> Self;
+    [SerializeReference] public BlackboardVariable<MonsterController> Monster;
 
-    private Rigidbody2D _rb;
     private float _elapsed;
 
     protected override Status OnStart()
     {
-        _rb = Self.Value.GetComponent<Rigidbody2D>();
-        if (_rb == null || MonsterData.Value == null )
+        if (Monster.Value == null)
         {
             return Status.Failure;
         }
 
         _elapsed = 0f;
-        _rb.linearVelocity = Vector2.zero;
+        Monster.Value.StartStun();
 
         return Status.Running;
     }
@@ -34,7 +32,7 @@ public partial class StunAction : Action
 
         _elapsed += Time.deltaTime;
 
-        if (_elapsed >= MonsterData.Value.StunDuration)
+        if (Monster.Value.IsStunFinished(_elapsed))
         {
             return Status.Success;
         }
