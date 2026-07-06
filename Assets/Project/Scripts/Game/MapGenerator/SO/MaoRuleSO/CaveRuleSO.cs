@@ -4,38 +4,49 @@ using System.Collections.Generic;
 [CreateAssetMenu(fileName = "CaveRuleSO", menuName = "Scriptable Objects/CaveRuleSO")]
 public class CaveRuleSO : BaseMapRuleSO
 {
+    [Header("동굴 고유 설정")]
+    public int tunnelRadius = 6;
+    public int minJumpDistance = 4;
+    public int maxJumpDistance = 8;
 
-    protected override int CarveTerrain(int[,] mapData, List<Vector2Int> mainPath, int width, int height, int startY)
+    protected override int CarveTerrain(int[,] mapData, List<Vector2Int> mainPath, int totalWidth, int height, int startY, float seed)
     {
+        // 일관된 난수를 위해 필요 시 유니티 Random 시드를 일시 고정할 수 있습니다.
+        Random.InitState((int)seed);
+
         Vector2Int currentPos = new Vector2Int(0, startY);
 
-        while (currentPos.x < width - 15)
+        // [경계면 해결] 다음 청크 영역(totalWidth - 5)까지 뚫고 나가 끊김 현상을 방지
+        while (currentPos.x < totalWidth - 5)
         {
-            int nextX = Mathf.Min(currentPos.x + Random.Range(20, 40), width - 1);
+            int nextX = Mathf.Min(currentPos.x + Random.Range(20, 40), totalWidth - 1);
             int nextY = Random.Range(tunnelRadius + 5, height - tunnelRadius - 5);
-            Vector2Int nextWayPoint = new Vector2Int(nextX, nextY);
+            Vector2Int nextWaypoint = new Vector2Int(nextX, nextY);
 
-            while (currentPos != nextWayPoint)
+            while (currentPos != nextWaypoint)
             {
-                if (!mainPath.Contains(currentPos)) mainPath.Add(currentPos);
+                // 플랫폼은 화면에 보이는 가시 너비 안에서만 노드 등록
+                if (currentPos.x < chunkWidth && !mainPath.Contains(currentPos))
+                {
+                    mainPath.Add(currentPos);
+                }
 
-                // 드릴링 (원형으로 파내기)
-                CarveCircle(mapData, width, height, currentPos);
+                CarveCircle(mapData, totalWidth, height, currentPos, tunnelRadius);
 
-                // 목표를 향해 지그재그/수직으로 파고들기
-                if (currentPos.x < nextWayPoint.x && currentPos.y != nextWayPoint.y)
+                if (currentPos.x < nextWaypoint.x && currentPos.y != nextWaypoint.y)
                 {
                     if (Random.value < 0.5f) currentPos.x++;
-                    else currentPos.y += (nextWayPoint.y > currentPos.y) ? 1 : -1;
+                    else currentPos.y += (nextWaypoint.y > currentPos.y) ? 1 : -1;
                 }
-                else if (currentPos.x < nextWayPoint.x) currentPos.x++;
-                else if (currentPos.y != nextWayPoint.y) currentPos.y += (nextWayPoint.y > currentPos.y) ? 1 : -1;
+                else if (currentPos.x < nextWaypoint.x) currentPos.x++;
+                else if (currentPos.y != nextWaypoint.y) currentPos.y += (nextWaypoint.y > currentPos.y) ? 1 : -1;
             }
         }
-        return currentPos.y; // 이 청크의 최종 출구 높이 반환
+
+        return currentPos.y;
     }
 
-    protected override void PlacePaltforms(int[,] mapData, List<Vector2Int> mainPath, int width, int height)
+    protected override void PlacePlatforms(int[,] mapData, List<Vector2Int> mainPath, int visibleWidth, int height)
     {
         if (mainPath.Count == 0) return;
         Vector2Int lastPlatformEnd = mainPath[0];
@@ -51,11 +62,11 @@ public class CaveRuleSO : BaseMapRuleSO
                 int platformLength = Random.Range(3, 7);
                 bool isClear = true;
 
-                for (int x = pathNode.x - 1; x <= pathNode.x + platformLength; ++x)
+                for (int x = pathNode.x - 1; x <= pathNode.x + platformLength; x++)
                 {
-                    for (int y = platY - 1; y <= platY + 1; ++y)
+                    for (int y = platY - 1; y <= platY + 1; y++)
                     {
-                        if (x >= 0 && x < width && y >= 0 && y < height)
+                        if (x >= 0 && x < visibleWidth && y >= 0 && y < height)
                         {
                             if (mapData[x, y] == 2) { isClear = false; break; }
                         }
@@ -69,9 +80,9 @@ public class CaveRuleSO : BaseMapRuleSO
                     for (int i = 0; i < platformLength; i++)
                     {
                         int px = pathNode.x + i;
-                        if (px >= 0 && px < width && platY >= 0 && platY < height && mapData[px, platY] == 0)
+                        if (px >= 0 && px < visibleWidth && platY >= 0 && platY < height && mapData[px, platY] == 0)
                         {
-                            mapData[px, platY] = 2;
+                            mapData[px, platY] = 2; // ID 2: 발판 타일 매핑
                             actuallyPlaced++;
                         }
                     }
@@ -82,17 +93,20 @@ public class CaveRuleSO : BaseMapRuleSO
         }
     }
 
-    private void CarveCircle(int[,] mapData, int width, int height, Vector2Int center)
+    private void CarveCircle(int[,] mapData, int totalWidth, int height, Vector2Int center, int radius)
     {
-        for (int x = -tunnelRadius; x <= tunnelRadius; ++x)
+        for (int x = -radius; x <= radius; x++)
         {
-            for (int y = -tunnelRadius; y <= tunnelRadius; ++y)
+            for (int y = -radius; y <= radius; y++)
             {
-                int targetX = center.x + x;
-                int targetY = center.y + y;
-                if (targetX >= 0 && targetX < width & targetY >= 0 && targetY < height)
+                if (x * x + y * y <= radius * radius)
                 {
-                    mapData[targetX, targetY] = 0;
+                    int targetX = center.x + x;
+                    int targetY = center.y + y;
+                    if (targetX >= 0 && targetX < totalWidth && targetY >= 0 && targetY < height)
+                    {
+                        mapData[targetX, targetY] = 0; // 0: 허공
+                    }
                 }
             }
         }
