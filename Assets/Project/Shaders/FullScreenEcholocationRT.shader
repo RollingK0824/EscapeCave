@@ -43,25 +43,19 @@ Shader "Hidden/Custom/FullScreenEcholocationRT"
 
         float waveIntensity = maskColor.r;
 
-        // 휘도 기반 오브젝트 감지
-        float luminance = dot(screenColor.rgb , float3(0.299, 0.587, 0.114));
-        // 오브젝트가 있는지 판단 (원본 밝기 기준)
-        float hasObject = step(0.01, luminance);
+        float edge = saturate(fwidth(waveIntensity) * 8.0);
 
-        // 오브젝트가 있으면 원본 색상, 없으면 WaveColor 틴트
-        half3 revealedColor = lerp(
-            _WaveColor.rgb * _WaveHighlightIntensity, 
-            screenColor.rgb, 
-            hasObject
-    );
+        half3 revealedColor = screenColor.rgb + _WaveColor.rgb * _WaveHighlightIntensity * edge;
 
-    // 파동 강도로 암전과 합성
-    // 파동 없음(waveIntensity=0): BaseColor(검정) = 완전 암전
-    // 파동 있음(waveIntensity=1): revealedColor = 오브젝트 or 틴트
-    half3 finalRGB = lerp(_BaseColor.rgb, revealedColor, waveIntensity);
+        half3 finalRGB = lerp(
+            _BaseColor.rgb,
+            revealedColor,
+            waveIntensity
+            );
 
-    return half4(finalRGB, screenColor.a);
-}
+        return half4(finalRGB, screenColor.a);
+    }
+
     ENDHLSL
 
     SubShader
