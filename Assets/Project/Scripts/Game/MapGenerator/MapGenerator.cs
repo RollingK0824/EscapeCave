@@ -1,301 +1,103 @@
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Tilemaps;
 
 public class MapGenerator : MonoBehaviour
 {
-    [Header("타일맵 렌더러")]
-    public Tilemap tilemap;
+    [Header("추적 및 렌더링 설정")]
+    public Transform player;
+    public MapChunk chunkPrefab;
 
-    [Header("데이터 에셋 (Scriptable Object)")]
-    public TileDataSO tileSetData;
-    public StageManifestSO stageManifest;
+    [Header("스테이지 테마 리스트")]
+    public BaseMapRuleSO[] stageRules; // 0번: 동굴/산맥, 1번: 지하호수 등
+    private int _currentStageIndex = 0; // 현재 적용 중인 SO 인덱스
 
-    [Header("플랫폼 도약 보정치")]
-    public int maxJumpDistanceX = 4;
-    public int maxJumpDistanceY = 3;
+    // 풀링(Pooling) 관리를 위한 링 버퍼 변수들
+    private MapChunk[] _chunks = new MapChunk[3];
+    private int _currentChunkIdx = 0; // 현재 플레이어가 밟고 있는 청크의 배열 인덱스
+    private int _lastExitY;           // 이전 청크가 뚫어놓은 터널의 끝점 높이
 
-    private int[,] _mapData;
-    private List<Vector2Int> _mainPath;
+    private float _chunkWidth;
 
-    private int _currentWidth;
-    private int _currentHeight;
-
-    void Start()
+    private void Start()
     {
-        GenerateStage();
-    }
+        if (stageRules.Length == 0) return;
 
-    [ContextMenu("Generate Stage")]
-    public void GenerateStage()
-    {
-        if (tilemap == null || tileSetData == null || stageManifest == null)
+        // 첫 번째 룰을 기준으로 청크 가로 길이 캐싱
+        _chunkWidth = stageRules[_currentStageIndex].chunkWidth;
+
+        // 임의의 중간 지점 높이에서 최초 시작
+        _lastExitY = stageRules[_currentStageIndex].chunkHeight / 2;
+
+        int initialStartY = stageRules[_currentStageIndex].chunkHeight / 2;
+        _lastExitY = initialStartY;
+
+        InitializeChunks();
+
+        if(player != null)
         {
-            Debug.LogWarning("타일맵 또는 SO 데이터 에셋이 누락되었습니다.");
-            return;
-        }
-
-        // SO에서 설정한 스테이지 크기 가져오기
-        _currentWidth = stageManifest.stageWidth;
-        _currentHeight = stageManifest.stageHeight;
-
-        _mapData = new int[_currentWidth, _currentHeight];
-        _mainPath = new List<Vector2Int>();
-
-        tilemap.ClearAllTiles();
-        ClearObjects();
-
-        // Pass 0: 기본 외곽벽(ID 1) 채우기
-        InitializeMapWithWalls();
-
-        Pass1_CarveTunnel();
-        Pass2_AnchorPlatforms();
-        Pass3_PlaceEventsFlexibly(); // 세부 지형 제어가 포함된 이벤트 배치
-        Pass4_RenderToTilemap();
-    }
-
-    private void InitializeMapWithWalls()
-    {
-        for (int x = 0; x < _currentWidth; x++)
-        {
-            for (int y = 0; y < _currentHeight; y++)
+            if(player.TryGetComponent<Rigidbody2D>(out Rigidbody2D rb))
             {
-                _mapData[x, y] = 1; // 1번: 벽
-            }
-        }
-    }
-
-    private bool IsValidCoordinate(int x, int y)
-    {
-        return x >= 0 && x < _currentWidth && y >= 0 && y < _currentHeight;
-    }
-
-    private void Pass1_CarveTunnel()
-    {
-        Vector2Int current = new Vector2Int(10, 10);
-        Vector2Int end = new Vector2Int(_currentWidth - 15, _currentHeight - 15);
-        int radius = stageManifest.tunnelRadius;
-
-        while (current.x < end.x || current.y < end.y)
-        {
-            if (!_mainPath.Contains(current)) _mainPath.Add(current);
-
-            CarveCircle(current, radius);
-
-            int dir = Random.Range(0, 100);
-
-            if (dir < 40)
-            {
-                // 40% 확률로 수평 직진
-                current.x++;
-            }
-            else if (dir < 70)
-            {
-                // 30% 확률로 상향 대각선 이동 (단, 천장을 뚫지 않는 선에서)
-                if (current.y < _currentHeight - radius - 5) current.y++;
-                current.x++;
+                rb.linearVelocity = Vector2.zero;
+                rb.position = new Vector2(2f, initialStartY);
             }
             else
             {
-                // 30% 확률로 하향 대각선 이동 (단, 바닥을 뚫지 않는 선에서)
-                if (current.y > radius + 5) current.y--;
-                current.x++;
+                player.position = new Vector3(2f, initialStartY, player.position.z);
             }
         }
     }
 
-    private void CarveCircle(Vector2Int center, int radius)
+    private void InitializeChunks()
     {
-        for (int x = -radius; x <= radius; x++)
-            for (int y = -radius; y <= radius; y++)
-                if (x * x + y * y <= radius * radius)
-                {
-                    int nx = center.x + x;
-                    int ny = center.y + y;
-
-                    if (nx > 2 && nx < _currentWidth - 2 && ny > 2 && ny < _currentHeight - 2)
-                        _mapData[nx, ny] = 0;
-                }
-    }
-
-    private void Pass2_AnchorPlatforms()
-    {
-        if (_mainPath.Count == 0) return;
-
-        // 거리 측정의 기준을 '가장 최근에 생성된 발판의 끝부분'으로 잡습니다.
-        Vector2Int lastPlatformEnd = _mainPath[0];
-
-        foreach (Vector2Int pathNode in _mainPath)
+        for (int i = 0; i < 3; i++)
         {
-            int distX = Mathf.Abs(pathNode.x - lastPlatformEnd.x);
-            int distY = Mathf.Abs(pathNode.y - lastPlatformEnd.y);
+            _chunks[i] = Instantiate(chunkPrefab, transform);
 
-            // X나 Y 중 하나라도 점프 한계치에 다다랐을 때 생성 시도
-            if (distX >= maxJumpDistanceX || distY >= maxJumpDistanceY)
-            {
-                int platY = pathNode.y - 2;
-                int platformLength = Random.Range(3, 7); // 3~6칸의 넓직한 수평 발판
+            // 위치 지정: 0번은 기준점, 1번은 미래(앞), 2번은 과거(뒤, 방어용)
+            // 즉 [-width, 0, +width] 순서로 배치됩니다.
+            float posX = i * _chunkWidth;
+            _chunks[i].transform.position = new Vector3(posX, 0, 0);
 
-                // [핵심 해결책] 1. 발판 주변 안전거리(Clearance) 검사
-                bool isClear = true;
-
-                // 생성하려는 발판의 상하좌우+대각선 1칸씩을 모두 스캔합니다.
-                for (int x = pathNode.x - 1; x <= pathNode.x + platformLength; x++)
-                {
-                    for (int y = platY - 1; y <= platY + 1; y++)
-                    {
-                        if (IsValidCoordinate(x, y))
-                        {
-                            // 주변에 이미 발판(2번)이 단 1칸이라도 있다면 무효 처리 (계단화 원천 차단)
-                            if (_mapData[x, y] == 2)
-                            {
-                                isClear = false;
-                                break;
-                            }
-                        }
-                    }
-                    if (!isClear) break;
-                }
-
-                // 주변이 완벽하게 비어있을 때만(isClear == true) 수평 발판 생성
-                if (isClear)
-                {
-                    int actuallyPlaced = 0;
-                    for (int i = 0; i < platformLength; i++)
-                    {
-                        int px = pathNode.x + i;
-
-                        // 바깥 벽(1번)을 파먹지 않고 허공(0번)인 곳에만 일직선으로 배치
-                        if (IsValidCoordinate(px, platY) && _mapData[px, platY] == 0)
-                        {
-                            _mapData[px, platY] = 2; // 2번: 발판 배치
-                            actuallyPlaced++;
-                        }
-                    }
-
-                    // 하나라도 정상 배치되었다면, 다음 거리 측정을 위해 기준점을 갱신
-                    if (actuallyPlaced > 0)
-                    {
-                        // 새로 생성된 발판의 제일 '오른쪽 끝' 좌표로 갱신하여 겹침 방지
-                        lastPlatformEnd = new Vector2Int(pathNode.x + actuallyPlaced - 1, platY);
-                    }
-                }
-            }
+            // 맵 생성 및 끝점 갱신 (2번 과거 청크는 시작하자마자 지워질 운명이므로 생성 생략해도 무방하나 통일성을 위해 생성)
+            _lastExitY = _chunks[i].BuildMap(stageRules[_currentStageIndex], _lastExitY);
         }
     }
 
-    private void Pass3_PlaceEventsFlexibly()
+    private void Update()
     {
-        var sequence = stageManifest.eventSequence;
-        if (sequence == null || sequence.Count == 0) return;
+        // 최적화: 매 프레임 플레이어의 X 위치만 단순 비교 (물리 연산 X)
+        // 플레이어가 '현재 청크'의 중간 지점(50%)을 넘어가면 다음 청크를 앞으로 당겨옵니다.
+        float shiftThreshold = _chunks[_currentChunkIdx].transform.position.x + (_chunkWidth * 0.5f);
 
-        int currentEventIndex = 0;
-        int distanceSinceLastEvent = 0;
-
-        for (int i = 0; i < _mainPath.Count; i++)
+        if (player.position.x > shiftThreshold)
         {
-            distanceSinceLastEvent++;
-            if (currentEventIndex >= sequence.Count) break;
-
-            StageEvent currentEvent = sequence[currentEventIndex];
-            if (distanceSinceLastEvent < currentEvent.minProgressDistance) continue;
-
-            float finalChance = currentEvent.spawnChance + ((float)i / _mainPath.Count * 0.1f);
-
-            if (Random.value < finalChance)
-            {
-                Vector2Int spawnNode = _mainPath[i];
-
-                bool success = PlaceFlexibleObject(spawnNode, currentEvent);
-
-                if (success)
-                {
-                    currentEventIndex++;
-                    distanceSinceLastEvent = 0;
-                }
-            }
+            ShiftChunks();
         }
     }
 
-    private bool PlaceFlexibleObject(Vector2Int pathPoint, StageEvent ev)
+    private void ShiftChunks()
     {
-        int checkX = pathPoint.x;
-        if (checkX < 1 || checkX >= _currentWidth - 1) return false;
+        // 링 버퍼 논리를 이용해 인덱스 계산 (나머지 연산자 활용)
+        int pastIdx = (_currentChunkIdx + 2) % 3;   // 버려질 맨 뒤의 과거 청크
+        int futureIdx = (_currentChunkIdx + 1) % 3; // 현재의 바로 앞 청크 (미래)
 
-        // 아래 방향 수직 스캔
-        for (int y = pathPoint.y; y > 2; y--)
-        {
-            if (!IsValidCoordinate(checkX,y)) continue;
+        float maxPosX = Mathf.Max(
+            _chunks[0].transform.position.x,
+            _chunks[1].transform.position.x,
+            _chunks[2].transform.position.x
+            );
 
-            // 땅을 발견했을 때 (ID 2: 발판 또는 ID 1: 벽)
-            if (_mapData[checkX, y] == 2 || _mapData[checkX, y] == 1)
-            {
-                int originY = y + 1; // 오브젝트가 배치될 중심 Y 좌표
+        // 1. 과거 청크를 미래 청크의 바로 앞(다음 위치)으로 순간이동
+        float newPosX = maxPosX + _chunkWidth;
+        _chunks[pastIdx].transform.position = new Vector3(newPosX, 0, 0);
 
-                if (ev.terrainModifiers != null)
-                {
-                    foreach (TileModifier mod in ev.terrainModifiers)
-                    {
-                        // 오프셋을 적용한 실질적 시작 타일 좌표 계산
-                        int startX = checkX + mod.offset.x;
-                        int startY = originY + mod.offset.y;
+        // [확장성] 여기서 점수나 진행도에 따라 _currentStageIndex를 올려주면 
+        // 다음 청크부터는 완전히 새로운 테마(SO)로 맵이 그려집니다!
+        BaseMapRuleSO currentRule = stageRules[_currentStageIndex];
 
-                        // 지정된 Size 만큼 타일 배열 변경 루프
-                        for (int rx = 0; rx < mod.size.x; rx++)
-                        {
-                            for (int ry = 0; ry < mod.size.y; ry++)
-                            {
-                                int targetX = startX + rx;
-                                int targetY = startY + ry;
+        // 2. 위치를 옮긴 청크에게 새로운 맵을 그리라고 지시 (데이터 덮어쓰기)
+        _lastExitY = _chunks[pastIdx].BuildMap(currentRule, _lastExitY);
 
-                                // 맵 경계선을 벗어나지 않는 안전 검사 후 배열 덮어쓰기
-                                if (IsValidCoordinate(targetX,targetY)&&tileSetData.IsValidTileID(mod.targetTileID))
-                                {
-                                    _mapData[targetX, targetY] = mod.targetTileID;
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // 기믹 프리팹 월드 스폰
-                Vector3 spawnPos = new Vector3(checkX + 0.5f, originY, 0f);
-                if (ev.prefab != null)
-                {
-                    GameObject go = Instantiate(ev.prefab, spawnPos, Quaternion.identity, transform);
-                    go.name = ev.eventName;
-                }
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private void Pass4_RenderToTilemap()
-    {
-        for (int x = 0; x < _currentWidth; x++)
-        {
-            for (int y = 0; y < _currentHeight; y++)
-            {
-                int tileID = _mapData[x, y];
-                if (tileSetData.IsValidTileID(tileID) && tileSetData.tiles[tileID] != null)
-                {
-                    tilemap.SetTile(new Vector3Int(x, y, 0), tileSetData.tiles[tileID]);
-                }
-                else
-                {
-                    tilemap.SetTile(new Vector3Int(x, y, 0), null);
-                }
-            }
-        }
-    }
-
-    private void ClearObjects()
-    {
-        for (int i = transform.childCount - 1; i >= 0; i--)
-        {
-            GameObject child = transform.GetChild(i).gameObject;
-            if (child != tilemap.gameObject) DestroyImmediate(child);
-        }
+        // 3. 인덱스 업데이트 (미래 청크가 이제 '현재 청크'가 됨)
+        _currentChunkIdx = futureIdx;
     }
 }
