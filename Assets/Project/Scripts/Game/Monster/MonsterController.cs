@@ -45,6 +45,13 @@ public class MonsterController : MonoBehaviour
 
         Animator = GetComponent<Animator>();
         _btAgent = GetComponent<BehaviorGraphAgent>();
+
+        _btAgent.SetVariableValue("Monster", this);
+        _btAgent.SetVariableValue("SoundTrigger", false);
+        _btAgent.SetVariableValue("VibTrigger", false);
+        _btAgent.SetVariableValue("IsDetected", false);
+        _btAgent.SetVariableValue("IsHit", false);
+        _btAgent.SetVariableValue("HitReaction", _data.HitReaction);
     }
 
     public void Move(Vector2 direction, float speed)
@@ -152,15 +159,7 @@ public class MonsterController : MonoBehaviour
 
     private void Start()
     {
-        _btAgent.SetVariableValue("Monster", this );
         _btAgent.SetVariableValue("PlayerTransform", _playerTransform);
-        _btAgent.SetVariableValue("SoundTrigger", false);
-        _btAgent.SetVariableValue("VibTrigger", false);
-        _btAgent.SetVariableValue("IsDetected", false);
-        _btAgent.SetVariableValue("IsStunned", false);
-        _btAgent.SetVariableValue("IsAwake", false);
-        _btAgent.SetVariableValue("IsHit", false);
-        _btAgent.SetVariableValue("HitReaction", _data.HitReaction);
     }
 
     public void TakeDamage(int damage, Vector2 hitDirection)

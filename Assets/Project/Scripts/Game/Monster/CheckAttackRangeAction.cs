@@ -15,15 +15,26 @@ public partial class CheckAttackRangeAction : Action
     {
         if (Monster.Value == null || PlayerTransform.Value == null)
         {
+            Debug.Log("[CheckAttackRange] Monster 또는 PlayerTransform이 null입니다");
             return Status.Failure;
         }
 
-        if (Monster.Value.IsInAttackRange(PlayerTransform.Value))
+        bool inRange = Monster.Value.IsInAttackRange(PlayerTransform.Value);
+        Debug.Log($"[CheckAttackRange] 실행 중 - inRange: {inRange}");
+
+        if (inRange)
         {
             return Status.Success;
         }
 
         return Status.Failure;
+
+        //if (Monster.Value.IsInAttackRange(PlayerTransform.Value))
+        //{
+        //    return Status.Success;
+        //}
+
+        //return Status.Failure;
     }
 }
 

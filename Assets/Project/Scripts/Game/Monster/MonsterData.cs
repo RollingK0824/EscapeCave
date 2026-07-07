@@ -16,7 +16,6 @@ public enum HitReaction
     None,   // 야광 꽃게 (공격 불가, 반응 없음)
     Die,    // 박쥐
     Stun,   // 쥐
-    Knockback,  // 물고기
 }
 
 [System.Flags]
