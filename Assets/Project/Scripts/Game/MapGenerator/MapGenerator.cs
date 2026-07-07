@@ -1,75 +1,64 @@
 using UnityEngine;
+using UnityEngine.Tilemaps;
 
 public class MapGenerator : MonoBehaviour
 {
-    [Header("추적 및 렌더링 설정")]
+    [Header("단일 글로벌 타일맵 및 추적")]
     public Transform player;
-    public MapChunk chunkPrefab;
+    public Tilemap globalTilemap;
 
     [Header("스테이지 테마 리스트")]
     public BaseMapRuleSO[] stageRules;
-    private int _currentStageIndex = 0;
 
-    [Header("시드 시스템 통제")]
-    public float masterSeed; // 인스펙터에서 고정 시드를 입력해 테스트할 수도 있음
+    [Header("시드 시스템")]
+    public float masterSeed;
     public bool useRandomSeedAtStart = true;
 
-    private MapChunk[] _chunks = new MapChunk[3];
+    private int[] _chunkOffsets = new int[3];
     private int _currentChunkIdx = 0;
     private int _lastExitY;
-    private float _chunkWidth;
-
-    // 몇 번째 청크를 생성 중인지 카운트하여 각 청크마다 고유한 난수 시드 제공
+    private int _chunkWidth;
     private int _chunkGenerationCount = 0;
+
+    private int[,] _mapDataBuffer;
+    private TileBase[] _clearBuffer;
+    private Vector2Int _lastPlatformLocal;
 
     private void Start()
     {
         if (stageRules.Length == 0) return;
+        if (useRandomSeedAtStart) masterSeed = Random.Range(0f, 50000f);
 
-        // 첫 번째 룰을 기준으로 청크 가로 길이 캐싱
-        _chunkWidth = stageRules[_currentStageIndex].chunkWidth;
+        BaseMapRuleSO initialRule = stageRules[0];
+        _chunkWidth = initialRule.chunkWidth;
+        _lastExitY = initialRule.chunkHeight / 2;
+        _lastPlatformLocal = new Vector2Int(0, _lastExitY);
 
-        // 임의의 중간 지점 높이에서 최초 시작
-        _lastExitY = stageRules[_currentStageIndex].chunkHeight / 2;
+        _mapDataBuffer = new int[_chunkWidth, initialRule.chunkHeight];
+        _clearBuffer = new TileBase[_chunkWidth * initialRule.chunkHeight];
 
-        int initialStartY = stageRules[_currentStageIndex].chunkHeight / 2;
-        _lastExitY = initialStartY;
-
-        InitializeChunks();
-
-        if (player != null)
-        {
-            if (player.TryGetComponent<Rigidbody2D>(out Rigidbody2D rb))
-            {
-                rb.linearVelocity = Vector2.zero;
-                rb.position = new Vector2(2f, initialStartY);
-            }
-            else
-            {
-                player.position = new Vector3(2f, initialStartY, player.position.z);
-            }
-        }
+        InitializeGlobalMap();
     }
 
-    private void InitializeChunks()
+    private void InitializeGlobalMap()
     {
         for (int i = 0; i < 3; i++)
         {
-            _chunks[i] = Instantiate(chunkPrefab, transform);
+            _chunkOffsets[i] = i * _chunkWidth;
+            int randomIdx = Random.Range(0, stageRules.Length);
+            BaseMapRuleSO randomRule = stageRules[randomIdx];
+            float chunkSeed = masterSeed + _chunkGenerationCount++;
 
-            float posX = i * _chunkWidth;
-            _chunks[i].transform.position = new Vector3(posX, 0, 0);
+            _lastExitY = randomRule.GenerateChunk(
+                globalTilemap, _mapDataBuffer, _chunkOffsets[i], _lastExitY, chunkSeed, _lastPlatformLocal, out Vector2Int newPlatformEnd);
 
-            float chunkSeed = masterSeed + _chunkGenerationCount;
-            ++_chunkGenerationCount;
-
-            _lastExitY = _chunks[i].BuildMap(stageRules[_currentStageIndex], _lastExitY, chunkSeed);
+            _lastPlatformLocal = new Vector2Int(newPlatformEnd.x - _chunkWidth, newPlatformEnd.y);
         }
     }
 
     private void Update()
     {
-        float shiftThreshold = _chunks[_currentChunkIdx].transform.position.x + (_chunkWidth * 1.5f);
+        float shiftThreshold = _chunkOffsets[_currentChunkIdx] + (_chunkWidth * 1.5f);
 
         if (player.position.x > shiftThreshold)
         {
@@ -82,21 +71,21 @@ public class MapGenerator : MonoBehaviour
         int pastIdx = _currentChunkIdx;
         int futureIdx = (_currentChunkIdx + 1) % 3;
 
-        float maxPosX = Mathf.Max(
-            _chunks[0].transform.position.x,
-            _chunks[1].transform.position.x,
-            _chunks[2].transform.position.x
-        );
+        BoundsInt clearBounds = new BoundsInt(_chunkOffsets[pastIdx], 0, 0, _chunkWidth, stageRules[0].chunkHeight, 1);
+        globalTilemap.SetTilesBlock(clearBounds, _clearBuffer);
 
-        float newPosX = maxPosX + _chunkWidth;
-        _chunks[pastIdx].transform.position = new Vector3(newPosX, 0, 0);
+        float maxPosX = Mathf.Max(_chunkOffsets[0], _chunkOffsets[1], _chunkOffsets[2]);
+        int newOffsetX = Mathf.RoundToInt(maxPosX + _chunkWidth);
+        _chunkOffsets[pastIdx] = newOffsetX;
 
-        BaseMapRuleSO currentRule = stageRules[_currentStageIndex];
-        float chunkSeed = masterSeed + _chunkGenerationCount;
-        _chunkGenerationCount++;
+        int randomIdx = Random.Range(0, stageRules.Length);
+        BaseMapRuleSO currentRule = stageRules[randomIdx];
+        float chunkSeed = masterSeed + _chunkGenerationCount++;
 
-        _lastExitY = _chunks[pastIdx].BuildMap(currentRule, _lastExitY, chunkSeed);
+        _lastExitY = currentRule.GenerateChunk(
+            globalTilemap, _mapDataBuffer, newOffsetX, _lastExitY, chunkSeed, _lastPlatformLocal, out Vector2Int newPlatformEnd);
 
+        _lastPlatformLocal = new Vector2Int(newPlatformEnd.x - _chunkWidth, newPlatformEnd.y);
         _currentChunkIdx = futureIdx;
     }
 }

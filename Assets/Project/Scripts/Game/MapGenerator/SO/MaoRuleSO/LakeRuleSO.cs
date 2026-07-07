@@ -12,50 +12,53 @@ public class LakeRuleSO : BaseMapRuleSO
     public int minFloorHeight = 2;
     public int ceilingHeight = 45;
 
-    protected override int CarveTerrain(int[,] mapData, List<Vector2Int> mainPath, int totalWidth, int height, int startY, float seed)
+    protected override int CarveTerrain(int[,] mapData, int startY)
     {
-        Random.InitState((int)seed);
-
-        for (int x = 0; x < totalWidth; x++)
+        for (int x = 0; x < chunkWidth; x++)
         {
-            float noise = Mathf.PerlinNoise((x * floorNoiseScale) + seed, 0f);
+            float noise = Mathf.PerlinNoise((x * floorNoiseScale) + currentSeed, 0f);
             int floorY = minFloorHeight + Mathf.FloorToInt(noise * (maxFloorHeight - minFloorHeight));
 
             for (int y = floorY; y < ceilingHeight; y++)
             {
-                if (y < height) mapData[x, y] = 0;
+                if (y < chunkHeight) mapData[x, y] = 0;
             }
 
             for (int y = floorY; y <= waterLevel; y++)
             {
-                if (y < height && mapData[x, y] == 0) mapData[x, y] = 3;
+                if (y < chunkHeight && mapData[x, y] == 0) mapData[x, y] = 3;
             }
+
+            if (x == 15) mainPath.Add(new Vector2Int(x, waterLevel + 4));
         }
         return waterLevel + 4;
     }
 
-    protected override void PlacePlatforms(int[,] mapData, List<Vector2Int> mainPath, int visibleWidth, int height)
+    protected override Vector2Int PlacePlatforms(int[,] mapData, Vector2Int startPlatform)
     {
-        int currentX = Random.Range(3, 7);
+        Vector2Int lastPlatformEnd = startPlatform;
 
-        while (currentX < visibleWidth - 5)
+        int currentX = lastPlatformEnd.x + Random.Range(3, 7);
+        if (currentX < 0) currentX = 0;
+
+        while (currentX < chunkWidth - 5)
         {
-            currentX += Random.Range(3, 7);
-
             int platLength = Random.Range(4, 9);
-
             int platY = waterLevel + Random.Range(3, 10);
 
             for (int i = 0; i < platLength; i++)
             {
                 int px = currentX + i;
-                if (px < visibleWidth && mapData[px, platY] == 0)
+                if (px < chunkWidth && mapData[px, platY] == 0)
                 {
-                    mapData[px, platY] = 2; // 발판 타일 적용
+                    mapData[px, platY] = 2;
                 }
             }
 
-            currentX += platLength;
+            lastPlatformEnd = new Vector2Int(currentX + platLength - 1, platY);
+            currentX += platLength + Random.Range(3, 7);
         }
+
+        return lastPlatformEnd;
     }
 }

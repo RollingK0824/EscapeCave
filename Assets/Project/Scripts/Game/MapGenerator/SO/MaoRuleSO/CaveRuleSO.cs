@@ -9,29 +9,21 @@ public class CaveRuleSO : BaseMapRuleSO
     public int minJumpDistance = 4;
     public int maxJumpDistance = 8;
 
-    protected override int CarveTerrain(int[,] mapData, List<Vector2Int> mainPath, int totalWidth, int height, int startY, float seed)
+    protected override int CarveTerrain(int[,] mapData, int startY)
     {
-        // 일관된 난수를 위해 필요 시 유니티 Random 시드를 일시 고정할 수 있습니다.
-        Random.InitState((int)seed);
-
         Vector2Int currentPos = new Vector2Int(0, startY);
 
-        // [경계면 해결] 다음 청크 영역(totalWidth - 5)까지 뚫고 나가 끊김 현상을 방지
-        while (currentPos.x < totalWidth - 5)
+        while (currentPos.x < chunkWidth - 5)
         {
-            int nextX = Mathf.Min(currentPos.x + Random.Range(20, 40), totalWidth - 1);
-            int nextY = Random.Range(tunnelRadius + 5, height - tunnelRadius - 5);
+            int nextX = Mathf.Min(currentPos.x + Random.Range(20, 40), chunkWidth - 1);
+            int nextY = Random.Range(tunnelRadius + 5, chunkHeight - tunnelRadius - 5);
             Vector2Int nextWaypoint = new Vector2Int(nextX, nextY);
 
             while (currentPos != nextWaypoint)
             {
-                // 플랫폼은 화면에 보이는 가시 너비 안에서만 노드 등록
-                if (currentPos.x < chunkWidth && !mainPath.Contains(currentPos))
-                {
-                    mainPath.Add(currentPos);
-                }
+                if (!mainPath.Contains(currentPos)) mainPath.Add(currentPos);
 
-                CarveCircle(mapData, totalWidth, height, currentPos, tunnelRadius);
+                CarveCircle(mapData, currentPos, tunnelRadius);
 
                 if (currentPos.x < nextWaypoint.x && currentPos.y != nextWaypoint.y)
                 {
@@ -42,14 +34,12 @@ public class CaveRuleSO : BaseMapRuleSO
                 else if (currentPos.y != nextWaypoint.y) currentPos.y += (nextWaypoint.y > currentPos.y) ? 1 : -1;
             }
         }
-
         return currentPos.y;
     }
 
-    protected override void PlacePlatforms(int[,] mapData, List<Vector2Int> mainPath, int visibleWidth, int height)
+    protected override Vector2Int PlacePlatforms(int[,] mapData, Vector2Int startPlatform)
     {
-        if (mainPath.Count == 0) return;
-        Vector2Int lastPlatformEnd = mainPath[0];
+        Vector2Int lastPlatformEnd = startPlatform;
 
         foreach (Vector2Int pathNode in mainPath)
         {
@@ -66,10 +56,8 @@ public class CaveRuleSO : BaseMapRuleSO
                 {
                     for (int y = platY - 1; y <= platY + 1; y++)
                     {
-                        if (x >= 0 && x < visibleWidth && y >= 0 && y < height)
-                        {
+                        if (x >= 0 && x < chunkWidth && y >= 0 && y < chunkHeight)
                             if (mapData[x, y] == 2) { isClear = false; break; }
-                        }
                     }
                     if (!isClear) break;
                 }
@@ -80,9 +68,9 @@ public class CaveRuleSO : BaseMapRuleSO
                     for (int i = 0; i < platformLength; i++)
                     {
                         int px = pathNode.x + i;
-                        if (px >= 0 && px < visibleWidth && platY >= 0 && platY < height && mapData[px, platY] == 0)
+                        if (px >= 0 && px < chunkWidth && platY >= 0 && platY < chunkHeight && mapData[px, platY] == 0)
                         {
-                            mapData[px, platY] = 2; // ID 2: 발판 타일 매핑
+                            mapData[px, platY] = 2;
                             actuallyPlaced++;
                         }
                     }
@@ -91,9 +79,10 @@ public class CaveRuleSO : BaseMapRuleSO
                 }
             }
         }
+        return lastPlatformEnd;
     }
 
-    private void CarveCircle(int[,] mapData, int totalWidth, int height, Vector2Int center, int radius)
+    private void CarveCircle(int[,] mapData, Vector2Int center, int radius)
     {
         for (int x = -radius; x <= radius; x++)
         {
@@ -103,9 +92,9 @@ public class CaveRuleSO : BaseMapRuleSO
                 {
                     int targetX = center.x + x;
                     int targetY = center.y + y;
-                    if (targetX >= 0 && targetX < totalWidth && targetY >= 0 && targetY < height)
+                    if (targetX >= 0 && targetX < chunkWidth && targetY >= 0 && targetY < chunkHeight)
                     {
-                        mapData[targetX, targetY] = 0; // 0: 허공
+                        mapData[targetX, targetY] = 0;
                     }
                 }
             }
