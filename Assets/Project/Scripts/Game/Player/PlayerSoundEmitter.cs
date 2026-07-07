@@ -23,6 +23,7 @@ public class PlayerSoundEmitter : MonoBehaviour, IEchoable
     public void Echo()
     {
         EchoManager.Instance.TriggerSound(transform.position, SoundIntensity, SoundSpeed);
+        Debug.Log($"PlayerSoundEmitter) position : ({transform.position})");
     }
 
     public void Cry()

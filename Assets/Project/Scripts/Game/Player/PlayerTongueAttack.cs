@@ -77,6 +77,7 @@ public class PlayerTongueAttack : MonoBehaviour
         }
 
         soundEmitter?.Echo();
+        Debug.Log($"PlayerTongueAttack) position : ({transform.position})");
         StartCoroutine(TongueRoutine(targetPos));
     }
     private Vector3 GetMouseWorldPosition()
@@ -110,30 +111,43 @@ public class PlayerTongueAttack : MonoBehaviour
         }
 
         // ===== 판정 =====
-        List<Transform> grabbedItems = new List<Transform>();
-        IHookable hookTarget = null;
-
         Collider2D[] hits = Physics2D.OverlapCircleAll(targetPosition, hitRadius);
+
+        // 1단계: 갈고리 대상부터 먼저 "확정"만 한다 (다른 판정과 절대 섞지 않음)
+        IHookable hookTarget = null;
         foreach (var hit in hits)
         {
-            if (hookTarget == null)
+            // 1순위: 특수 갈고리 포인트(IHookable)가 명시적으로 붙어있는 경우
+            if (hit.TryGetComponent<IHookable>(out var hookable) && hookable.CanHook)
             {
-                // 1순위: 특수 갈고리 포인트(IHookable)가 명시적으로 붙어있는 경우
-                if (hit.TryGetComponent<IHookable>(out var hookable) && hookable.CanHook)
-                {
-                    hookTarget = hookable;
-                    continue;
-                }
-
-                // 2순위: 일반 벽/플랫폼 - 레이어만으로 판정 (개별 스크립트 불필요)
-                if (((1 << hit.gameObject.layer) & grappleableLayer) != 0)
-                {
-                    Vector3 point = hit.ClosestPoint(targetPosition);
-                    hookTarget = new StaticHookPoint(point);
-                    continue;
-                }
+                hookTarget = hookable;
+                break;
             }
 
+            // 2순위: 일반 벽/플랫폼 - 레이어만으로 판정 (개별 스크립트 불필요)
+            if (((1 << hit.gameObject.layer) & grappleableLayer) != 0)
+            {
+                Vector3 point = hit.ClosestPoint(targetPosition);
+                hookTarget = new StaticHookPoint(point);
+                break;
+            }
+        }
+
+        // ===== 갈고리에 걸렸으면: 그랩/공격 판정은 아예 실행하지 않고 스윙으로 위임 후 종료 =====
+        // (여기서 바로 종료해야, 같은 판정 범위 안에 있던 아이템이
+        //  콜라이더만 꺼진 채 방치되는 버그가 발생하지 않음)
+        if (hookTarget != null)
+        {
+            tongueVisual.enabled = false;
+            grappleHook.StartHook(hookTarget.HookPoint);
+            isAttacking = false;
+            yield break;
+        }
+
+        // 2단계: 갈고리 대상이 없을 때만 공격/그랩 판정 진행
+        List<Transform> grabbedItems = new List<Transform>();
+        foreach (var hit in hits)
+        {
             if (hit.TryGetComponent<IDamageable>(out var damageable))
             {
                 damageable.TakeDamage(attackDamage);
@@ -146,15 +160,6 @@ public class PlayerTongueAttack : MonoBehaviour
                 hit.enabled = false;
                 grabbedItems.Add(grabbable.GrabTransform);
             }
-        }
-
-        // ===== 갈고리에 걸렸으면: 그랩 애니메이션 없이 스윙으로 위임하고 종료 =====
-        if (hookTarget != null)
-        {
-            tongueVisual.enabled = false;
-            grappleHook.StartHook(hookTarget.HookPoint);
-            isAttacking = false;
-            yield break;
         }
 
         // ===== 되돌아오는 구간: 그랩된 아이템도 같이 따라옴 =====
