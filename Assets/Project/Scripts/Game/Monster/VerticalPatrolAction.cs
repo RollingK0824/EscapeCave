@@ -8,7 +8,6 @@ using Unity.Properties;
 [NodeDescription(name: "VerticalPatrol", story: "[Monster] patrols vertically", category: "Action/Monster/Patrol", id: "d0f64c0321fce6c3d58efb6dad6347df")]
 public partial class VerticalPatrolAction : Action
 {
-    //[SerializeReference] public BlackboardVariable<GameObject> Self;
     [SerializeReference] public BlackboardVariable<MonsterController> Monster;
 
     private MonsterController _monster;

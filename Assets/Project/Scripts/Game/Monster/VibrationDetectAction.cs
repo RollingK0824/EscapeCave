@@ -5,11 +5,10 @@ using Action = Unity.Behavior.Action;
 using Unity.Properties;
 
 [Serializable, GeneratePropertyBag]
-[NodeDescription(name: "VibrationDetect", story: "[Monster] detects player by vibration and sets [IsDetected]", category: "Action", id: "c26d4dec80107dcea804347f1d9b00b1")]
+[NodeDescription(name: "VibrationDetect", story: "[Monster] detects player by vibration and sets [IsDetected]", category: "Action/Monster/Detect", id: "c26d4dec80107dcea804347f1d9b00b1")]
+
 public partial class VibrationDetectAction : Action
 {
-    //[SerializeReference] public BlackboardVariable<GameObject> Self;
-    //[SerializeReference] public BlackboardVariable<float> DetectionRange;
     [SerializeReference] public BlackboardVariable<MonsterController> Monster;
     [SerializeReference] public BlackboardVariable<Transform> PlayerTransform;
     [SerializeReference] public BlackboardVariable<bool> IsDetected;
@@ -27,19 +26,12 @@ public partial class VibrationDetectAction : Action
 
     protected override Status OnUpdate()
     {
-        //IVibrationTrigger vibrationTrigger = Self.Value.GetComponent<IVibrationTrigger>();
-
-        //if (vibrationTrigger == null)
-        //{
-        //    Debug.LogWarning($"[VibrationDetect]{Self.Value.name}에 IVibrationTrigger 미구현");
-        //    return Status.Failure;
-        //}
-
-        //if (!vibrationTrigger.IsVibrationDetected)
-        //{
-        //    return Status.Failure;
-        //}
         if (PlayerTransform.Value == null) 
+        {
+            return Status.Failure;
+        }
+
+        if (!Monster.Value.Data.TriggerResponse.HasFlag(TriggerResponse.Vibration))
         {
             return Status.Failure;
         }
@@ -52,6 +44,9 @@ public partial class VibrationDetectAction : Action
         if (Monster.Value.IsPlayerDetectionRange(PlayerTransform.Value))
         {
             IsDetected.Value = true;
+
+            Monster.Value.ResetVibTrigger();
+
             return Status.Success;
         }
 

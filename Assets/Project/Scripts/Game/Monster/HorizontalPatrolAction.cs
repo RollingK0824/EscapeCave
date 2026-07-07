@@ -9,17 +9,12 @@ using Unity.AppUI.UI;
 [NodeDescription(name: "HorizontalPatrol", story: "[Monster] patrols horizontally", category: "Action/Monster/Patrol", id: "9fdd01d860b0016e277ecaa49fa24002")]
 public partial class HorizontalPatrolAction : Action
 {
-    // [SerializeReference] public BlackboardVariable<GameObject> Self;
-    //[SerializeReference] public BlackboardVariable<float> PatrolSpeed;
-    //[SerializeReference] public BlackboardVariable<float> PatrolRange;
     [SerializeReference] public BlackboardVariable<MonsterController> Monster;
-
 
     private MonsterController _monster;
     private Vector2 _startPosition;
     private int _direction = 1;
     
-
     protected override Status OnStart()
     {
         _monster = Monster.Value;

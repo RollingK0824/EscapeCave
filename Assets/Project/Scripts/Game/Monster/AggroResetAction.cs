@@ -9,11 +9,8 @@ using Unity.Properties;
 
 public partial class AggroResetAction : Action
 {
-    //[SerializeReference] public BlackboardVariable<GameObject> Self;
     [SerializeReference] public BlackboardVariable<MonsterController> Monster;
     [SerializeReference] public BlackboardVariable<Transform> PlayerTransform;
-    //[SerializeReference] public BlackboardVariable<float> AggroResetTime;
-    //[SerializeReference] public BlackboardVariable<float> DetectRange;
     [SerializeReference] public BlackboardVariable<bool> IsDetected;
 
     protected override Status OnStart()
