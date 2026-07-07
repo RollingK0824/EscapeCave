@@ -57,24 +57,19 @@ public class MapGenerator : MonoBehaviour
         {
             _chunks[i] = Instantiate(chunkPrefab, transform);
 
-            // 위치 지정: 0번은 기준점, 1번은 미래(앞), 2번은 과거(뒤, 방어용)
-            // 즉 [-width, 0, +width] 순서로 배치됩니다.
             float posX = i * _chunkWidth;
             _chunks[i].transform.position = new Vector3(posX, 0, 0);
 
             float chunkSeed = masterSeed + _chunkGenerationCount;
             ++_chunkGenerationCount;
 
-            // 맵 생성 및 끝점 갱신 (2번 과거 청크는 시작하자마자 지워질 운명이므로 생성 생략해도 무방하나 통일성을 위해 생성)
             _lastExitY = _chunks[i].BuildMap(stageRules[_currentStageIndex], _lastExitY, chunkSeed);
         }
     }
 
     private void Update()
     {
-        // 최적화: 매 프레임 플레이어의 X 위치만 단순 비교 (물리 연산 X)
-        // 플레이어가 '현재 청크'의 중간 지점(50%)을 넘어가면 다음 청크를 앞으로 당겨옵니다.
-        float shiftThreshold = _chunks[_currentChunkIdx].transform.position.x + (_chunkWidth * 0.5f);
+        float shiftThreshold = _chunks[_currentChunkIdx].transform.position.x + (_chunkWidth * 1.5f);
 
         if (player.position.x > shiftThreshold)
         {
@@ -84,20 +79,19 @@ public class MapGenerator : MonoBehaviour
 
     private void ShiftChunks()
     {
-        int pastIdx = (_currentChunkIdx + 2) % 3;
+        int pastIdx = _currentChunkIdx;
         int futureIdx = (_currentChunkIdx + 1) % 3;
 
         float maxPosX = Mathf.Max(
             _chunks[0].transform.position.x,
             _chunks[1].transform.position.x,
             _chunks[2].transform.position.x
-            );
+        );
 
         float newPosX = maxPosX + _chunkWidth;
         _chunks[pastIdx].transform.position = new Vector3(newPosX, 0, 0);
 
         BaseMapRuleSO currentRule = stageRules[_currentStageIndex];
-
         float chunkSeed = masterSeed + _chunkGenerationCount;
         _chunkGenerationCount++;
 

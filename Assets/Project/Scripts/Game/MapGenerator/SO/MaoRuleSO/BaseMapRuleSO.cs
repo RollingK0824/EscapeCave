@@ -9,25 +9,22 @@ public abstract class BaseMapRuleSO : ScriptableObject
     public int chunkWidth = 300;
     public int chunkHeight = 50;
 
-    // 경계선 단절을 해결하기 위해 자식이 화면 밖까지 미리 파내려갈 가상 공간
-    [HideInInspector] public const int chunkPadding = 15;
 
     [Header("테마별 타일 셋 (1번부터 순서대로 인스펙터 매핑)")]
     public List<TileBase> themeTiles = new List<TileBase>();
 
     /// <summary>
-    /// [템플릿 메서드] 전체 청크 생성 파이프라인의 실행 순서를 보장합니다.
+    /// 전체 청크 생성 파이프라인의 실행 순서를 보장
     /// </summary>
     public int GenerateChunk(Tilemap tilemap, int[,] mapData, List<Vector2Int> mainPath, int startY, float seed)
     {
-        int totalWidth = mapData.GetLength(0);
+        int width = mapData.GetLength(0);
         int height = mapData.GetLength(1);
 
         // Pass 0: 가로 전체(Width + Padding)를 단단한 벽(1)으로 채움
-        InitializeMap(mapData, totalWidth, height);
+        InitializeMap(mapData, width, height);
 
-        // Pass 1: 자식이 패딩 너머까지 시원하게 지형을 깎음 (시드 통제)
-        int exitY = CarveTerrain(mapData, mainPath, totalWidth, height, startY, seed);
+        int exitY = CarveTerrain(mapData, mainPath, width, height, startY, seed);
 
         // Pass 2: 플랫폼 배치 (화면에 보이는 구역 중심)
         PlacePlatforms(mapData, mainPath, chunkWidth, height);
