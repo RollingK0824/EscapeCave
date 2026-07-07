@@ -9,66 +9,87 @@ public abstract class BaseMapRuleSO : ScriptableObject
     public int chunkWidth = 300;
     public int chunkHeight = 50;
 
-
     [Header("테마별 타일 셋 (1번부터 순서대로 인스펙터 매핑)")]
     public List<TileBase> themeTiles = new List<TileBase>();
+
+    protected float currentSeed;
+    protected List<Vector2Int> mainPath = new List<Vector2Int>();
 
     /// <summary>
     /// 전체 청크 생성 파이프라인의 실행 순서를 보장
     /// </summary>
-    public int GenerateChunk(Tilemap tilemap, int[,] mapData, List<Vector2Int> mainPath, int startY, float seed)
+    public int GenerateChunk(Tilemap globalTilemap, int[,] mapData, int offsetX, int startY, float seed, Vector2Int startPlatform, out Vector2Int endPlatform)
     {
-        int width = mapData.GetLength(0);
-        int height = mapData.GetLength(1);
+        currentSeed = seed;
+        Random.InitState((int)seed);
+        mainPath.Clear();
 
-        // Pass 0: 가로 전체(Width + Padding)를 단단한 벽(1)으로 채움
-        InitializeMap(mapData, width, height);
+        InitializeMap(mapData);
+        int exitY = CarveTerrain(mapData, startY);
 
-        int exitY = CarveTerrain(mapData, mainPath, width, height, startY, seed);
+        ForceTransitionTunnel(mapData, startY);
+        endPlatform = PlacePlatforms(mapData, startPlatform);
 
-        // Pass 2: 플랫폼 배치 (화면에 보이는 구역 중심)
-        PlacePlatforms(mapData, mainPath, chunkWidth, height);
-
-        // Pass 4: 최종 렌더링 (화면에 보이는 chunkWidth 만큼만 짤라서 그림)
-        RenderToTilemap(tilemap, mapData, chunkWidth, height);
+        RenderToTilemap(globalTilemap, mapData, offsetX);
 
         return exitY;
     }
 
-    protected virtual void InitializeMap(int[,] mapData, int totalWidth, int height)
+    protected virtual void InitializeMap(int[,] mapData)
     {
-        for (int x = 0; x < totalWidth; x++)
+        for (int x = 0; x < chunkWidth; x++)
         {
-            for (int y = 0; y < height; y++)
-            {
-                mapData[x, y] = 1;
-            }
+            for (int y = 0; y < chunkHeight; y++) mapData[x, y] = 1;
         }
     }
 
-    private void RenderToTilemap(Tilemap tilemap, int[,] mapData, int visibleWidth, int height)
+    private void RenderToTilemap(Tilemap globalTilemap, int[,] mapData, int offsetX)
     {
-        TileBase[] tileArray = new TileBase[visibleWidth * height];
-        int tileCount = themeTiles.Count;
-
-        for (int x = 0; x < visibleWidth; x++)
+        TileBase[] tileArray = new TileBase[chunkWidth * chunkHeight];
+        for (int x = 0; x < chunkWidth; x++)
         {
-            for (int y = 0; y < height; y++)
+            for (int y = 0; y < chunkHeight; y++)
             {
                 int tileID = mapData[x, y];
-                int index = x + y * visibleWidth;
-
-                if (tileID == 0) tileArray[index] = null;
-                else if (tileID > 0 && tileID <= tileCount) tileArray[index] = themeTiles[tileID - 1];
-                else tileArray[index] = null;
+                int index = x + y * chunkWidth;
+                tileArray[index] = (tileID > 0 && tileID <= themeTiles.Count) ? themeTiles[tileID - 1] : null;
             }
         }
-
-        BoundsInt bounds = new BoundsInt(0, 0, 0, visibleWidth, height, 1);
-        tilemap.SetTilesBlock(bounds, tileArray);
+        BoundsInt bounds = new BoundsInt(offsetX, 0, 0, chunkWidth, chunkHeight, 1);
+        globalTilemap.SetTilesBlock(bounds, tileArray);
     }
 
-    // 자식 클래스가 구현해야 할 추상 및 가상 파이프라인
-    protected abstract int CarveTerrain(int[,] mapData, List<Vector2Int> mainPath, int totalWidth, int height, int startY, float seed);
-    protected virtual void PlacePlatforms(int[,] mapData, List<Vector2Int> mainPath, int visibleWidth, int height) { }
+    private void ForceTransitionTunnel(int[,] mapData, int startY)
+    {
+        if (mainPath.Count == 0) return;
+
+        int targetY = mainPath[0].y;
+        int transitionLength = 15;
+
+        for (int x = 0; x < transitionLength; x++)
+        {
+            float t = (float)x / transitionLength;
+            int currentY = Mathf.RoundToInt(Mathf.Lerp(startY, targetY, t));
+            int radius = 5;
+
+            for (int cx = -radius; cx <= radius; cx++)
+            {
+                for (int cy = -radius; cy <= radius; cy++)
+                {
+                    if (cx * cx + cy * cy <= radius * radius)
+                    {
+                        int px = x + cx;
+                        int py = currentY + cy;
+                        if (px >= 0 && px < chunkWidth && py >= 0 && py < chunkHeight)
+                        {
+                            if (mapData[px, py] == 1) mapData[px, py] = 0;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    protected abstract int CarveTerrain(int[,] mapData, int startY);
+    protected abstract Vector2Int PlacePlatforms(int[,] mapData, Vector2Int startPlatform);
 }
