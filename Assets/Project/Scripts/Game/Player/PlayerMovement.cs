@@ -1,8 +1,9 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 /// <summary>
-/// 좌우 이동, 스프라이트 방향 전환(Flip)을 전담하는 컴포넌트.
+/// 좌우 이동, 스프라이트 방향 전환(Flip), 비행 능력을 전담하는 컴포넌트.
 /// 다른 컴포넌트(공격, 갈고리 등)는 IsFacingRight를 참조하거나
 /// RequestFlip / FaceTowards를 호출해서 방향을 바꿉니다.
 /// </summary>
@@ -12,6 +13,9 @@ public class PlayerMovement : MonoBehaviour
     [Header("Movement")]
     [SerializeField] private float moveSpeed = 8f;
 
+    [Header("Flight")]
+    [SerializeField] private float flightMoveSpeed = 6f; // 비행 중 상하좌우 이동 속도
+
     private Rigidbody2D rb;
     private Animator animator;
     private SpriteRenderer spriteRenderer;
@@ -20,11 +24,16 @@ public class PlayerMovement : MonoBehaviour
     private Vector2 moveInput;
     private bool isFacingRight = true;
 
+    private bool isFlying;
+    private float originalGravityScale;
+    private Coroutine flightRoutine;
+
     /// <summary>외부에서 이동을 잠글 때 사용 (공격/갈고리 중 등).</summary>
     public bool MovementLocked { get; set; } = false;
 
     public bool IsFacingRight => isFacingRight;
     public Vector2 MoveInput => moveInput;
+    public bool IsFlying => isFlying;
 
     private void Awake()
     {
@@ -46,15 +55,66 @@ public class PlayerMovement : MonoBehaviour
             CheckMovementFlip();
         }
 
-        animator.SetBool("IsWalking", moveInput.x != 0);
+        // 비행 중에는 걷기 애니메이션이 덮어쓰지 않도록 막는다.
+        //animator.SetBool("IsWalking", moveInput.x != 0 && !isFlying);
     }
 
     private void FixedUpdate()
     {
         if (MovementLocked) return;
 
-        rb.linearVelocity = new Vector2(moveInput.x * moveSpeed, rb.linearVelocity.y);
+        if (isFlying)
+        {
+            // 비행 중: 좌우 + 상하 자유 이동, 중력 영향 없음(StartFlight에서 gravityScale 0으로 설정)
+            rb.linearVelocity = new Vector2(moveInput.x * flightMoveSpeed, moveInput.y * flightMoveSpeed);
+        }
+        else
+        {
+            rb.linearVelocity = new Vector2(moveInput.x * moveSpeed, rb.linearVelocity.y);
+        }
     }
+
+    #region Flight Logic
+    /// <summary>
+    /// duration초 동안 비행 상태로 전환합니다. (중력 해제 + 상하좌우 자유 이동 + 비행 애니메이션)
+    /// 인벤토리 등 외부에서 아이템 사용 시 호출합니다.
+    /// </summary>
+public void StartFlight(float duration)
+{
+    // 1. 기존 코루틴이 있다면 멈추기 전에 상태를 확실하게 복구
+    if (flightRoutine != null)
+    {
+        StopCoroutine(flightRoutine);
+        
+        // 상태 초기화 (애니메이션과 중력값 원복)
+        rb.gravityScale = originalGravityScale;
+        animator.SetBool("IsFlying", false);
+        isFlying = false;
+    }
+
+    // 2. 새로운 코루틴 시작
+    flightRoutine = StartCoroutine(FlightRoutine(duration));
+}
+    private IEnumerator FlightRoutine(float duration)
+    {
+        // 1. 이미 비행 중이라면 루틴을 새로 시작하지 않음 (선택 사항)
+        if (isFlying) yield break;
+
+        isFlying = true;
+        originalGravityScale = rb.gravityScale;
+        rb.gravityScale = 0f;
+        animator.SetBool("IsFlying", true);
+
+        yield return new WaitForSeconds(duration);
+
+        // 2. 루틴 종료 후 상태 복구
+        rb.gravityScale = originalGravityScale;
+        animator.SetBool("IsFlying", false);
+        isFlying = false;
+
+        flightRoutine = null;
+    }
+    #endregion
 
     #region Flip Logic
     private void CheckMovementFlip()

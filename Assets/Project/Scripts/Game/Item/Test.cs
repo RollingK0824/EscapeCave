@@ -3,14 +3,9 @@ using Managers;
 
 public class Test : MonoBehaviour, IGrabbable
 {
-    private SpriteRenderer sr;
+    [SerializeField] private ItemData itemData;
 
     public Transform GrabTransform => transform;
-
-    private void Awake()
-    {
-        sr = GetComponent<SpriteRenderer>();
-    }
 
     public void OnGrabbed()
     {
@@ -19,9 +14,13 @@ public class Test : MonoBehaviour, IGrabbable
 
     public void OnCollected()
     {
-        Debug.Log(sr.sprite.name);
+        if (itemData == null)
+        {
+            Debug.LogWarning($"{name}: itemData가 인스펙터에 할당되지 않았습니다.");
+            return;
+        }
 
-        if (InventoryManager.Instance.AddItem(sr.sprite))
+        if (InventoryManager.Instance.AddItem(itemData))
         {
             Destroy(gameObject);
         }
