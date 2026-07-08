@@ -26,11 +26,8 @@ public partial class MoveToTargetAction : Action
     {
         if (Monster.Value == null || PlayerTransform.Value == null)
         {
-            Debug.Log("[MoveToTarget] Monster 또는 PlayerTransform이 null입니다");
             return Status.Failure;
         }
-
-        Debug.Log($"[MoveToTarget] 실행 중 - Monster: {Monster.Value.name}, MoveSpeed: {Monster.Value.Data.MoveSpeed}");
 
         Vector2 direction = Monster.Value.GetDirectionToTarget(PlayerTransform.Value);
         Monster.Value.Move(direction, Monster.Value.Data.MoveSpeed);
