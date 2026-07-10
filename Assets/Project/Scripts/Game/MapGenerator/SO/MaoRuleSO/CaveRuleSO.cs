@@ -9,25 +9,25 @@ public class CaveRuleSO : BaseMapRuleSO
     public int minJumpDistance = 4;
     public int maxJumpDistance = 8;
 
-    protected override int CarveTerrain(int[,] mapData, int startY)
+    protected override int CarveTerrain(int startY)
     {
         Vector2Int currentPos = new Vector2Int(0, startY);
 
         while (currentPos.x < chunkWidth - 5)
         {
-            int nextX = Mathf.Min(currentPos.x + Random.Range(20, 40), chunkWidth - 1);
-            int nextY = Random.Range(tunnelRadius + 5, chunkHeight - tunnelRadius - 5);
+            int nextX = Mathf.Min(currentPos.x + chunkRandom.Next(20, 40), chunkWidth - 1);
+            int nextY = chunkRandom.Next(tunnelRadius + 5, chunkHeight - tunnelRadius - 5);
             Vector2Int nextWaypoint = new Vector2Int(nextX, nextY);
 
             while (currentPos != nextWaypoint)
             {
                 if (!mainPath.Contains(currentPos)) mainPath.Add(currentPos);
 
-                CarveCircle(mapData, currentPos, tunnelRadius);
+                CarveCircle(currentPos, tunnelRadius);
 
                 if (currentPos.x < nextWaypoint.x && currentPos.y != nextWaypoint.y)
                 {
-                    if (Random.value < 0.5f) currentPos.x++;
+                    if (chunkRandom.NextDouble() < 0.5) currentPos.x++;
                     else currentPos.y += (nextWaypoint.y > currentPos.y) ? 1 : -1;
                 }
                 else if (currentPos.x < nextWaypoint.x) currentPos.x++;
@@ -37,7 +37,7 @@ public class CaveRuleSO : BaseMapRuleSO
         return currentPos.y;
     }
 
-    protected override Vector2Int PlacePlatforms(int[,] mapData, Vector2Int startPlatform)
+    protected override Vector2Int PlacePlatforms(Vector2Int startPlatform)
     {
         Vector2Int lastPlatformEnd = startPlatform;
 
@@ -49,7 +49,7 @@ public class CaveRuleSO : BaseMapRuleSO
             if (distX >= maxJumpDistance || distY >= maxJumpDistance)
             {
                 int platY = pathNode.y - 2;
-                int platformLength = Random.Range(3, 7);
+                int platformLength = chunkRandom.Next(3, 7);
                 bool isClear = true;
 
                 for (int x = pathNode.x - 1; x <= pathNode.x + platformLength; x++)
@@ -82,7 +82,7 @@ public class CaveRuleSO : BaseMapRuleSO
         return lastPlatformEnd;
     }
 
-    private void CarveCircle(int[,] mapData, Vector2Int center, int radius)
+    private void CarveCircle(Vector2Int center, int radius)
     {
         for (int x = -radius; x <= radius; x++)
         {

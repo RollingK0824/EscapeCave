@@ -12,7 +12,7 @@ public class LakeRuleSO : BaseMapRuleSO
     public int minFloorHeight = 2;
     public int ceilingHeight = 45;
 
-    protected override int CarveTerrain(int[,] mapData, int startY)
+    protected override int CarveTerrain(int startY)
     {
         for (int x = 0; x < chunkWidth; x++)
         {
@@ -34,17 +34,17 @@ public class LakeRuleSO : BaseMapRuleSO
         return waterLevel + 4;
     }
 
-    protected override Vector2Int PlacePlatforms(int[,] mapData, Vector2Int startPlatform)
+    protected override Vector2Int PlacePlatforms(Vector2Int startPlatform)
     {
         Vector2Int lastPlatformEnd = startPlatform;
 
-        int currentX = lastPlatformEnd.x + Random.Range(3, 7);
+        int currentX = lastPlatformEnd.x + chunkRandom.Next(3, 7);
         if (currentX < 0) currentX = 0;
 
         while (currentX < chunkWidth - 5)
         {
-            int platLength = Random.Range(4, 9);
-            int platY = waterLevel + Random.Range(3, 10);
+            int platLength = chunkRandom.Next(4, 9);
+            int platY = waterLevel + chunkRandom.Next(3, 10);
 
             for (int i = 0; i < platLength; i++)
             {
@@ -56,7 +56,7 @@ public class LakeRuleSO : BaseMapRuleSO
             }
 
             lastPlatformEnd = new Vector2Int(currentX + platLength - 1, platY);
-            currentX += platLength + Random.Range(3, 7);
+            currentX += platLength + chunkRandom.Next(3, 7);
         }
 
         return lastPlatformEnd;
