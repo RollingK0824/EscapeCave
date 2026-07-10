@@ -9,7 +9,6 @@ using Unity.Properties;
 
 public partial class DieAction : Action
 {
-    //[SerializeReference] public BlackboardVariable<GameObject> Self;
     [SerializeReference] public BlackboardVariable<MonsterController> Monster;
 
     protected override Status OnStart()

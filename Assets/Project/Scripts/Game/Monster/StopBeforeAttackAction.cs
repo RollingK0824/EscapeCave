@@ -8,9 +8,7 @@ using Unity.Properties;
 [NodeDescription(name: "StopBeforeAttack", story: "[Monster] stops before attacking", category: "Action/Monster/Attack", id: "fd37ca42bd56ed420a1a10d0ec0404cf")]
 public partial class StopBeforeAttackAction : Action
 {
-    //[SerializeReference] public BlackboardVariable<GameObject> Self;
     [SerializeReference] public BlackboardVariable<MonsterController> Monster;
-    //[SerializeReference] public BlackboardVariable<MonsterData> MonsterData;
 
     private float _elapsedTime;
 

@@ -32,6 +32,7 @@ public partial class HorizontalPatrolAction : Action
 
     protected override Status OnUpdate()
     {
+        
         _monster.HorizontalPatrol(ref _direction, ref _startPosition);
         return Status.Running;
     }

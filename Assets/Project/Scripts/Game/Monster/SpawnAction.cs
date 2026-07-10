@@ -5,7 +5,7 @@ using Action = Unity.Behavior.Action;
 using Unity.Properties;
 
 [Serializable, GeneratePropertyBag]
-[NodeDescription(name: "Spawn", story: "[Monster] spawns at [SpawnPoint]", category: "Action/Monster", id: "772a55254b66f5b8b13ca68229ac2a77")]
+[NodeDescription(name: "Spawn", story: "[Monster] spawns at [SpawnPoint]", category: "Action/Monster/Spawn", id: "772a55254b66f5b8b13ca68229ac2a77")]
 public partial class SpawnAction : Action
 {
     [SerializeReference] public BlackboardVariable<MonsterController> Monster;

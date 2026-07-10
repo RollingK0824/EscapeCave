@@ -29,8 +29,7 @@ public partial class MoveToTargetAction : Action
             return Status.Failure;
         }
 
-        Vector2 direction = Monster.Value.GetDirectionToTarget(PlayerTransform.Value);
-        Monster.Value.Move(direction, Monster.Value.Data.MoveSpeed);
+        Monster.Value.MoveTowardTarget(PlayerTransform.Value, Monster.Value.Data.MoveSpeed);
 
         return Status.Running;
     }

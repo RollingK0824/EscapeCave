@@ -8,7 +8,6 @@ using Unity.Properties;
 [NodeDescription(name: "Idle", story: "[Monster] idels until detected", category: "Action/Monster", id: "c7d3ba6a870e0543a489199c486e10de")]
 public partial class IdleAction : Action
 {
-    //[SerializeReference] public BlackboardVariable<GameObject> Self;
     [SerializeReference] public BlackboardVariable<MonsterController> Monster;
 
     protected override Status OnStart()

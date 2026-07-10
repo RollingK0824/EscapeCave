@@ -8,7 +8,6 @@ using Unity.Properties;
 [NodeDescription(name: "Stun", story: "[Monster] is stunned", category: "Action", id: "c905ba70dca7cbe8530ef27a95ce2b96")]
 public partial class StunAction : Action
 {
-    //[SerializeReference] public BlackboardVariable<GameObject> Self;
     [SerializeReference] public BlackboardVariable<MonsterController> Monster;
 
     private float _elapsed;

@@ -24,11 +24,12 @@ public class MonsterController : MonoBehaviour
     private BehaviorGraphAgent _btAgent;
 
     private float _outOfRangeElapsed;
+    private bool _isInAttackRangeSticky;
 
     private MonsterState _currentState = MonsterState.IDLE;
     
     public MonsterState CurrentState => _currentState;
-    
+
     public void SetState(MonsterState state)
     {
         _currentState = state;
@@ -47,6 +48,7 @@ public class MonsterController : MonoBehaviour
         _btAgent = GetComponent<BehaviorGraphAgent>();
 
         _btAgent.SetVariableValue("Monster", this);
+        _btAgent.SetVariableValue("PlayerTransform", _playerTransform);
         _btAgent.SetVariableValue("SoundTrigger", false);
         _btAgent.SetVariableValue("VibTrigger", false);
         _btAgent.SetVariableValue("IsDetected", false);
@@ -71,6 +73,69 @@ public class MonsterController : MonoBehaviour
     public void Stop()
     {
         Rb.linearVelocity = new Vector2(0f, Rb.linearVelocity.y);
+    }
+
+    public Vector2 GetDirectionToTarget(Transform playerTransform)
+    {
+        float dirX = playerTransform.position.x - transform.position.x;
+        if (Mathf.Abs(dirX) < 0.05f)
+        {
+            return Vector2.zero;
+        }
+        return new Vector2(Mathf.Sign(dirX), 0f);
+    }
+
+    public float GetDistanceToTarget(Transform playerTransform)
+    {
+        return Vector2.Distance(transform.position, playerTransform.position);
+    }
+
+    public Vector2 GetTargetPoint(Transform target)
+    {
+        var col = target.GetComponent<Collider2D>();
+        return col != null ? (Vector2)col.bounds.center : (Vector2)target.position;
+    }
+
+    public Vector2 GetDirectionToTargetFull(Transform playerTransform)
+    {
+        Vector2 targetPoint = GetTargetPoint(playerTransform);
+        Vector2 diff = targetPoint - (Vector2)transform.position;
+        return diff.sqrMagnitude > 0f ? diff.normalized : Vector2.zero;
+    }
+
+    public void MoveFreely(Vector2 direction, float speed)
+    {
+        Rb.linearVelocity = direction * speed;
+        FlipSprite(direction);
+    }
+
+    public void MoveTowardTarget(Transform target, float speed)
+    {
+        if (Data.FliesFreely)
+        {
+            MoveFreely(GetDirectionToTargetFull(target), speed);
+        }
+        else
+        {
+            Move(GetDirectionToTarget(target), speed);
+        }
+    }
+
+    public Vector2 GetChargeDirection(Transform target)
+    {
+        return Data.FliesFreely ? GetDirectionToTargetFull(target) : GetDirectionToTarget(target);
+    }    
+
+    public void MoveAlongDirection(Vector2 direction, float speed)
+    {
+        if (Data.FliesFreely)
+        {
+            MoveFreely(direction, speed);
+        }
+        else
+        {
+            Move(direction, speed);
+        }
     }
 
     public void VerticalPatrol(ref int direction, ref Vector2 startPosition)
@@ -113,28 +178,6 @@ public class MonsterController : MonoBehaviour
         return distance <= Data.DetectionRange;
     }
 
-    public bool IsPauseDurationElapsed(float elapsedTime)
-    {
-        return elapsedTime >= Data.PauseDuration;
-    }
-
-    public Vector2 GetDirectionToTarget(Transform playerTransform)
-    {
-        float dirX = playerTransform.position.x - transform.position.x;
-        return new Vector2(Mathf.Sign(dirX), 0f);
-    }
-
-    public bool IsChargeDurationElapsed(float elapsedTime)
-    {
-        return elapsedTime >= Data.ChargeDuration;
-    }
-
-    public bool IsInAttackRange(Transform playerTransform)
-    {
-        float distance = Vector2.Distance(transform.position, playerTransform.position);
-        return distance <= Data.AttackRange;
-    }
-
     public bool TryResetAggro(float deltaTime, Transform playerTransform)
     {
         float distance = Vector2.Distance(transform.position, playerTransform.position);
@@ -146,6 +189,7 @@ public class MonsterController : MonoBehaviour
             if (_outOfRangeElapsed >= Data.AggroResetTime)
             {
                 _outOfRangeElapsed = 0f;
+                _isInAttackRangeSticky = false;
                 return true;
             }
         }
@@ -157,14 +201,50 @@ public class MonsterController : MonoBehaviour
         return false;
     }
 
-    private void Start()
+    public bool IsPauseDurationElapsed(float elapsedTime)
     {
-        _btAgent.SetVariableValue("PlayerTransform", _playerTransform);
+        return elapsedTime >= Data.PauseDuration;
+    }
+
+    public bool IsChargeDurationElapsed(float elapsedTime)
+    {
+        return elapsedTime >= Data.ChargeDuration;
+    }
+
+    public bool IsInAttackRange(Transform playerTransform)
+    {
+        float distance = Vector2.Distance(transform.position, playerTransform.position);
+
+        if (_isInAttackRangeSticky)
+        {
+            _isInAttackRangeSticky = distance <= Data.AttackRange + Data.AttackRangeExitBuffer;
+        }
+        else
+        {
+            _isInAttackRangeSticky = distance <= Data.AttackRange;
+        }
+
+        return _isInAttackRangeSticky;
+    }
+
+    public bool IsStunFinished(float elapsed)
+    {
+        return elapsed >= Data.StunDuration;
+    }
+
+    public bool IsKnockbackFinished(float elapsed)
+    {
+        return elapsed >= Data.KnockbackDuration;
     }
 
     public void TakeDamage(int damage, Vector2 hitDirection)
     {
         if (!_data.IsAttackable)
+        {
+            return;
+        }
+
+        if (_data.IsInvincible)
         {
             return;
         }
@@ -190,22 +270,9 @@ public class MonsterController : MonoBehaviour
         _btAgent.SetVariableValue("IsHit", false);
     }
 
-    public void Die()
-    {
-        SetState(MonsterState.DEAD);
-        _btAgent.enabled = false;
-
-        GameObject.Destroy(gameObject);
-    }
-
     public void StartStun()
     {
         Stop();
-    }
-    
-    public bool IsStunFinished(float elapsed)
-    {
-        return elapsed >= Data.StunDuration;
     }
 
     public void StartKnockback(Transform playerTransform)
@@ -215,13 +282,16 @@ public class MonsterController : MonoBehaviour
         Rb.AddForce(knockbackDirection * Data.KnockbackForce, ForceMode2D.Impulse);
     }
 
-    public bool IsKnockbackFinished(float elapsed)
-    {
-        return elapsed >= Data.KnockbackDuration;
-    }
-
     public void EndKnockback()
     {
         Stop();
+    }
+
+    public void Die()
+    {
+        SetState(MonsterState.DEAD);
+        _btAgent.enabled = false;
+
+        GameObject.Destroy(gameObject);
     }
 }

@@ -8,7 +8,6 @@ using Unity.Properties;
 [NodeDescription(name: "DashAttack", story: "[Monster] dashes toward player", category: "Action", id: "83e6ea642d1bbae573edbe35dda98b94")]
 public partial class DashAttackAction : Action
 {
-    //[SerializeReference] public BlackboardVariable<GameObject> Self;
     [SerializeReference] public BlackboardVariable<MonsterController> Monster;
     [SerializeReference] public BlackboardVariable<Transform> PlayerTransform;
     
@@ -22,7 +21,7 @@ public partial class DashAttackAction : Action
             return Status.Failure;
         }
 
-        _dashDirection = Monster.Value.GetDirectionToTarget(PlayerTransform.Value);
+        _dashDirection = Monster.Value.GetChargeDirection(PlayerTransform.Value);
         _elapsed = 0f;
 
         return Status.Running;
@@ -32,27 +31,20 @@ public partial class DashAttackAction : Action
     {
         _elapsed += Time.deltaTime;
 
-        if (!Monster.Value.IsChargeDurationElapsed(_elapsed))
+        float distanceRemaining = Monster.Value.GetDistanceToTarget(PlayerTransform.Value);
+
+        if (!Monster.Value.IsChargeDurationElapsed(_elapsed)/* && distanceRemaining > Monster.Value.Data.AttackRange*/)
         {
-            Monster.Value.Move(_dashDirection, Monster.Value.Data.ChargeSpeed);
+            Monster.Value.MoveAlongDirection(_dashDirection, Monster.Value.Data.ChargeSpeed);
             return Status.Running;
         }
-
-        //float distance = Vector2.Distance(Self.Value.transform.position,
-        //    PlayerTransform.Value.position);
-
-        //if (distance <= MonsterData.Value.AttackRange)
-        //{
-        //    _rb.linearVelocity = Vector2.zero;
-        //    return Status.Success;
-        //}
 
         return Status.Success;
     }
 
     protected override void OnEnd()
     {
-        Monster.Value.Stop();
+        Monster.Value?.Stop();
     }
 }
 

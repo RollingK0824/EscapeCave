@@ -46,6 +46,7 @@ public class MonsterData : ScriptableObject
     public bool CanAttack = true;
     public int AttackDamage = 1;
     public float AttackRange = 1.5f;
+    public float AttackRangeExitBuffer = 0.3f;
     public float PauseDuration = 1f;
     public float ChargeSpeed = 10f;
     public float ChargeDuration = 0.5f;
@@ -65,4 +66,5 @@ public class MonsterData : ScriptableObject
     [Header("물리")]
     public float GravityScale = 1f;
     public bool UseGravity = true;
+    public bool FliesFreely = false;
 }
