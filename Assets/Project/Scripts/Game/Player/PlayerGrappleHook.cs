@@ -16,6 +16,8 @@ public class PlayerGrappleHook : MonoBehaviour
     [SerializeField] private Sprite hookGroundSprite;
     [SerializeField] private float minRopeLength = 0.5f;
     [SerializeField] private float maxRopeLength = 10f;
+    private bool reelOutInput;
+    private bool reelInInput;
     [SerializeField, Tooltip("휨을 표현할 관절 개수")] private int curveResolution = 10;
     [SerializeField, Tooltip("아래로 늘어지는 정도")] private float sagMultiplier = 1.5f;
     [SerializeField] private Vector2 visualOffset = new Vector2(0.3f, 0.2f);
@@ -55,12 +57,10 @@ public class PlayerGrappleHook : MonoBehaviour
     // (모서리에 걸릴 때마다 새 pivot이 뒤에 추가되고, 풀리면 다시 제거됨)
     private readonly List<Vector2> ropePivots = new List<Vector2>();
     private float ropeLength; // 전체 로프 길이 예산 (리엘로 감소, 고정 구간 길이는 여기서 차감됨)
-    private bool reelInInput;
     private bool isAutoReeling;
 
     private Vector2 lastSwingDirection;
 
-    private PlayerControls inputActions;
 
     public bool IsHooking { get; private set; }
 
@@ -75,18 +75,18 @@ public class PlayerGrappleHook : MonoBehaviour
         spriteRenderer = GetComponent<SpriteRenderer>();
         animator = GetComponent<Animator>();
 
-        inputActions = new PlayerControls();
-        inputActions.Player.Reel.performed += ctx => StartAutoReel();
-        inputActions.Player.Jump.performed += ctx => Release();
+     
+        jump.OnLanded += HandleLanded;
     }
-    private void OnEnable()
+    private void HandleLanded()
     {
-        inputActions?.Player.Enable();
+        if (IsHooking)
+            Release();
     }
-
-    private void OnDisable()
+    private void OnDestroy()
     {
-        inputActions?.Player.Disable();
+        if (jump != null)
+            jump.OnLanded -= HandleLanded;
     }
     public void StartAutoReel()
     {
@@ -107,8 +107,8 @@ public class PlayerGrappleHook : MonoBehaviour
 
         ropePivots.Clear();
         ropePivots.Add(point);
-        ropeLength = maxRopeLength;
-
+        ropeLength = Vector2.Distance(rb.position, point);
+        ropeLength = Mathf.Clamp(ropeLength, minRopeLength, maxRopeLength);
         IsHooking = true;
         if (ropeVisual != null) ropeVisual.enabled = true;
         if (spriteRenderer != null && hookSprite != null)
@@ -138,7 +138,10 @@ public class PlayerGrappleHook : MonoBehaviour
         if (movement != null) movement.MovementLocked = false;
         if (jump != null) jump.JumpPhysicsLocked = false;
     }
-
+    public void SetReelOutInput(bool isPressed)
+    {
+        reelOutInput = isPressed;
+    }
     private void FixedUpdate()
     {
         if (!IsHooking) return;
@@ -185,6 +188,7 @@ public class PlayerGrappleHook : MonoBehaviour
                 ropePivots.RemoveAt(ropePivots.Count - 1);
             }
         }
+       
     }
 
     /// <summary>
@@ -211,7 +215,9 @@ public class PlayerGrappleHook : MonoBehaviour
         float fixedLength = GetFixedSegmentsLength();
         // 이미 감긴 고정 구간 길이를 뺀, 마지막 구간이 실제로 쓸 수 있는 로프 길이
         float segmentAllowance = Mathf.Max(minRopeLength, ropeLength - fixedLength);
-
+        // 지면에서 걸어가다가 최대 로프 길이를 넘으면 갈고리 해제
+        
+    
         // 1. 지면 체크 (PlayerJump 컴포넌트의 IsGrounded 활용)
         bool isGrounded = jump != null && jump.IsGrounded;
 
@@ -220,12 +226,12 @@ public class PlayerGrappleHook : MonoBehaviour
         {
             if (isGrounded)
             {
-                // 땅에 닿으면 웅크려서 버티는 스프라이트로!
+               
                 if (hookGroundSprite != null) spriteRenderer.sprite = hookGroundSprite;
             }
             else
             {
-                // 공중에 뜨면 다시 붕 뜬 공격 모션 스프라이트로!
+              
                 if (hookSprite != null) spriteRenderer.sprite = hookSprite;
             }
         }
@@ -258,7 +264,24 @@ public class PlayerGrappleHook : MonoBehaviour
                 return;
             }
         }
+        if (allowReel && reelInInput)
+        {
+            Vector2 dir = (activePivot - rb.position).normalized;
 
+            rb.AddForce(dir * reelForce, ForceMode2D.Force);
+
+            ropeLength -= reelSpeed * Time.fixedDeltaTime;
+            ropeLength = Mathf.Max(minRopeLength, ropeLength);
+
+            segmentAllowance = Mathf.Max(minRopeLength, ropeLength - fixedLength);
+        }
+        if (allowReel && reelOutInput)
+        {
+            ropeLength += reelSpeed * Time.fixedDeltaTime;
+            ropeLength = Mathf.Min(maxRopeLength, ropeLength);
+
+            segmentAllowance = Mathf.Max(minRopeLength, ropeLength - fixedLength);
+        }
         // --- 공중 스윙 조작 ---
         if (!isGrounded)
         {
@@ -313,7 +336,14 @@ public class PlayerGrappleHook : MonoBehaviour
         if (Mathf.Abs(rb.linearVelocity.x) > 1f)
             movement.SetFacing(rb.linearVelocity.x > 0);
         // 선 그리기 및 스프라이트 갱신
-        UpdateRopeVisual();
+       
+    }
+    private void LateUpdate()
+    {
+        if (IsHooking)
+        {
+            UpdateRopeVisual();
+        }
     }
     private void UpdateRopeVisual()
     {

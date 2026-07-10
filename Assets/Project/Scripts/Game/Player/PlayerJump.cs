@@ -16,7 +16,7 @@ public class PlayerJump : MonoBehaviour
 
     private int groundContactCount = 0;
     private bool isJumpPressed;
-
+    public event System.Action OnLanded;
     private Rigidbody2D rb;
     private Animator animator;
 
@@ -24,6 +24,7 @@ public class PlayerJump : MonoBehaviour
     public bool JumpPhysicsLocked { get; set; } = false;
 
     public bool IsGrounded => isGrounded;
+    private bool wasGrounded;
 
     private void Awake()
     {
@@ -33,7 +34,17 @@ public class PlayerJump : MonoBehaviour
 
     private void Update()
     {
+        wasGrounded = isGrounded;
         isGrounded = groundContactCount > 0;
+
+        if (!wasGrounded && isGrounded)
+        {
+            // 착지 시점: 점프 입력을 강제로 해제하여 다음 점프를 대기하게 함
+            isJumpPressed = false;
+            animator.SetBool("IsJump", false);
+            OnLanded?.Invoke();
+        }
+
         animator.SetBool("IsGrounded", isGrounded);
     }
 
@@ -55,18 +66,25 @@ public class PlayerJump : MonoBehaviour
     #region Ground Collision
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (((1 << collision.gameObject.layer) & groundLayer) != 0)
+        if (((1 << collision.gameObject.layer) & groundLayer) == 0)
+            return;
+
+        foreach (ContactPoint2D contact in collision.contacts)
         {
-            groundContactCount++;
+            if (contact.normal.y > 0.5f)
+            {
+                groundContactCount++;
+                break;
+            }
         }
     }
 
     private void OnCollisionExit2D(Collision2D collision)
     {
-        if (((1 << collision.gameObject.layer) & groundLayer) != 0)
-        {
-            groundContactCount = Mathf.Max(0, groundContactCount - 1);
-        }
+        if (((1 << collision.gameObject.layer) & groundLayer) == 0)
+            return;
+
+        groundContactCount = Mathf.Max(0, groundContactCount - 1);
     }
     #endregion
 

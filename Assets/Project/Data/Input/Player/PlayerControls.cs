@@ -136,6 +136,24 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""ReelOut"",
+                    ""type"": ""Button"",
+                    ""id"": ""553a8576-ca06-4328-a528-3d9881526482"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""ReelIn"",
+                    ""type"": ""Button"",
+                    ""id"": ""558863e0-3617-4cfb-b00c-090e2f734859"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -237,6 +255,28 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""action"": ""Reel"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""e4fd96f6-b4d0-4fdd-a91e-0adb0eeacbdc"",
+                    ""path"": ""<Keyboard>/s"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ReelOut"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""e8cf3de7-cd07-4e85-a59e-915a19be3ea4"",
+                    ""path"": ""<Keyboard>/w"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ReelIn"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -250,6 +290,8 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         m_Player_Attack = m_Player.FindAction("Attack", throwIfNotFound: true);
         m_Player_Cry = m_Player.FindAction("Cry", throwIfNotFound: true);
         m_Player_Reel = m_Player.FindAction("Reel", throwIfNotFound: true);
+        m_Player_ReelOut = m_Player.FindAction("ReelOut", throwIfNotFound: true);
+        m_Player_ReelIn = m_Player.FindAction("ReelIn", throwIfNotFound: true);
     }
 
     ~@PlayerControls()
@@ -335,6 +377,8 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_Attack;
     private readonly InputAction m_Player_Cry;
     private readonly InputAction m_Player_Reel;
+    private readonly InputAction m_Player_ReelOut;
+    private readonly InputAction m_Player_ReelIn;
     /// <summary>
     /// Provides access to input actions defined in input action map "Player".
     /// </summary>
@@ -366,6 +410,14 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Player/Reel".
         /// </summary>
         public InputAction @Reel => m_Wrapper.m_Player_Reel;
+        /// <summary>
+        /// Provides access to the underlying input action "Player/ReelOut".
+        /// </summary>
+        public InputAction @ReelOut => m_Wrapper.m_Player_ReelOut;
+        /// <summary>
+        /// Provides access to the underlying input action "Player/ReelIn".
+        /// </summary>
+        public InputAction @ReelIn => m_Wrapper.m_Player_ReelIn;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -407,6 +459,12 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @Reel.started += instance.OnReel;
             @Reel.performed += instance.OnReel;
             @Reel.canceled += instance.OnReel;
+            @ReelOut.started += instance.OnReelOut;
+            @ReelOut.performed += instance.OnReelOut;
+            @ReelOut.canceled += instance.OnReelOut;
+            @ReelIn.started += instance.OnReelIn;
+            @ReelIn.performed += instance.OnReelIn;
+            @ReelIn.canceled += instance.OnReelIn;
         }
 
         /// <summary>
@@ -433,6 +491,12 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @Reel.started -= instance.OnReel;
             @Reel.performed -= instance.OnReel;
             @Reel.canceled -= instance.OnReel;
+            @ReelOut.started -= instance.OnReelOut;
+            @ReelOut.performed -= instance.OnReelOut;
+            @ReelOut.canceled -= instance.OnReelOut;
+            @ReelIn.started -= instance.OnReelIn;
+            @ReelIn.performed -= instance.OnReelIn;
+            @ReelIn.canceled -= instance.OnReelIn;
         }
 
         /// <summary>
@@ -508,5 +572,19 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnReel(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "ReelOut" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnReelOut(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "ReelIn" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnReelIn(InputAction.CallbackContext context);
     }
 }

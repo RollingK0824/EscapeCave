@@ -42,15 +42,19 @@ public class PlayerController : MonoBehaviour
             controls.Player.Move.performed += ctx => movement.SetMoveInput(ctx.ReadValue<Vector2>());
             controls.Player.Move.canceled += ctx => movement.SetMoveInput(Vector2.zero);
 
-            controls.Player.Jump.started += ctx => jump.StartJump();
+            controls.Player.Jump.performed += ctx => jump.StartJump();
             controls.Player.Jump.canceled += ctx => jump.CancelJump();
 
             controls.Player.Attack.performed += ctx => HandleAttackInput();
             controls.Player.Cry.performed += ctx => soundEmitter.Cry();
 
-            // 로프 감기(reel) 입력을 별도 액션에 연결하고 싶다면 여기에 추가하세요. 예:
-            // controls.Player.Reel.started += ctx => grappleHook.SetReelInput(true);
-            // controls.Player.Reel.canceled += ctx => grappleHook.SetReelInput(false);
+            controls.Player.Reel.started += ctx => grappleHook.StartAutoReel();
+
+            controls.Player.ReelIn.started += ctx => grappleHook.SetReelInput(true);
+            controls.Player.ReelIn.canceled += ctx => grappleHook.SetReelInput(false);
+
+            controls.Player.ReelOut.started += ctx => grappleHook.SetReelOutInput(true);
+            controls.Player.ReelOut.canceled += ctx => grappleHook.SetReelOutInput(false);
         }
 
         controls.Enable();
