@@ -2,7 +2,24 @@ using UnityEngine;
 using UnityEngine.Tilemaps;
 using System.Collections.Generic;
 
-[CreateAssetMenu(fileName = "BaseMapRuleSO", menuName = "Scriptable Objects/Map/BaseMapRuleSO")]
+public struct ChunkGenParams
+{
+    public Tilemap globalTilemap;
+    public int[,] mapData;
+    public int offsetX;
+    public int startY;
+    public float seed;
+    public Vector2Int startPlatform;
+    public List<GameObject> spawnedList;
+}
+
+[System.Serializable]
+public struct SpawnRule
+{
+    public GameObject prefab;
+    [Range(0f, 1f)] public float spawnChance;
+}
+
 public abstract class BaseMapRuleSO : ScriptableObject
 {
     [Header("공통 맵 크기 설정")]
@@ -12,30 +29,51 @@ public abstract class BaseMapRuleSO : ScriptableObject
     [Header("테마별 타일 셋 (1번부터 순서대로 인스펙터 매핑)")]
     public List<TileBase> themeTiles = new List<TileBase>();
 
-    protected float currentSeed;
+    [Header("오브젝트/몬스터 스폰 설정")]
+    public List<SpawnRule> platformSpawns; // 플랫폼 위 스폰
+    public List<SpawnRule> groundSpawns;   // 일반 바닥 스폰
+    public List<SpawnRule> ceilingSpawns;  // 천장 스폰
+    [Tooltip("몬스터 간 최소 X축 스폰 간격 (타일 수)")]
+    public int minSpawnGapX = 8;
+
+    [System.NonSerialized] protected Tilemap globalTilemap;
+    [System.NonSerialized] protected int[,] mapData;
+    [System.NonSerialized] protected int offsetX;
+    [System.NonSerialized] protected float currentSeed;
+    [System.NonSerialized] protected List<GameObject> spawnedList;
+    [System.NonSerialized] protected System.Random chunkRandom;
+
     protected List<Vector2Int> mainPath = new List<Vector2Int>();
 
     /// <summary>
     /// 전체 청크 생성 파이프라인의 실행 순서를 보장
     /// </summary>
-    public int GenerateChunk(Tilemap globalTilemap, int[,] mapData, int offsetX, int startY, float seed, Vector2Int startPlatform, out Vector2Int endPlatform)
+    public int GenerateChunk(ChunkGenParams genParams, out Vector2Int endPlatform)
     {
-        currentSeed = seed;
-        Random.InitState((int)seed);
+        this.globalTilemap = genParams.globalTilemap;
+        this.mapData = genParams.mapData;
+        this.offsetX = genParams.offsetX;
+        this.currentSeed = genParams.seed;
+        this.spawnedList = genParams.spawnedList;
+
+        this.chunkRandom = new System.Random((int)currentSeed);
+        Random.InitState((int)currentSeed);
         mainPath.Clear();
 
-        InitializeMap(mapData);
-        int exitY = CarveTerrain(mapData, startY);
+        InitializeMap();
+        int exitY = CarveTerrain(genParams.startY);
 
-        ForceTransitionTunnel(mapData, startY);
-        endPlatform = PlacePlatforms(mapData, startPlatform);
+        ForceTransitionTunnel(genParams.startY);
+        endPlatform = PlacePlatforms(genParams.startPlatform);
 
-        RenderToTilemap(globalTilemap, mapData, offsetX);
+        RenderToTilemap();
+        
+        SpawnObjects();
 
         return exitY;
     }
 
-    protected virtual void InitializeMap(int[,] mapData)
+    protected virtual void InitializeMap()
     {
         for (int x = 0; x < chunkWidth; x++)
         {
@@ -43,7 +81,7 @@ public abstract class BaseMapRuleSO : ScriptableObject
         }
     }
 
-    private void RenderToTilemap(Tilemap globalTilemap, int[,] mapData, int offsetX)
+    private void RenderToTilemap()
     {
         TileBase[] tileArray = new TileBase[chunkWidth * chunkHeight];
         for (int x = 0; x < chunkWidth; x++)
@@ -59,7 +97,7 @@ public abstract class BaseMapRuleSO : ScriptableObject
         globalTilemap.SetTilesBlock(bounds, tileArray);
     }
 
-    private void ForceTransitionTunnel(int[,] mapData, int startY)
+    private void ForceTransitionTunnel(int startY)
     {
         if (mainPath.Count == 0) return;
 
@@ -90,6 +128,86 @@ public abstract class BaseMapRuleSO : ScriptableObject
         }
     }
 
-    protected abstract int CarveTerrain(int[,] mapData, int startY);
-    protected abstract Vector2Int PlacePlatforms(int[,] mapData, Vector2Int startPlatform);
+    private void SpawnObjects()
+    {
+        if (spawnedList == null) return;
+
+        int lastPlatformSpawnX = -minSpawnGapX;
+        int lastGroundSpawnX = -minSpawnGapX;
+        int lastCeilingSpawnX = -minSpawnGapX;
+
+        for (int x = 0; x < chunkWidth; x++)
+        {
+            for (int y = 0; y < chunkHeight; y++)
+            {
+                // 플랫폼 위 검사
+                if (y < chunkHeight - 1 && mapData[x, y] == 2 && mapData[x, y + 1] == 0)
+                {
+                    if (x - lastPlatformSpawnX >= minSpawnGapX)
+                    {
+                        if (TrySpawnObject(platformSpawns, x, y + 1))
+                        {
+                            lastPlatformSpawnX = x;
+                        }
+                    }
+                }
+                // 바닥 검사
+                else if (y < chunkHeight - 1 && mapData[x, y] == 1 && mapData[x, y + 1] == 0)
+                {
+                    if (x - lastGroundSpawnX >= minSpawnGapX)
+                    {
+                        if (TrySpawnObject(groundSpawns, x, y + 1))
+                        {
+                            lastGroundSpawnX = x;
+                        }
+                    }
+                }
+
+                // 천장 검사
+                if (y > 0 && mapData[x, y] == 1 && mapData[x, y - 1] == 0)
+                {
+                    if (x - lastCeilingSpawnX >= minSpawnGapX)
+                    {
+                        if (TrySpawnObject(ceilingSpawns, x, y - 1))
+                        {
+                            lastCeilingSpawnX = x;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private bool TrySpawnObject(List<SpawnRule> rules, int localX, int localY)
+    {
+        if (rules == null || rules.Count == 0) return false;
+
+        int randomIdx = chunkRandom.Next(0, rules.Count);
+        SpawnRule rule = rules[randomIdx];
+
+        if ((float)chunkRandom.NextDouble() > rule.spawnChance) return false;
+
+        Vector3Int cellPos = new Vector3Int(offsetX + localX, localY, 0);
+        Vector3 worldPos = globalTilemap.CellToWorld(cellPos) + new Vector3(0.5f, 0.5f, 0);
+
+        GameObject instance = Managers.PoolManager.Instance.Pop(rule.prefab, worldPos, Quaternion.identity);
+        if (instance != null)
+        {
+            // 원본 프리팹은 건드리지 않고, 스폰된 인스턴스에만 런타임에 동적으로 컴포넌트 추가
+            var mapObj = instance.GetComponent<MapSpawnedObject>();
+            if (mapObj == null)
+            {
+                mapObj = instance.AddComponent<MapSpawnedObject>();
+            }
+            mapObj.poolKey = rule.prefab.GetInstanceID();
+
+            spawnedList.Add(instance);
+            return true;
+        }
+
+        return false;
+    }
+
+    protected abstract int CarveTerrain(int startY);
+    protected abstract Vector2Int PlacePlatforms(Vector2Int startPlatform);
 }

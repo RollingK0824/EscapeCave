@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using System.Collections.Generic;
 
 public class MapGenerator : MonoBehaviour
 {
@@ -14,6 +15,10 @@ public class MapGenerator : MonoBehaviour
     public float masterSeed;
     public bool useRandomSeedAtStart = true;
 
+    [Header("오브젝트 컬링 최적화 설정")]
+    [Tooltip("플레이어와 이 X축 거리(타일) 이상 멀어지면 몬스터/오브젝트 비활성화")]
+    public float cullingDistance = 45f;
+
     private int[] _chunkOffsets = new int[3];
     private int _currentChunkIdx = 0;
     private int _lastExitY;
@@ -24,10 +29,28 @@ public class MapGenerator : MonoBehaviour
     private TileBase[] _clearBuffer;
     private Vector2Int _lastPlatformLocal;
 
+    private List<GameObject>[] _spawnedObjectsPerChunk = new List<GameObject>[3];
+
     private void Start()
     {
         if (stageRules.Length == 0) return;
-        if (useRandomSeedAtStart) masterSeed = Random.Range(0f, 50000f);
+
+        if (useRandomSeedAtStart)
+        {
+            byte[] seedBytes = new byte[4];
+            using (var rng = System.Security.Cryptography.RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(seedBytes);
+            }
+            int rawSeed = System.BitConverter.ToInt32(seedBytes, 0);
+            
+            masterSeed = Mathf.Abs(rawSeed) % 1000000;
+        }
+
+        for (int i = 0; i < 3; i++)
+        {
+            _spawnedObjectsPerChunk[i] = new List<GameObject>();
+        }
 
         BaseMapRuleSO initialRule = stageRules[0];
         _chunkWidth = initialRule.chunkWidth;
@@ -49,8 +72,18 @@ public class MapGenerator : MonoBehaviour
             BaseMapRuleSO randomRule = stageRules[randomIdx];
             float chunkSeed = masterSeed + _chunkGenerationCount++;
 
-            _lastExitY = randomRule.GenerateChunk(
-                globalTilemap, _mapDataBuffer, _chunkOffsets[i], _lastExitY, chunkSeed, _lastPlatformLocal, out Vector2Int newPlatformEnd);
+            ChunkGenParams genParams = new ChunkGenParams
+            {
+                globalTilemap = this.globalTilemap,
+                mapData = this._mapDataBuffer,
+                offsetX = this._chunkOffsets[i],
+                startY = this._lastExitY,
+                seed = chunkSeed,
+                startPlatform = this._lastPlatformLocal,
+                spawnedList = this._spawnedObjectsPerChunk[i]
+            };
+
+            _lastExitY = randomRule.GenerateChunk(genParams, out Vector2Int newPlatformEnd);
 
             _lastPlatformLocal = new Vector2Int(newPlatformEnd.x - _chunkWidth, newPlatformEnd.y);
         }
@@ -64,12 +97,59 @@ public class MapGenerator : MonoBehaviour
         {
             ShiftChunks();
         }
+
+        UpdateObjectCulling();
+    }
+
+    private void UpdateObjectCulling()
+    {
+        if (player == null) return;
+
+        float playerX = player.position.x;
+
+        for (int i = 0; i < 3; i++)
+        {
+            List<GameObject> chunkObjects = _spawnedObjectsPerChunk[i];
+            for (int j = 0; j < chunkObjects.Count; j++)
+            {
+                GameObject obj = chunkObjects[j];
+                if (obj != null)
+                {
+                    float dist = Mathf.Abs(obj.transform.position.x - playerX);
+                    bool shouldActive = dist <= cullingDistance;
+
+                    if (obj.activeSelf != shouldActive)
+                    {
+                        obj.SetActive(shouldActive);
+                    }
+                }
+            }
+        }
     }
 
     private void ShiftChunks()
     {
         int pastIdx = _currentChunkIdx;
         int futureIdx = (_currentChunkIdx + 1) % 3;
+
+        List<GameObject> oldObjects = _spawnedObjectsPerChunk[pastIdx];
+        for (int i = 0; i < oldObjects.Count; i++)
+        {
+            if (oldObjects[i] != null)
+            {
+                var mapObj = oldObjects[i].GetComponent<MapSpawnedObject>();
+                if (mapObj != null)
+                {
+                    Managers.PoolManager.Instance.Push(oldObjects[i], mapObj.poolKey);
+                }
+                else
+                {
+                    // 예외적으로 컴포넌트가 누락된 경우 일반 파괴
+                    Destroy(oldObjects[i]);
+                }
+            }
+        }
+        oldObjects.Clear();
 
         BoundsInt clearBounds = new BoundsInt(_chunkOffsets[pastIdx], 0, 0, _chunkWidth, stageRules[0].chunkHeight, 1);
         globalTilemap.SetTilesBlock(clearBounds, _clearBuffer);
@@ -82,8 +162,18 @@ public class MapGenerator : MonoBehaviour
         BaseMapRuleSO currentRule = stageRules[randomIdx];
         float chunkSeed = masterSeed + _chunkGenerationCount++;
 
-        _lastExitY = currentRule.GenerateChunk(
-            globalTilemap, _mapDataBuffer, newOffsetX, _lastExitY, chunkSeed, _lastPlatformLocal, out Vector2Int newPlatformEnd);
+        ChunkGenParams genParams = new ChunkGenParams
+        {
+            globalTilemap = this.globalTilemap,
+            mapData = this._mapDataBuffer,
+            offsetX = newOffsetX,
+            startY = this._lastExitY,
+            seed = chunkSeed,
+            startPlatform = this._lastPlatformLocal,
+            spawnedList = oldObjects
+        };
+
+        _lastExitY = currentRule.GenerateChunk(genParams, out Vector2Int newPlatformEnd);
 
         _lastPlatformLocal = new Vector2Int(newPlatformEnd.x - _chunkWidth, newPlatformEnd.y);
         _currentChunkIdx = futureIdx;
