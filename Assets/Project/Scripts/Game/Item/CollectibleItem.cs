@@ -1,7 +1,7 @@
 using UnityEngine;
 using Managers;
 
-public class Test : MonoBehaviour, IGrabbable
+public class CollectibleItem : MonoBehaviour, IGrabbable
 {
     [SerializeField] private ItemData itemData;
 

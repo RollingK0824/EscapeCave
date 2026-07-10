@@ -463,6 +463,11 @@ MonoBehaviour:
   sagMultiplier: 1.5
   visualOffset: {x: 0.15, y: -0.1}
   swingControlForce: 15
+  tautTolerance: 0.15
+  retractDuration: 0.15
+  hookHorizontalImpulse: 3
+  hookVerticalImpulse: 2
+  holdOnFullReel: 1
   groundLayer:
     serializedVersion: 2
     m_Bits: 64
@@ -919,6 +924,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 341055416920411316, guid: f2f66f569873215479841e9ca51ae3cd, type: 3}
+      propertyPath: m_SortingOrder
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 1638231951008869081, guid: f2f66f569873215479841e9ca51ae3cd, type: 3}
       propertyPath: m_Name
       value: Player
@@ -1851,7 +1860,7 @@ LineRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: -1
+  m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Positions:
   - {x: 0, y: 0, z: 0}
@@ -2107,7 +2116,7 @@ LineRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: -1
+  m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Positions:
   - {x: 0, y: 0, z: 0}

@@ -23,6 +23,7 @@ public class PlayerController : MonoBehaviour
     private PlayerSoundEmitter soundEmitter;
 
     private PlayerControls controls;
+    private bool attackHeld;
 
     private void Awake()
     {
@@ -45,7 +46,8 @@ public class PlayerController : MonoBehaviour
             controls.Player.Jump.performed += ctx => jump.StartJump();
             controls.Player.Jump.canceled += ctx => jump.CancelJump();
 
-            controls.Player.Attack.performed += ctx => HandleAttackInput();
+            controls.Player.Attack.started += ctx => { attackHeld = true; HandleAttackInput(); };
+            controls.Player.Attack.canceled += ctx => attackHeld = false;
             controls.Player.Cry.performed += ctx => soundEmitter.Cry();
 
             controls.Player.Reel.started += ctx => grappleHook.StartAutoReel();
@@ -65,15 +67,19 @@ public class PlayerController : MonoBehaviour
         controls?.Disable();
     }
 
-    private void HandleAttackInput()
+    private void Update()
     {
-        // 갈고리에 매달려 있는 상태에서 공격 버튼을 다시 누르면 로프를 해제합니다.
-        if (grappleHook.IsHooking)
+        // 공격 버튼을 누르고 있는 동안에만 갈고리가 유지됩니다. 버튼을 놓으면 즉시 해제합니다.
+        // (버튼을 뗀 뒤에야 혀가 목표에 도달해 훅이 걸리는 경우도 여기서 바로 정리됩니다.)
+        if (grappleHook.IsHooking && !attackHeld)
         {
             grappleHook.Release();
-            return;
         }
+    }
 
+    private void HandleAttackInput()
+    {
+        if (grappleHook.IsHooking) return;
         if (tongueAttack.IsAttacking) return;
 
         tongueAttack.Attack();
