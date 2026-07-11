@@ -32,6 +32,9 @@ public class PlayerController : MonoBehaviour
         tongueAttack = GetComponent<PlayerTongueAttack>();
         grappleHook = GetComponent<PlayerGrappleHook>();
         soundEmitter = GetComponent<PlayerSoundEmitter>();
+
+        // 몬스터 관련 로직 추가
+        Managers.MonsterManager.RegisterPlayer(transform);
     }
 
     private void OnEnable()
@@ -83,5 +86,11 @@ public class PlayerController : MonoBehaviour
         if (tongueAttack.IsAttacking) return;
 
         tongueAttack.Attack();
+    }
+
+    // 몬스터 관련 로직 추가
+    private void OnDestroy()
+    {
+        Managers.MonsterManager.UnregisterPlayer(transform);
     }
 }

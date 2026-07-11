@@ -12,11 +12,10 @@ public enum MonsterState
     DEAD
 }
 
-public class MonsterController : MonoBehaviour
+public class MonsterController : MonoBehaviour, IDamageable
 {
     [Header("데이터")]
     [SerializeField] private MonsterData _data;
-    [SerializeField] private Transform _playerTransform;
 
     public Rigidbody2D Rb { get; private set; }
     public SpriteRenderer SpriteRenderer { get; private set; }
@@ -38,6 +37,7 @@ public class MonsterController : MonoBehaviour
     public MonsterData Data => _data;
 
     private Vector2 _lastHitDirection;
+    private bool _isHitReactiveActive;
 
     private void Awake()
     {
@@ -48,7 +48,6 @@ public class MonsterController : MonoBehaviour
         _btAgent = GetComponent<BehaviorGraphAgent>();
 
         _btAgent.SetVariableValue("Monster", this);
-        _btAgent.SetVariableValue("PlayerTransform", _playerTransform);
         _btAgent.SetVariableValue("SoundTrigger", false);
         _btAgent.SetVariableValue("VibTrigger", false);
         _btAgent.SetVariableValue("IsDetected", false);
@@ -56,8 +55,18 @@ public class MonsterController : MonoBehaviour
         _btAgent.SetVariableValue("HitReaction", _data.HitReaction);
     }
 
+    private void Start()
+    {
+        _btAgent.SetVariableValue("PlayerTransform", Managers.MonsterManager.PlayerTransform);
+    }
+
     public void Move(Vector2 direction, float speed)
     {
+        if (_isHitReactiveActive)
+        {
+            return;
+        }
+
         Rb.linearVelocity = new Vector2(direction.x * speed, Rb.linearVelocity.y);
         FlipSprite(direction);
     }
@@ -105,6 +114,11 @@ public class MonsterController : MonoBehaviour
 
     public void MoveFreely(Vector2 direction, float speed)
     {
+        if (_isHitReactiveActive)
+        {
+            return;
+        }
+
         Rb.linearVelocity = direction * speed;
         FlipSprite(direction);
     }
@@ -140,6 +154,10 @@ public class MonsterController : MonoBehaviour
 
     public void VerticalPatrol(ref int direction, ref Vector2 startPosition)
     {
+        if (_isHitReactiveActive)
+        {
+            return;
+        }
 
         float delta = transform.position.y - startPosition.y;
 
@@ -157,6 +175,11 @@ public class MonsterController : MonoBehaviour
 
     public void HorizontalPatrol(ref int direction, ref Vector2 startPosition)
     {
+        if (_isHitReactiveActive)
+        {
+            return;
+        }
+
         float delta = transform.position.x - startPosition.x;
 
         if (delta >= Data.PatrolRange)
@@ -237,7 +260,7 @@ public class MonsterController : MonoBehaviour
         return elapsed >= Data.KnockbackDuration;
     }
 
-    public void TakeDamage(int damage, Vector2 hitDirection)
+    public void TakeDamage(float damage)
     {
         if (!_data.IsAttackable)
         {
@@ -249,8 +272,15 @@ public class MonsterController : MonoBehaviour
             return;
         }
 
-        _lastHitDirection = hitDirection;
+        Transform playerTransform = Managers.MonsterManager.PlayerTransform;
+        if (playerTransform != null)
+        {
+             _lastHitDirection = (transform.position - playerTransform.position).normalized;
+
+        }
+
         _btAgent.SetVariableValue("IsHit", true);
+        _isHitReactiveActive = true;
     }
 
     public Vector2 GetLastHitDirection() => _lastHitDirection;
@@ -268,6 +298,7 @@ public class MonsterController : MonoBehaviour
     public void ResetHitTrigger()
     {
         _btAgent.SetVariableValue("IsHit", false);
+        _isHitReactiveActive = false;
     }
 
     public void StartStun()

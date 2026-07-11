@@ -23,7 +23,7 @@ public partial class IdleAction : Action
 
     protected override Status OnUpdate()
     {
-        return Status.Running;
+        return Status.Success;
     }
 }
 
