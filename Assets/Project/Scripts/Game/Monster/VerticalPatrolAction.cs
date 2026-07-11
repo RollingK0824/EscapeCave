@@ -5,9 +5,10 @@ using Action = Unity.Behavior.Action;
 using Unity.Properties;
 
 [Serializable, GeneratePropertyBag]
-[NodeDescription(name: "VerticalPatrol", story: "[Monster] patrols vertically", category: "Action/Monster/Patrol", id: "d0f64c0321fce6c3d58efb6dad6347df")]
+[NodeDescription(name: "VerticalPatrol", story: "[Self] patrols vertically with [PatrolSpeed] and [PatrolRange]", category: "Action/Monster/Patrol", id: "d0f64c0321fce6c3d58efb6dad6347df")]
 public partial class VerticalPatrolAction : Action
 {
+    //[SerializeReference] public BlackboardVariable<GameObject> Self;
     [SerializeReference] public BlackboardVariable<MonsterController> Monster;
 
     private MonsterController _monster;
@@ -31,7 +32,20 @@ public partial class VerticalPatrolAction : Action
 
     protected override Status OnUpdate()
     {
-        _monster.VerticalPatrol(ref _direction, ref _startPosition);
+        float currentY = _monster.transform.position.y;
+        float delta = currentY - _startPosition.y;
+
+        if (delta >= _monster.Data.PatrolRange)
+        {
+            _direction = -1;
+        }
+        else if (delta <= _monster.Data.PatrolRange)
+        {
+            _direction = 1;
+        }
+
+        _monster.Rb.linearVelocity = new Vector2(_monster.Rb.linearVelocity.x, _direction * _monster.Data.PatrolSpeed);
+
         return Status.Running;
     }
 
