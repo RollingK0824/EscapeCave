@@ -1,9 +1,5 @@
 fileFormatVersion: 2
-<<<<<<<< HEAD:Assets/Project/Prefabs/Map/MapChunk.prefab.meta
-guid: 27ba5eb8e429de5448eef022bc143609
-========
 guid: 93d0e82fcd9e88d4cbf4591978a0a9cd
->>>>>>>> f91d878cc1e1c8a6f3a604802d6e9b0710339ee9:Assets/Project/Prefabs/Map/Map.prefab.meta
 PrefabImporter:
   externalObjects: {}
   userData: 

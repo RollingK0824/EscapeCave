@@ -1,11 +1,6 @@
 fileFormatVersion: 2
-<<<<<<<< HEAD:Assets/Project/Animations/Enemy/Fish_Idle.anim.meta
-guid: 7e92165f49190f544a92705a81e5b0a2
-NativeFormatImporter:
-========
 guid: 5e97f8b2c1913904dbd00be8a7a6cef2
 PrefabImporter:
->>>>>>>> f91d878cc1e1c8a6f3a604802d6e9b0710339ee9:Assets/Project/Prefabs/Echo/Main Camera .prefab.meta
   externalObjects: {}
   userData: 
   assetBundleName: 
