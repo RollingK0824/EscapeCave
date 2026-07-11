@@ -23,6 +23,7 @@ public class PlayerMovement : MonoBehaviour
 
     private Vector2 moveInput;
     private bool isFacingRight = true;
+    private readonly ContactPoint2D[] contactBuffer = new ContactPoint2D[8];
 
     private bool isFlying;
     private float originalGravityScale;
@@ -50,7 +51,9 @@ public class PlayerMovement : MonoBehaviour
 
     private void Update()
     {
-        if (!grapple.IsHooking && moveInput.x != 0 && !MovementLocked)
+        if (MovementLocked || (grapple != null && grapple.IsHooking)) return;
+
+        if (moveInput.x != 0)
         {
             CheckMovementFlip();
         }
@@ -63,15 +66,65 @@ public class PlayerMovement : MonoBehaviour
     {
         if (MovementLocked) return;
 
+        // ── 벽 프리징(wall-stick) 버그 수정 ──────────────────────────────
+        // [현상] 공중에서 벽에 몸을 박은 채 이동키를 계속 누르고 있으면,
+        //        캐릭터가 벽에 달라붙어 y축으로 전혀 떨어지지 않고 얼어붙었음.
+        //
+        // [원인] 아래에서 매 물리 프레임 rb.linearVelocity.x에 이동 속도를 강제로
+        //        대입하는데, 벽 방향으로 계속 밀어 넣으면 물리 엔진이 벽 접촉면에
+        //        큰 수직항력(normal force)을 만들고, 그에 비례한 "마찰력"이
+        //        중력을 상쇄해버림. 결과적으로 벽에 매달린 것처럼 정지.
+        //
+        // [해결] 속도를 대입하기 전에, 이동하려는 방향에 이미 수직 벽이 접촉해
+        //        있는지 검사(IsPressingIntoWall)하고, 벽이 있으면 그 방향의
+        //        x속도 성분을 0으로 만든다. 벽을 미는 힘이 사라지면 마찰력도
+        //        사라지므로 중력에 의해 자연스럽게 미끄러져 내려온다.
+        //        (반대 방향으로 입력하면 벽 검사에 걸리지 않아 즉시 이탈 가능)
+        // ────────────────────────────────────────────────────────────────
+        float inputX = moveInput.x;
+        if (inputX != 0 && IsPressingIntoWall(Mathf.Sign(inputX)))
+        {
+            inputX = 0f;
+        }
+
         if (isFlying)
         {
             // 비행 중: 좌우 + 상하 자유 이동, 중력 영향 없음(StartFlight에서 gravityScale 0으로 설정)
-            rb.linearVelocity = new Vector2(moveInput.x * flightMoveSpeed, moveInput.y * flightMoveSpeed);
+            rb.linearVelocity = new Vector2(inputX * flightMoveSpeed, moveInput.y * flightMoveSpeed);
         }
         else
         {
-            rb.linearVelocity = new Vector2(moveInput.x * moveSpeed, rb.linearVelocity.y);
+            rb.linearVelocity = new Vector2(inputX * moveSpeed, rb.linearVelocity.y);
         }
+    }
+
+    /// <summary>
+    /// dirX(+1: 오른쪽, -1: 왼쪽) 방향으로 이동하려는 지금,
+    /// 그 방향의 "수직 벽"에 이미 몸이 접촉해 있는지 검사합니다.
+    ///
+    /// 원리: 물리 엔진이 알려주는 접촉면의 normal(표면에서 수직으로 뻗는 방향)은
+    /// 항상 플레이어 쪽을 향합니다. 즉 오른쪽 벽에 닿아 있으면 normal.x ≈ -1,
+    /// 왼쪽 벽이면 normal.x ≈ +1, 평평한 바닥이면 normal = (0, 1)입니다.
+    ///
+    /// 따라서 normal.x * dirX < -0.7f 라는 조건은
+    /// "이동 방향과 거의 정반대를 향하는(=가로막는) 가파른 면"만 벽으로 인정한다는 뜻:
+    ///  - 오른쪽 이동(dirX=+1) 중 오른쪽 벽(normal.x≈-1) → -1 < -0.7 → 벽 ○
+    ///  - 바닥(normal.x≈0)                              →  0 > -0.7 → 벽 ×
+    ///  - 걸을 수 있는 완만한 경사면(|normal.x| < 0.7)   →  벽 × (정상 등반 가능)
+    /// -0.7은 약 45도보다 가파른 면부터 벽으로 취급하는 기준값입니다.
+    /// </summary>
+    private bool IsPressingIntoWall(float dirX)
+    {
+        // 현재 이 Rigidbody에 닿아 있는 모든 접촉점을 버퍼에 받아온다 (할당 없음)
+        int count = rb.GetContacts(contactBuffer);
+        for (int i = 0; i < count; i++)
+        {
+            if (contactBuffer[i].normal.x * dirX < -0.7f)
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     #region Flight Logic

@@ -64,6 +64,8 @@ public class PlayerGrappleHook : MonoBehaviour
     private Sprite originalSprite;
 
     private float currentReelSpeed;
+    private float originalGravityScale;
+    private bool gravityDisabledForHold;
 
     // ropePivots[0] = 최초 훅이 걸린 고정 앵커 지점
     // ropePivots[마지막] = 현재 스윙/구속의 기준이 되는 활성 회전축
@@ -118,6 +120,7 @@ public class PlayerGrappleHook : MonoBehaviour
     {
         isAutoReeling = false;
         isHolding = false;
+        RestoreGravityAfterHold();
         bool wasHooking = IsHooking;
 
         // 재훅 시 이전 해제의 되돌아오는 모션이 뒤늦게 새 로프를 꺼버리지 않도록 정리
@@ -158,6 +161,7 @@ public class PlayerGrappleHook : MonoBehaviour
         IsHooking = false;
         isHolding = false;
         isAutoReeling = false;
+        RestoreGravityAfterHold();
 
         if (ropeVisual != null && ropePivots.Count > 0)
         {
@@ -210,13 +214,12 @@ public class PlayerGrappleHook : MonoBehaviour
     {
         if (!IsHooking) return;
 
-        if (isHolding)
-        {
-            // 완전히 감아올려 매달린 상태: 그 자리에 고정된 채 정지합니다.
-            // 버튼을 놓으면(Release) 그제서야 떨어집니다.
-            rb.linearVelocity = Vector2.zero;
-            return;
-        }
+     if (isHolding)
+{
+    rb.linearVelocity = Vector2.zero;
+    if (movement != null) movement.MovementLocked = true;  // 추가
+    return;
+}
 
         UpdateSwing();
     }
@@ -228,12 +231,31 @@ public class PlayerGrappleHook : MonoBehaviour
         if (holdOnFullReel)
         {
             isHolding = true;
+            // rb.linearVelocity를 매 FixedUpdate마다 0으로 되돌리는 것만으로는
+            // 물리 엔진이 그 사이 프레임에 적용하는 중력만큼 위치가 계속 미세하게
+            // 아래로 밀리는 것을 막지 못합니다(속도는 다시 0이 되어도 이동한 거리는
+            // 남기 때문). 중력 자체를 꺼서 완전히 정지 상태를 유지합니다.
+            if (!gravityDisabledForHold)
+            {
+                originalGravityScale = rb.gravityScale;
+                rb.gravityScale = 0f;
+                gravityDisabledForHold = true;
+            }
             rb.linearVelocity = Vector2.zero;
             return;
         }
 
         rb.linearVelocity *= launchVelocityMultiplier;
         Release();
+    }
+
+    private void RestoreGravityAfterHold()
+    {
+        if (gravityDisabledForHold)
+        {
+            rb.gravityScale = originalGravityScale;
+            gravityDisabledForHold = false;
+        }
     }
 
     /// <summary>
