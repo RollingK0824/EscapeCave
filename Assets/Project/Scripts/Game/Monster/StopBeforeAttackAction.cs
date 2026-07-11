@@ -5,23 +5,22 @@ using Action = Unity.Behavior.Action;
 using Unity.Properties;
 
 [Serializable, GeneratePropertyBag]
-[NodeDescription(name: "StopBeforeAttack", story: "[Self] stops within [MonsterData] before attacking", category: "Action", id: "fd37ca42bd56ed420a1a10d0ec0404cf")]
+[NodeDescription(name: "StopBeforeAttack", story: "[Monster] stops before attacking", category: "Action/Monster/Attack", id: "fd37ca42bd56ed420a1a10d0ec0404cf")]
 public partial class StopBeforeAttackAction : Action
 {
-    [SerializeReference] public BlackboardVariable<GameObject> Self;
-    [SerializeReference] public BlackboardVariable<MonsterData> MonsterData;
+    [SerializeReference] public BlackboardVariable<MonsterController> Monster;
 
     private float _elapsedTime;
 
     protected override Status OnStart()
     {
-        _elapsedTime = 0f;
-
-        var rb = Self.Value.GetComponent<Rigidbody2D>();
-        if (rb != null)
+        if (Monster.Value == null)
         {
-            rb.linearVelocity = Vector2.zero;
+            return Status.Failure;
         }
+
+        _elapsedTime = 0f;
+        Monster.Value.Stop();
 
         return Status.Running;
     }
@@ -30,7 +29,7 @@ public partial class StopBeforeAttackAction : Action
     {
         _elapsedTime += Time.deltaTime;
 
-        if (_elapsedTime >= MonsterData.Value.PauseDuration)
+        if (Monster.Value.IsPauseDurationElapsed(_elapsedTime))
         {
             return Status.Success;
         }
@@ -38,4 +37,3 @@ public partial class StopBeforeAttackAction : Action
         return Status.Running;
     }
 }
-
