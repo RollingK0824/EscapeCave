@@ -56,23 +56,6 @@ namespace Managers
             }
         }
 
-        /// <summary>
-        /// 사용이 끝난 오브젝트를 풀의 고유 Key값(InstanceID)으로 직접 반납
-        /// </summary>
-        public void Push(GameObject go, int poolKey)
-        {
-            if (go == null) return;
-
-            if (poolDictionary.ContainsKey(poolKey))
-            {
-                poolDictionary[poolKey].Release(go);
-            }
-            else
-            {
-                Destroy(go);
-            }
-        }
-
         private void RegisterNewPool(GameObject prefab, int key)
         {
             IObjectPool<GameObject> newPool = new ObjectPool<GameObject>(

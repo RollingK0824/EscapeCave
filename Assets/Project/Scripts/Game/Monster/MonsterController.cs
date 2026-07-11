@@ -1,8 +1,5 @@
 using UnityEngine;
 using Unity.Behavior;
-using System;
-using Unity.AppUI.Core;
-using UnityEditor.Build.Content;
 using System.Collections;
 
 public enum MonsterState
@@ -19,19 +16,28 @@ public class MonsterController : MonoBehaviour
 {
     [Header("데이터")]
     [SerializeField] private MonsterData _data;
-
+    [SerializeField] private Transform _playerTransform;
 
     public Rigidbody2D Rb { get; private set; }
     public SpriteRenderer SpriteRenderer { get; private set; }
     public Animator Animator { get; private set; }
     private BehaviorGraphAgent _btAgent;
 
-    public MonsterState CurrentState { get; set; } = MonsterState.IDLE;
+    private float _outOfRangeElapsed;
+    private bool _isInAttackRangeSticky;
+
+    private MonsterState _currentState = MonsterState.IDLE;
+    
+    public MonsterState CurrentState => _currentState;
+
+    public void SetState(MonsterState state)
+    {
+        _currentState = state;
+    }
+
     public MonsterData Data => _data;
 
-    //public event Action<float> OnTrigger1;
-    //public event Action<Platform> OnTrigger2;
-    //public event Action OnDeath;
+    private Vector2 _lastHitDirection;
 
     private void Awake()
     {
@@ -41,10 +47,13 @@ public class MonsterController : MonoBehaviour
         Animator = GetComponent<Animator>();
         _btAgent = GetComponent<BehaviorGraphAgent>();
 
-        //if (_data != null)
-        //{
-        //    Rb.gravityScale = _data.GravityScale;
-        //}
+        _btAgent.SetVariableValue("Monster", this);
+        _btAgent.SetVariableValue("PlayerTransform", _playerTransform);
+        _btAgent.SetVariableValue("SoundTrigger", false);
+        _btAgent.SetVariableValue("VibTrigger", false);
+        _btAgent.SetVariableValue("IsDetected", false);
+        _btAgent.SetVariableValue("IsHit", false);
+        _btAgent.SetVariableValue("HitReaction", _data.HitReaction);
     }
 
     public void Move(Vector2 direction, float speed)
@@ -63,132 +72,226 @@ public class MonsterController : MonoBehaviour
 
     public void Stop()
     {
-        Rb.linearVelocity = Vector2.zero;
+        Rb.linearVelocity = new Vector2(0f, Rb.linearVelocity.y);
     }
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    private void Start()
+    public Vector2 GetDirectionToTarget(Transform playerTransform)
     {
-        //Transform player = GameManager.Instance.GetPlayer().transform;
-
-        _btAgent.SetVariableValue("Self", gameObject);
-        //_btAgent.SetVariableValue("PlayerTransform", player);
-        _btAgent.SetVariableValue("MoveSpeed", _data.MoveSpeed);
-        _btAgent.SetVariableValue("AttackRange", _data.AttackRange);
-        _btAgent.SetVariableValue("ChargeSpeed", _data.ChargeSpeed);
-        _btAgent.SetVariableValue("ChargeDuration", _data.ChargeDuration);
-        _btAgent.SetVariableValue("StunDuration", _data.StunDuration);
-        //_btAgent.SetVariableValue("WakeUpDuration", _data.WakeUpDuration);
-        _btAgent.SetVariableValue("DetectionRange", _data.DetectionRange);
-
-        _btAgent.SetVariableValue("Trigger1Detected", false);
-        _btAgent.SetVariableValue("Trigger2Detected", false);
-        _btAgent.SetVariableValue("IsStunned", false);
-        _btAgent.SetVariableValue("IsAwake", false);
-
-        //var ts = GameManagerDependencyInfo.Instance.GetTriggerSystem();
-        //ts.OnSoundTriggered += HandleTrigger1;
-        //ts.OnVibrationTriggered += HandleTrigger2;
+        float dirX = playerTransform.position.x - transform.position.x;
+        if (Mathf.Abs(dirX) < 0.05f)
+        {
+            return Vector2.zero;
+        }
+        return new Vector2(Mathf.Sign(dirX), 0f);
     }
 
-    //private void HandleTrigger1(float intensity)
-    //{
-    //    Transform player = GameManger.Instance.GetPlayer().transform;
+    public float GetDistanceToTarget(Transform playerTransform)
+    {
+        return Vector2.Distance(transform.position, playerTransform.position);
+    }
 
-    //    if (Vector2.Distacne(transform.position, player.position) <= _data.detectionRange)
-    //    {
-    //        _btAgent.SetVariableValue("Trigger1Detected", true);
-    //    }
+    public Vector2 GetTargetPoint(Transform target)
+    {
+        var col = target.GetComponent<Collider2D>();
+        return col != null ? (Vector2)col.bounds.center : (Vector2)target.position;
+    }
 
-    //    OnTrigger1?.Invoke(intensity);
-    //}
+    public Vector2 GetDirectionToTargetFull(Transform playerTransform)
+    {
+        Vector2 targetPoint = GetTargetPoint(playerTransform);
+        Vector2 diff = targetPoint - (Vector2)transform.position;
+        return diff.sqrMagnitude > 0f ? diff.normalized : Vector2.zero;
+    }
 
-    //private void HandleTriger2(Platform platform)
-    //{
-    //    OnTrigger2?.Invoke(platform);
-    //}
+    public void MoveFreely(Vector2 direction, float speed)
+    {
+        Rb.linearVelocity = direction * speed;
+        FlipSprite(direction);
+    }
+
+    public void MoveTowardTarget(Transform target, float speed)
+    {
+        if (Data.FliesFreely)
+        {
+            MoveFreely(GetDirectionToTargetFull(target), speed);
+        }
+        else
+        {
+            Move(GetDirectionToTarget(target), speed);
+        }
+    }
+
+    public Vector2 GetChargeDirection(Transform target)
+    {
+        return Data.FliesFreely ? GetDirectionToTargetFull(target) : GetDirectionToTarget(target);
+    }    
+
+    public void MoveAlongDirection(Vector2 direction, float speed)
+    {
+        if (Data.FliesFreely)
+        {
+            MoveFreely(direction, speed);
+        }
+        else
+        {
+            Move(direction, speed);
+        }
+    }
+
+    public void VerticalPatrol(ref int direction, ref Vector2 startPosition)
+    {
+
+        float delta = transform.position.y - startPosition.y;
+
+        if (delta >= Data.PatrolRange)
+        {
+            direction = -1;
+        }
+        else if (delta <= -Data.PatrolRange)
+        {
+            direction = 1;
+        }
+
+        Rb.linearVelocity = new Vector2(Rb.linearVelocity.x, direction * Data.PatrolSpeed);
+    }
+
+    public void HorizontalPatrol(ref int direction, ref Vector2 startPosition)
+    {
+        float delta = transform.position.x - startPosition.x;
+
+        if (delta >= Data.PatrolRange)
+        {
+            direction = -1;
+        }
+        else if (delta <= -Data.PatrolRange)
+        {
+            direction = 1;
+        }
+
+        Rb.linearVelocity = new Vector2(direction * Data.PatrolSpeed, Rb.linearVelocity.y);
+        FlipSprite(new Vector2(direction, 0));
+    }
+
+    public bool IsPlayerDetectionRange(Transform playerTransform)
+    {
+        float distance = Vector2.Distance(transform.position, playerTransform.position);
+        return distance <= Data.DetectionRange;
+    }
+
+    public bool TryResetAggro(float deltaTime, Transform playerTransform)
+    {
+        float distance = Vector2.Distance(transform.position, playerTransform.position);
+
+        if (distance > Data.DetectionRange)
+        {
+            _outOfRangeElapsed += deltaTime;
+
+            if (_outOfRangeElapsed >= Data.AggroResetTime)
+            {
+                _outOfRangeElapsed = 0f;
+                _isInAttackRangeSticky = false;
+                return true;
+            }
+        }
+        else
+        {
+            _outOfRangeElapsed = 0f;
+        }
+
+        return false;
+    }
+
+    public bool IsPauseDurationElapsed(float elapsedTime)
+    {
+        return elapsedTime >= Data.PauseDuration;
+    }
+
+    public bool IsChargeDurationElapsed(float elapsedTime)
+    {
+        return elapsedTime >= Data.ChargeDuration;
+    }
+
+    public bool IsInAttackRange(Transform playerTransform)
+    {
+        float distance = Vector2.Distance(transform.position, playerTransform.position);
+
+        if (_isInAttackRangeSticky)
+        {
+            _isInAttackRangeSticky = distance <= Data.AttackRange + Data.AttackRangeExitBuffer;
+        }
+        else
+        {
+            _isInAttackRangeSticky = distance <= Data.AttackRange;
+        }
+
+        return _isInAttackRangeSticky;
+    }
+
+    public bool IsStunFinished(float elapsed)
+    {
+        return elapsed >= Data.StunDuration;
+    }
+
+    public bool IsKnockbackFinished(float elapsed)
+    {
+        return elapsed >= Data.KnockbackDuration;
+    }
 
     public void TakeDamage(int damage, Vector2 hitDirection)
     {
+        if (!_data.IsAttackable)
+        {
+            return;
+        }
+
         if (_data.IsInvincible)
         {
             return;
         }
 
-        StartCoroutine(KnockbackRoutine(hitDirection));
+        _lastHitDirection = hitDirection;
+        _btAgent.SetVariableValue("IsHit", true);
     }
 
-    private IEnumerator KnockbackRoutine(Vector2 hitDirection)
+    public Vector2 GetLastHitDirection() => _lastHitDirection;
+
+    public void ResetSoundTrigger()
     {
-        CurrentState = MonsterState.STUNNED;
-
-        Rb.linearVelocity = Vector2.zero;
-        Rb.AddForce(hitDirection * _data.KnockbackForce, ForceMode2D.Impulse);
-
-        yield return new WaitForSeconds(_data.KnockbackDuration);
-
-        //switch (_data.HitReaction)
-        //{
-        //    case HitReaction.Die:
-        //        {
-        //            Die();
-        //            break;
-        //        }
-        //    case HitReaction.Stun:
-        //        {
-        //            Rb.linearVelocity = Vector2.zero;
-        //            _btAgent.SetVariableValue("isStunned", true);
-        //            CurrentState = MonsterState.STUNNED;
-        //            break;
-        //        }
-        //    case HitReaction.ReturnToChase:
-        //        {
-        //            Rb.linearVelocity = Vector2.zero;
-        //            CurrentState = MonsterState.CHASE;
-        //            break;
-        //        }
-        //}
-
+        _btAgent.SetVariableValue("SoundTrigger", false);
     }
 
-    public void SetStunned()
+    public void ResetVibTrigger()
     {
-        _btAgent.SetVariableValue("IsStunned", true);
+        _btAgent.SetVariableValue("VibTrigger", false);
     }
 
-    public void ResetTrigger1()
+    public void ResetHitTrigger()
     {
-        _btAgent.SetVariableValue("Trigger1Detected", false);
+        _btAgent.SetVariableValue("IsHit", false);
     }
 
-    public void ResetTrigger2()
+    public void StartStun()
     {
-        _btAgent.SetVariableValue("Trigger2Detected", false);
+        Stop();
     }
 
-    private void Die()
+    public void StartKnockback(Transform playerTransform)
     {
-        CurrentState = MonsterState.DEAD;
+        Vector2 knockbackDirection = (transform.position - playerTransform.position).normalized;
+        Stop();
+        Rb.AddForce(knockbackDirection * Data.KnockbackForce, ForceMode2D.Impulse);
+    }
+
+    public void EndKnockback()
+    {
+        Stop();
+    }
+
+    public void Die()
+    {
+        SetState(MonsterState.DEAD);
         _btAgent.enabled = false;
-        //OnDeath?.Invoke();
 
-        //var ts = GameManagerDependencyInfo.Instance?.GetTriggerSystem();
-        //if (ts != null)
-        //{
-        //    ts.OnSoundTriggered -= HandleTrigger1;
-        //    ts.OnVibrationTriggered -= HandleTrigger2;
-        //}
-
-        Destroy(gameObject, 0.5f);
-    }
-
-    private void OnDestroy()
-    {
-        //var ts = GameManager.Instance?.GetTriggerSystem();
-        //if (ts != null)
-        //{
-        //    ts.OnSoundTriggered -= HandleTrigger1;
-        //    ts.OnVibrationTriggered -= HandleTriger2;
-        //}
+        GameObject.Destroy(gameObject);
     }
 }
