@@ -42,6 +42,18 @@ public class PlayerTongueAttack : MonoBehaviour
         public Vector3 point;
     }
 
+    // 조준 보정(FindAimTarget)과 최종 판정(TongueRoutine) 두 곳 모두
+    // 이 순서 하나만 참조하도록 만들어, "적 > 아이템 > 벽" 우선순위 규칙이
+    // 서로 다른 두 곳에 따로따로 구현되어 어긋나는 일을 막습니다.
+    private static readonly TargetType[] PriorityOrder = { TargetType.Enemy, TargetType.Item, TargetType.Wall };
+
+    // 부채꼴 안 후보들을 비교할 때 쓰는 가중치 (카테고리 우선순위가 아니라,
+    // 같은 카테고리 안에서 각도/거리로 미세 조정하는 용도)
+    private const float AngleScoreWeight = 10f;
+    private const float DistanceScoreWeight = 5f;
+    // 공격자 자신의 콜라이더 등, 거리가 0에 가까운 후보를 걸러내는 최소 거리
+    private const float MinTargetDistance = 0.01f;
+
     private void Awake()
     {
         animator = GetComponent<Animator>();
@@ -91,52 +103,73 @@ public class PlayerTongueAttack : MonoBehaviour
     }
 
     /// <summary>
-    /// 마우스 방향 부채꼴 안에서 우선순위(적 > 아이템 > 벽)에 따라
+    /// 마우스 방향 부채꼴 안에서 우선순위(PriorityOrder: 적 > 아이템 > 벽)에 따라
     /// 혀가 실제로 뻗어나갈 '조준 지점'을 찾습니다.
     /// 정확히 그 방향이 아니어도 부채꼴 범위 안이면 자동으로 보정됩니다.
     /// </summary>
     private AimResult FindAimTarget(Vector3 origin, Vector3 aimDir)
     {
         float halfAngle = aimConeAngle * 0.5f;
+        Collider2D[] nearby = Physics2D.OverlapCircleAll(origin, attackDamageRange);
+
+        foreach (TargetType type in PriorityOrder)
+        {
+            AimResult candidate = type == TargetType.Wall
+                ? FindBestWallCandidate(origin, aimDir, halfAngle)
+                : FindBestOverlapCandidate(nearby, origin, aimDir, halfAngle, type);
+
+            if (candidate.type != TargetType.None)
+                return candidate;
+        }
+
+        return new AimResult { type = TargetType.None };
+    }
+
+    /// <summary>
+    /// 부채꼴(halfAngle) 안에서 지정된 type(Enemy는 IDamageable, Item은 IGrabbable)을
+    /// 가진 후보 중, 조준 방향에 가깝고 가까운 순으로 가장 좋은 후보 하나를 고릅니다.
+    /// </summary>
+    private AimResult FindBestOverlapCandidate(Collider2D[] candidates, Vector3 origin, Vector3 aimDir, float halfAngle, TargetType type)
+    {
         AimResult best = new AimResult { type = TargetType.None };
         float bestScore = float.NegativeInfinity;
 
-        // 1) 적 / 아이템: 넓은 원 안에서 각도로 필터링
-        Collider2D[] nearby = Physics2D.OverlapCircleAll(origin, attackDamageRange);
-        foreach (var col in nearby)
+        foreach (var col in candidates)
         {
             Vector3 toCol = (Vector3)col.bounds.center - origin;
             float dist = toCol.magnitude;
-            if (dist < 0.01f || dist > attackDamageRange) continue;
+            if (dist < MinTargetDistance || dist > attackDamageRange) continue;
 
             float angle = Vector3.Angle(aimDir, toCol);
             if (angle > halfAngle) continue;
 
-            bool isEnemy = col.GetComponent<IDamageable>() != null;
-            bool isItem = !isEnemy && col.GetComponent<IGrabbable>() != null;
-            if (!isEnemy && !isItem) continue;
+            bool matches = type == TargetType.Enemy
+                ? col.GetComponent<IDamageable>() != null
+                : col.GetComponent<IGrabbable>() != null;
+            if (!matches) continue;
 
-            // 우선순위 가중치: 적이 압도적으로 높음
-            float priorityScore = isEnemy ? 1000f : 500f;
             float angleScore = 1f - (angle / halfAngle);
             float distScore = 1f - (dist / attackDamageRange);
-            float score = priorityScore + angleScore * 10f + distScore * 5f;
+            float score = angleScore * AngleScoreWeight + distScore * DistanceScoreWeight;
 
             if (score > bestScore)
             {
                 bestScore = score;
-                best = new AimResult
-                {
-                    type = isEnemy ? TargetType.Enemy : TargetType.Item,
-                    point = col.ClosestPoint(origin)
-                };
+                best = new AimResult { type = type, point = col.ClosestPoint(origin) };
             }
         }
 
-        // 적이나 아이템이 하나라도 부채꼴 안에 있으면 벽 탐색은 볼 필요 없음
-        if (best.type != TargetType.None) return best;
+        return best;
+    }
 
-        // 2) 벽/갈고리: 부채꼴 레이캐스트로 탐색 (더 긴 사거리)
+    /// <summary>
+    /// 부채꼴 레이캐스트로 벽/갈고리 지점을 탐색합니다 (적/아이템보다 긴 사거리).
+    /// </summary>
+    private AimResult FindBestWallCandidate(Vector3 origin, Vector3 aimDir, float halfAngle)
+    {
+        AimResult best = new AimResult { type = TargetType.None };
+        float bestScore = float.NegativeInfinity;
+
         for (int i = 0; i < aimRayCount; i++)
         {
             float t = aimRayCount == 1 ? 0f : (float)i / (aimRayCount - 1);
@@ -148,7 +181,7 @@ public class PlayerTongueAttack : MonoBehaviour
 
             float angleScore = 1f - (Mathf.Abs(angle) / halfAngle);
             float distScore = 1f - (hit.distance / grappleRange);
-            float score = angleScore * 10f + distScore * 5f;
+            float score = angleScore * AngleScoreWeight + distScore * DistanceScoreWeight;
 
             if (score > bestScore)
             {
@@ -223,44 +256,53 @@ public class PlayerTongueAttack : MonoBehaviour
             }
         }
 
-        // 1순위: 적
-        if (damageTargets.Count > 0)
+        // 우선순위 판정: FindAimTarget과 동일한 PriorityOrder를 그대로 따라가며,
+        // 앞 카테고리에 후보가 없으면 다음 카테고리로 넘어갑니다.
+        foreach (TargetType type in PriorityOrder)
         {
-            foreach (var damageable in damageTargets)
+            switch (type)
             {
-                damageable.TakeDamage(attackDamage);
-            }
-            yield return ReturnTongue(flippedMouthOffset, null);
-            yield break;
-        }
-
-        // 2순위: 아이템
-        if (grabTargets.Count > 0)
-        {
-            List<Transform> grabbedItems = new List<Transform>();
-            foreach (var grabbable in grabTargets)
-            {
-                grabbable.OnGrabbed();
-                if (grabbable is Component comp)
+                case TargetType.Enemy:
                 {
-                    var rb = comp.GetComponent<Rigidbody2D>();
-                    if (rb != null) rb.simulated = false;
-                    var col = comp.GetComponent<Collider2D>();
-                    if (col != null) col.enabled = false;
-                }
-                grabbedItems.Add(grabbable.GrabTransform);
-            }
-            yield return ReturnTongue(flippedMouthOffset, grabbedItems);
-            yield break;
-        }
+                    if (damageTargets.Count == 0) continue;
 
-        // 3순위: 벽/갈고리
-        if (hookTarget != null)
-        {
-            tongueVisual.enabled = false;
-            grappleHook.StartHook(hookTarget.HookPoint);
-            isAttacking = false;
-            yield break;
+                    foreach (var damageable in damageTargets)
+                    {
+                        damageable.TakeDamage(attackDamage);
+                    }
+                    yield return ReturnTongue(flippedMouthOffset, null);
+                    yield break;
+                }
+                case TargetType.Item:
+                {
+                    if (grabTargets.Count == 0) continue;
+
+                    List<Transform> grabbedItems = new List<Transform>();
+                    foreach (var grabbable in grabTargets)
+                    {
+                        grabbable.OnGrabbed();
+                        if (grabbable is Component comp)
+                        {
+                            var rb = comp.GetComponent<Rigidbody2D>();
+                            if (rb != null) rb.simulated = false;
+                            var col = comp.GetComponent<Collider2D>();
+                            if (col != null) col.enabled = false;
+                        }
+                        grabbedItems.Add(grabbable.GrabTransform);
+                    }
+                    yield return ReturnTongue(flippedMouthOffset, grabbedItems);
+                    yield break;
+                }
+                case TargetType.Wall:
+                {
+                    if (hookTarget == null) continue;
+
+                    tongueVisual.enabled = false;
+                    grappleHook.StartHook(hookTarget.HookPoint);
+                    isAttacking = false;
+                    yield break;
+                }
+            }
         }
 
         // 아무것도 안 걸렸으면 그냥 되돌아오기
