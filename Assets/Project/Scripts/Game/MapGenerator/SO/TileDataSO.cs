@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
-[CreateAssetMenu(fileName = "TileDataSO", menuName = "Scriptable Objects/Map/TileDataSO")]
+[CreateAssetMenu(fileName = "TileDataSO", menuName = "Scriptable Objects/TileDataSO")]
 public class TileDataSO : ScriptableObject
 {
     public string themeName;

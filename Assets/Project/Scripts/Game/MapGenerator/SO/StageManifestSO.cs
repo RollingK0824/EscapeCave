@@ -24,7 +24,7 @@ public struct StageEvent
     public TileModifier[] terrainModifiers;
 }
 
-[CreateAssetMenu(fileName = "StageManifestSO", menuName = "Scriptable Objects/Map/StageManifestSO")]
+[CreateAssetMenu(fileName = "StageManifestSO", menuName = "Scriptable Objects/StageManifestSO")]
 public class StageManifestSO : ScriptableObject
 {
     public string stageName;
