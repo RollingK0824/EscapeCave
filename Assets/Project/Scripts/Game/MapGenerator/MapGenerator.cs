@@ -1,103 +1,181 @@
 using UnityEngine;
+using UnityEngine.Tilemaps;
+using System.Collections.Generic;
 
 public class MapGenerator : MonoBehaviour
 {
-    [Header("추적 및 렌더링 설정")]
+    [Header("단일 글로벌 타일맵 및 추적")]
     public Transform player;
-    public MapChunk chunkPrefab;
+    public Tilemap globalTilemap;
 
     [Header("스테이지 테마 리스트")]
-    public BaseMapRuleSO[] stageRules; // 0번: 동굴/산맥, 1번: 지하호수 등
-    private int _currentStageIndex = 0; // 현재 적용 중인 SO 인덱스
+    public BaseMapRuleSO[] stageRules;
 
-    // 풀링(Pooling) 관리를 위한 링 버퍼 변수들
-    private MapChunk[] _chunks = new MapChunk[3];
-    private int _currentChunkIdx = 0; // 현재 플레이어가 밟고 있는 청크의 배열 인덱스
-    private int _lastExitY;           // 이전 청크가 뚫어놓은 터널의 끝점 높이
+    [Header("시드 시스템")]
+    public float masterSeed;
+    public bool useRandomSeedAtStart = true;
 
-    private float _chunkWidth;
+    [Header("오브젝트 컬링 최적화 설정")]
+    [Tooltip("플레이어와 이 X축 거리(타일) 이상 멀어지면 몬스터/오브젝트 비활성화")]
+    public float cullingDistance = 45f;
+
+    private int[] _chunkOffsets = new int[3];
+    private int _currentChunkIdx = 0;
+    private int _lastExitY;
+    private int _chunkWidth;
+    private int _chunkGenerationCount = 0;
+
+    private int[,] _mapDataBuffer;
+    private TileBase[] _clearBuffer;
+    private Vector2Int _lastPlatformLocal;
+
+    private List<GameObject>[] _spawnedObjectsPerChunk = new List<GameObject>[3];
 
     private void Start()
     {
         if (stageRules.Length == 0) return;
 
-        // 첫 번째 룰을 기준으로 청크 가로 길이 캐싱
-        _chunkWidth = stageRules[_currentStageIndex].chunkWidth;
-
-        // 임의의 중간 지점 높이에서 최초 시작
-        _lastExitY = stageRules[_currentStageIndex].chunkHeight / 2;
-
-        int initialStartY = stageRules[_currentStageIndex].chunkHeight / 2;
-        _lastExitY = initialStartY;
-
-        InitializeChunks();
-
-        if(player != null)
+        if (useRandomSeedAtStart)
         {
-            if(player.TryGetComponent<Rigidbody2D>(out Rigidbody2D rb))
+            byte[] seedBytes = new byte[4];
+            using (var rng = System.Security.Cryptography.RandomNumberGenerator.Create())
             {
-                rb.linearVelocity = Vector2.zero;
-                rb.position = new Vector2(2f, initialStartY);
+                rng.GetBytes(seedBytes);
             }
-            else
-            {
-                player.position = new Vector3(2f, initialStartY, player.position.z);
-            }
+            int rawSeed = System.BitConverter.ToInt32(seedBytes, 0);
+            
+            masterSeed = Mathf.Abs(rawSeed) % 1000000;
         }
+
+        for (int i = 0; i < 3; i++)
+        {
+            _spawnedObjectsPerChunk[i] = new List<GameObject>();
+        }
+
+        BaseMapRuleSO initialRule = stageRules[0];
+        _chunkWidth = initialRule.chunkWidth;
+        _lastExitY = initialRule.chunkHeight / 2;
+        _lastPlatformLocal = new Vector2Int(0, _lastExitY);
+
+        _mapDataBuffer = new int[_chunkWidth, initialRule.chunkHeight];
+        _clearBuffer = new TileBase[_chunkWidth * initialRule.chunkHeight];
+
+        InitializeGlobalMap();
     }
 
-    private void InitializeChunks()
+    private void InitializeGlobalMap()
     {
         for (int i = 0; i < 3; i++)
         {
-            _chunks[i] = Instantiate(chunkPrefab, transform);
+            _chunkOffsets[i] = i * _chunkWidth;
+            int randomIdx = Random.Range(0, stageRules.Length);
+            BaseMapRuleSO randomRule = stageRules[randomIdx];
+            float chunkSeed = masterSeed + _chunkGenerationCount++;
 
-            // 위치 지정: 0번은 기준점, 1번은 미래(앞), 2번은 과거(뒤, 방어용)
-            // 즉 [-width, 0, +width] 순서로 배치됩니다.
-            float posX = i * _chunkWidth;
-            _chunks[i].transform.position = new Vector3(posX, 0, 0);
+            ChunkGenParams genParams = new ChunkGenParams
+            {
+                globalTilemap = this.globalTilemap,
+                mapData = this._mapDataBuffer,
+                offsetX = this._chunkOffsets[i],
+                startY = this._lastExitY,
+                seed = chunkSeed,
+                startPlatform = this._lastPlatformLocal,
+                spawnedList = this._spawnedObjectsPerChunk[i]
+            };
 
-            // 맵 생성 및 끝점 갱신 (2번 과거 청크는 시작하자마자 지워질 운명이므로 생성 생략해도 무방하나 통일성을 위해 생성)
-            _lastExitY = _chunks[i].BuildMap(stageRules[_currentStageIndex], _lastExitY);
+            _lastExitY = randomRule.GenerateChunk(genParams, out Vector2Int newPlatformEnd);
+
+            _lastPlatformLocal = new Vector2Int(newPlatformEnd.x - _chunkWidth, newPlatformEnd.y);
         }
     }
 
     private void Update()
     {
-        // 최적화: 매 프레임 플레이어의 X 위치만 단순 비교 (물리 연산 X)
-        // 플레이어가 '현재 청크'의 중간 지점(50%)을 넘어가면 다음 청크를 앞으로 당겨옵니다.
-        float shiftThreshold = _chunks[_currentChunkIdx].transform.position.x + (_chunkWidth * 0.5f);
+        float shiftThreshold = _chunkOffsets[_currentChunkIdx] + (_chunkWidth * 1.5f);
 
         if (player.position.x > shiftThreshold)
         {
             ShiftChunks();
         }
+
+        UpdateObjectCulling();
+    }
+
+    private void UpdateObjectCulling()
+    {
+        if (player == null) return;
+
+        float playerX = player.position.x;
+
+        for (int i = 0; i < 3; i++)
+        {
+            List<GameObject> chunkObjects = _spawnedObjectsPerChunk[i];
+            for (int j = 0; j < chunkObjects.Count; j++)
+            {
+                GameObject obj = chunkObjects[j];
+                if (obj != null)
+                {
+                    float dist = Mathf.Abs(obj.transform.position.x - playerX);
+                    bool shouldActive = dist <= cullingDistance;
+
+                    if (obj.activeSelf != shouldActive)
+                    {
+                        obj.SetActive(shouldActive);
+                    }
+                }
+            }
+        }
     }
 
     private void ShiftChunks()
     {
-        // 링 버퍼 논리를 이용해 인덱스 계산 (나머지 연산자 활용)
-        int pastIdx = (_currentChunkIdx + 2) % 3;   // 버려질 맨 뒤의 과거 청크
-        int futureIdx = (_currentChunkIdx + 1) % 3; // 현재의 바로 앞 청크 (미래)
+        int pastIdx = _currentChunkIdx;
+        int futureIdx = (_currentChunkIdx + 1) % 3;
 
-        float maxPosX = Mathf.Max(
-            _chunks[0].transform.position.x,
-            _chunks[1].transform.position.x,
-            _chunks[2].transform.position.x
-            );
+        List<GameObject> oldObjects = _spawnedObjectsPerChunk[pastIdx];
+        for (int i = 0; i < oldObjects.Count; i++)
+        {
+            if (oldObjects[i] != null)
+            {
+                var mapObj = oldObjects[i].GetComponent<MapSpawnedObject>();
+                if (mapObj != null)
+                {
+                    Managers.PoolManager.Instance.Push(oldObjects[i], mapObj.poolKey);
+                }
+                else
+                {
+                    // 예외적으로 컴포넌트가 누락된 경우 일반 파괴
+                    Destroy(oldObjects[i]);
+                }
+            }
+        }
+        oldObjects.Clear();
 
-        // 1. 과거 청크를 미래 청크의 바로 앞(다음 위치)으로 순간이동
-        float newPosX = maxPosX + _chunkWidth;
-        _chunks[pastIdx].transform.position = new Vector3(newPosX, 0, 0);
+        BoundsInt clearBounds = new BoundsInt(_chunkOffsets[pastIdx], 0, 0, _chunkWidth, stageRules[0].chunkHeight, 1);
+        globalTilemap.SetTilesBlock(clearBounds, _clearBuffer);
 
-        // [확장성] 여기서 점수나 진행도에 따라 _currentStageIndex를 올려주면 
-        // 다음 청크부터는 완전히 새로운 테마(SO)로 맵이 그려집니다!
-        BaseMapRuleSO currentRule = stageRules[_currentStageIndex];
+        float maxPosX = Mathf.Max(_chunkOffsets[0], _chunkOffsets[1], _chunkOffsets[2]);
+        int newOffsetX = Mathf.RoundToInt(maxPosX + _chunkWidth);
+        _chunkOffsets[pastIdx] = newOffsetX;
 
-        // 2. 위치를 옮긴 청크에게 새로운 맵을 그리라고 지시 (데이터 덮어쓰기)
-        _lastExitY = _chunks[pastIdx].BuildMap(currentRule, _lastExitY);
+        int randomIdx = Random.Range(0, stageRules.Length);
+        BaseMapRuleSO currentRule = stageRules[randomIdx];
+        float chunkSeed = masterSeed + _chunkGenerationCount++;
 
-        // 3. 인덱스 업데이트 (미래 청크가 이제 '현재 청크'가 됨)
+        ChunkGenParams genParams = new ChunkGenParams
+        {
+            globalTilemap = this.globalTilemap,
+            mapData = this._mapDataBuffer,
+            offsetX = newOffsetX,
+            startY = this._lastExitY,
+            seed = chunkSeed,
+            startPlatform = this._lastPlatformLocal,
+            spawnedList = oldObjects
+        };
+
+        _lastExitY = currentRule.GenerateChunk(genParams, out Vector2Int newPlatformEnd);
+
+        _lastPlatformLocal = new Vector2Int(newPlatformEnd.x - _chunkWidth, newPlatformEnd.y);
         _currentChunkIdx = futureIdx;
     }
 }
