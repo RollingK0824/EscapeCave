@@ -5,20 +5,19 @@ using Action = Unity.Behavior.Action;
 using Unity.Properties;
 
 [Serializable, GeneratePropertyBag]
-[NodeDescription(name: "Die", story: "[Monster] dies", category: "Action/Monster/Hit", id: "3291ef21397b1cb1d19ffcc2c152e0b2")]
-
+[NodeDescription(name: "Die", story: "[Self] dies", category: "Action/Monster/Hit", id: "3291ef21397b1cb1d19ffcc2c152e0b2")]
 public partial class DieAction : Action
 {
-    [SerializeReference] public BlackboardVariable<MonsterController> Monster;
+    [SerializeReference] public BlackboardVariable<GameObject> Self;
 
     protected override Status OnStart()
     {
-        if (Monster.Value == null)
+        if (Self.Value == null)
         {
             return Status.Failure;
         }
 
-        Monster.Value.Die();
+        GameObject.Destroy(Self.Value);
         return Status.Success;
     }
 }

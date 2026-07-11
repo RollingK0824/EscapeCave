@@ -5,36 +5,27 @@ using Action = Unity.Behavior.Action;
 using Unity.Properties;
 
 [Serializable, GeneratePropertyBag]
-[NodeDescription(name: "CheckAttackRange", story: "[Monster] checks if [PlayerTransform] is within attack range", category: "Action/Monster/Chase", id: "d492d4bd9cada61a7b26c86727dde287")]
+[NodeDescription(name: "CheckAttackRange", story: "[Self] checks if [PlayerTransform] is within [MonsterData]", category: "Action", id: "d492d4bd9cada61a7b26c86727dde287")]
 public partial class CheckAttackRangeAction : Action
 {
-    [SerializeReference] public BlackboardVariable<MonsterController> Monster;
+    [SerializeReference] public BlackboardVariable<GameObject> Self;
     [SerializeReference] public BlackboardVariable<Transform> PlayerTransform;
-
+    [SerializeReference] public BlackboardVariable<MonsterData> MonsterData;
     protected override Status OnUpdate()
     {
-        if (Monster.Value == null || PlayerTransform.Value == null)
+        if (Self.Value == null || PlayerTransform.Value == null || MonsterData.Value == null)
         {
-            Debug.Log("[CheckAttackRange] Monster 또는 PlayerTransform이 null입니다");
             return Status.Failure;
         }
 
-        bool inRange = Monster.Value.IsInAttackRange(PlayerTransform.Value);
-        Debug.Log($"[CheckAttackRange] 실행 중 - inRange: {inRange}");
+        float distance = Vector2.Distance(Self.Value.transform.position, PlayerTransform.Value.position);
 
-        if (inRange)
+        if (distance <= MonsterData.Value.AttackRange)
         {
             return Status.Success;
         }
 
         return Status.Failure;
-
-        //if (Monster.Value.IsInAttackRange(PlayerTransform.Value))
-        //{
-        //    return Status.Success;
-        //}
-
-        //return Status.Failure;
     }
 }
 
