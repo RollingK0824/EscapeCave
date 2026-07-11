@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -12,9 +13,16 @@ public class PlayerJump : MonoBehaviour
     [SerializeField] private float fallMultiplier = 2.5f;
     [SerializeField] private float lowJumpMultiplier = 5f;
     [SerializeField] private LayerMask groundLayer;
+    [SerializeField, Tooltip("이 값보다 수직에 가까운(위를 향하는) 접촉면만 바닥으로 인정합니다")]
+    private float groundNormalMinY = 0.7f; // 약 45도 이내만 바닥으로 인정 (벽 모서리 오탐 방지)
     [SerializeField] private bool isGrounded; // 인스펙터 실시간 확인용
 
-    private int groundContactCount = 0;
+    // 콜라이더별로 "지금 이 접촉이 바닥으로 인정되는가"를 추적합니다.
+    // 벽/바닥이 하나의 콜라이더(예: Composite Collider)로 이어져 있으면 Enter/Exit가
+    // 다시 호출되지 않은 채 접촉면(normal)만 바뀔 수 있어(모서리를 타고 미끄러지는 경우),
+    // 카운터 증감 방식으로는 벽에 박았을 때 바닥 판정이 그대로 남아버립니다.
+    // Stay에서 매 물리 프레임 갱신해 이 문제를 없앱니다.
+    private readonly Dictionary<Collider2D, bool> groundContacts = new Dictionary<Collider2D, bool>();
     private bool isJumpPressed;
     public event System.Action OnLanded;
     private Rigidbody2D rb;
@@ -35,7 +43,7 @@ public class PlayerJump : MonoBehaviour
     private void Update()
     {
         wasGrounded = isGrounded;
-        isGrounded = groundContactCount > 0;
+        isGrounded = IsAnyContactGround();
 
         if (!wasGrounded && isGrounded)
         {
@@ -66,17 +74,12 @@ public class PlayerJump : MonoBehaviour
     #region Ground Collision
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (((1 << collision.gameObject.layer) & groundLayer) == 0)
-            return;
+        UpdateGroundContact(collision);
+    }
 
-        foreach (ContactPoint2D contact in collision.contacts)
-        {
-            if (contact.normal.y > 0.5f)
-            {
-                groundContactCount++;
-                break;
-            }
-        }
+    private void OnCollisionStay2D(Collision2D collision)
+    {
+        UpdateGroundContact(collision);
     }
 
     private void OnCollisionExit2D(Collision2D collision)
@@ -84,7 +87,39 @@ public class PlayerJump : MonoBehaviour
         if (((1 << collision.gameObject.layer) & groundLayer) == 0)
             return;
 
-        groundContactCount = Mathf.Max(0, groundContactCount - 1);
+        groundContacts.Remove(collision.collider);
+    }
+
+    /// <summary>
+    /// 콜라이더 하나가 이번 물리 프레임에 "바닥 접촉"으로 인정되는지 다시 계산해 기록합니다.
+    /// 벽과 바닥이 이어진 콜라이더를 타고 미끄러질 때 접촉면이 벽 쪽(수평 normal)으로
+    /// 바뀌어도 여기서 즉시 false로 갱신되므로, 벽에 박았을 때 바닥 판정이 남지 않습니다.
+    /// </summary>
+    private void UpdateGroundContact(Collision2D collision)
+    {
+        if (((1 << collision.gameObject.layer) & groundLayer) == 0)
+            return;
+
+        bool isGroundContact = false;
+        foreach (ContactPoint2D contact in collision.contacts)
+        {
+            if (contact.normal.y > groundNormalMinY)
+            {
+                isGroundContact = true;
+                break;
+            }
+        }
+
+        groundContacts[collision.collider] = isGroundContact;
+    }
+
+    private bool IsAnyContactGround()
+    {
+        foreach (bool isGroundContact in groundContacts.Values)
+        {
+            if (isGroundContact) return true;
+        }
+        return false;
     }
     #endregion
 
