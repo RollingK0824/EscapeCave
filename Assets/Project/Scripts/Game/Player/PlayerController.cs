@@ -35,6 +35,16 @@ public class PlayerController : MonoBehaviour
 
         // 몬스터 관련 로직 추가
         Managers.MonsterManager.RegisterPlayer(transform);
+        if (jump != null)
+        {
+            jump.OnLanded += HandleLanded;
+        }
+    }
+
+    // 몬스터 관련 로직 추가
+    private void HandleLanded()
+    {
+        Managers.MonsterManager.NotifyVibration();
     }
 
     private void OnEnable()
@@ -92,5 +102,9 @@ public class PlayerController : MonoBehaviour
     private void OnDestroy()
     {
         Managers.MonsterManager.UnregisterPlayer(transform);
+        if (jump != null)
+        {
+            jump.OnLanded -= HandleLanded;
+        }
     }
 }

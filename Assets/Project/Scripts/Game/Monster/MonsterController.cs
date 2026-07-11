@@ -53,6 +53,8 @@ public class MonsterController : MonoBehaviour, IDamageable
         _btAgent.SetVariableValue("IsDetected", false);
         _btAgent.SetVariableValue("IsHit", false);
         _btAgent.SetVariableValue("HitReaction", _data.HitReaction);
+
+        Managers.MonsterManager.RegisterMonster(this);
     }
 
     private void Start()
@@ -301,6 +303,16 @@ public class MonsterController : MonoBehaviour, IDamageable
         _isHitReactiveActive = false;
     }
 
+    public void NotifySound()
+    {
+        _btAgent.SetVariableValue("SoundTrigger", true);
+    }
+
+    public void NotifyVibration()
+    {
+        _btAgent.SetVariableValue("VibTrigger", true);
+    }
+
     public void StartStun()
     {
         Stop();
@@ -324,5 +336,10 @@ public class MonsterController : MonoBehaviour, IDamageable
         _btAgent.enabled = false;
 
         GameObject.Destroy(gameObject);
+    }
+
+    public void OnDestroy()
+    {
+        Managers.MonsterManager.UnregisterMonster(this);
     }
 }
