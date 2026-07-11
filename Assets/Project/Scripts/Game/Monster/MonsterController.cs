@@ -38,6 +38,8 @@ public class MonsterController : MonoBehaviour, IDamageable
 
     private Vector2 _lastHitDirection;
     private bool _isHitReactiveActive;
+    public float CurrentMoveSpeed { get; private set; }
+
 
     private void Awake()
     {
@@ -55,6 +57,8 @@ public class MonsterController : MonoBehaviour, IDamageable
         _btAgent.SetVariableValue("HitReaction", _data.HitReaction);
 
         Managers.MonsterManager.RegisterMonster(this);
+
+        CurrentMoveSpeed = Data.MoveSpeed;
     }
 
     private void Start()
@@ -78,6 +82,16 @@ public class MonsterController : MonoBehaviour, IDamageable
         if (direction.x != 0)
         {
             SpriteRenderer.flipX = direction.x < 0;
+        }
+    }
+
+    public void IncreaseMoveSpeed(float deltaTime)
+    {
+        CurrentMoveSpeed += Data.SpeedRampRate * deltaTime;
+
+        if (Data.MaxMoveSpeed > 0f)
+        {
+            CurrentMoveSpeed = Mathf.Min(CurrentMoveSpeed, Data.MaxMoveSpeed);
         }
     }
 

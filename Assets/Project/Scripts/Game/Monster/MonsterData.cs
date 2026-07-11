@@ -67,4 +67,8 @@ public class MonsterData : ScriptableObject
     public float GravityScale = 1f;
     public bool UseGravity = true;
     public bool FliesFreely = false;
+
+    [Header("추격 난이도")]
+    public float SpeedRampRate = 0f;
+    public float MaxMoveSpeed = 0f;
 }
