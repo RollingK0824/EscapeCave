@@ -16,22 +16,22 @@ using UnityEngine;
 [RequireComponent(typeof(PlayerSoundEmitter))]
 public class PlayerController : MonoBehaviour
 {
-    private PlayerMovement movement;
-    private PlayerJump jump;
-    private PlayerTongueAttack tongueAttack;
-    private PlayerGrappleHook grappleHook;
-    private PlayerSoundEmitter soundEmitter;
+    private PlayerMovement _movement;
+    private PlayerJump _jump;
+    private PlayerTongueAttack _tongueAttack;
+    private PlayerGrappleHook _grappleHook;
+    private PlayerSoundEmitter _soundEmitter;
 
-    private PlayerControls controls;
-    private bool attackHeld;
+    private PlayerControls _controls;
+    private bool _attackHeld;
 
     private void Awake()
     {
-        movement = GetComponent<PlayerMovement>();
-        jump = GetComponent<PlayerJump>();
-        tongueAttack = GetComponent<PlayerTongueAttack>();
-        grappleHook = GetComponent<PlayerGrappleHook>();
-        soundEmitter = GetComponent<PlayerSoundEmitter>();
+        _movement = GetComponent<PlayerMovement>();
+        _jump = GetComponent<PlayerJump>();
+        _tongueAttack = GetComponent<PlayerTongueAttack>();
+        _grappleHook = GetComponent<PlayerGrappleHook>();
+        _soundEmitter = GetComponent<PlayerSoundEmitter>();
 
         // 몬스터 관련 로직 추가
         Managers.MonsterManager.RegisterPlayer(transform);
@@ -39,53 +39,53 @@ public class PlayerController : MonoBehaviour
 
     private void OnEnable()
     {
-        if (controls == null)
+        if (_controls == null)
         {
-            controls = new PlayerControls();
+            _controls = new PlayerControls();
 
-            controls.Player.Move.performed += ctx => movement.SetMoveInput(ctx.ReadValue<Vector2>());
-            controls.Player.Move.canceled += ctx => movement.SetMoveInput(Vector2.zero);
+            _controls.Player.Move.performed += ctx => _movement.SetMoveInput(ctx.ReadValue<Vector2>());
+            _controls.Player.Move.canceled += ctx => _movement.SetMoveInput(Vector2.zero);
 
-            controls.Player.Jump.performed += ctx => jump.StartJump();
-            controls.Player.Jump.canceled += ctx => jump.CancelJump();
+            _controls.Player.Jump.performed += ctx => _jump.StartJump();
+            _controls.Player.Jump.canceled += ctx => _jump.CancelJump();
 
-            controls.Player.Attack.started += ctx => { attackHeld = true; HandleAttackInput(); };
-            controls.Player.Attack.canceled += ctx => attackHeld = false;
-            controls.Player.Cry.performed += ctx => soundEmitter.Cry();
+            _controls.Player.Attack.started += ctx => { _attackHeld = true; HandleAttackInput(); };
+            _controls.Player.Attack.canceled += ctx => _attackHeld = false;
+            _controls.Player.Cry.performed += ctx => _soundEmitter.Cry();
 
-            controls.Player.Reel.started += ctx => grappleHook.StartAutoReel();
+            _controls.Player.Reel.started += ctx => _grappleHook.StartAutoReel();
 
-            controls.Player.ReelIn.started += ctx => grappleHook.SetReelInput(true);
-            controls.Player.ReelIn.canceled += ctx => grappleHook.SetReelInput(false);
+            _controls.Player.ReelIn.started += ctx => _grappleHook.SetReelInput(true);
+            _controls.Player.ReelIn.canceled += ctx => _grappleHook.SetReelInput(false);
 
-            controls.Player.ReelOut.started += ctx => grappleHook.SetReelOutInput(true);
-            controls.Player.ReelOut.canceled += ctx => grappleHook.SetReelOutInput(false);
+            _controls.Player.ReelOut.started += ctx => _grappleHook.SetReelOutInput(true);
+            _controls.Player.ReelOut.canceled += ctx => _grappleHook.SetReelOutInput(false);
         }
 
-        controls.Enable();
+        _controls.Enable();
     }
 
     private void OnDisable()
     {
-        controls?.Disable();
+        _controls?.Disable();
     }
 
     private void Update()
     {
         // 공격 버튼을 누르고 있는 동안에만 갈고리가 유지됩니다. 버튼을 놓으면 즉시 해제합니다.
         // (버튼을 뗀 뒤에야 혀가 목표에 도달해 훅이 걸리는 경우도 여기서 바로 정리됩니다.)
-        if (grappleHook.IsHooking && !attackHeld)
+        if (_grappleHook.IsHooking && !_attackHeld)
         {
-            grappleHook.Release();
+            _grappleHook.Release();
         }
     }
 
     private void HandleAttackInput()
     {
-        if (grappleHook.IsHooking) return;
-        if (tongueAttack.IsAttacking) return;
+        if (_grappleHook.IsHooking) return;
+        if (_tongueAttack.IsAttacking) return;
 
-        tongueAttack.Attack();
+        _tongueAttack.Attack();
     }
 
     // 몬스터 관련 로직 추가

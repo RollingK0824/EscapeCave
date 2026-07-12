@@ -104,9 +104,9 @@ LineRenderer:
       m_RotationOrder: 4
     colorGradient:
       serializedVersion: 2
-      key0: {r: 1, g: 1, b: 1, a: 1}
-      key1: {r: 1, g: 1, b: 1, a: 1}
-      key2: {r: 0.23529413, g: 0.23529413, b: 0.23529413, a: 0}
+      key0: {r: 1, g: 0.8349056, b: 0.8349056, a: 1}
+      key1: {r: 1, g: 0.8349056, b: 0.8349056, a: 1}
+      key2: {r: 0.23529413, g: 0.23529413, b: 0.23529413, a: 1}
       key3: {r: 0, g: 0, b: 0, a: 0}
       key4: {r: 0, g: 0, b: 0, a: 0}
       key5: {r: 0, g: 0, b: 0, a: 0}
@@ -122,7 +122,7 @@ LineRenderer:
       ctime7: 0
       atime0: 0
       atime1: 65535
-      atime2: 0
+      atime2: 65535
       atime3: 0
       atime4: 0
       atime5: 0
@@ -179,12 +179,13 @@ Transform:
   m_GameObject: {fileID: 3113228121251580108}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -4.85, y: -1.5, z: 0}
+  m_LocalPosition: {x: -8.485602, y: -2.0480583, z: 0}
   m_LocalScale: {x: 3, y: 3, z: 3}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 5229487335330532595}
   - {fileID: 2034434939423374523}
+  - {fileID: 8858853614231131254}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &5476788193159657468
@@ -285,33 +286,35 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e7529e6cdd2a76b45b3f7310ae2ffe9e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerGrappleHook
-  ropeVisual: {fileID: 7358897742509762823}
-  hookSprite: {fileID: 7220639158722328750, guid: b7fc885e002ec644f8d3bc6ab434ad9a, type: 3}
-  hookGroundSprite: {fileID: 6405558553733529960, guid: 328d60bc943103f41b96af152be00eda, type: 3}
-  minRopeLength: 0.5
-  maxRopeLength: 4
-  curveResolution: 10
-  sagMultiplier: 1.5
-  visualOffset: {x: 0.15, y: -0.1}
-  swingControlForce: 15
-  tautTolerance: 0.15
-  retractDuration: 0.15
-  hookHorizontalImpulse: 3
-  hookVerticalImpulse: 2
-  holdOnFullReel: 1
-  groundLayer:
+  _ropeVisual: {fileID: 7358897742509762823}
+  _hookSprite: {fileID: 0}
+  _hookGroundSprite: {fileID: 0}
+  _minRopeLength: 0.5
+  _maxRopeLength: 5
+  _curveResolution: 10
+  _sagMultiplier: 1.5
+  _visualOffset: {x: 0.2, y: 0}
+  _swingControlForce: 15
+  _tautTolerance: 0.15
+  _retractDuration: 0.15
+  _hookHorizontalImpulse: 3
+  _hookVerticalImpulse: 2
+  _holdOnFullReel: 1
+  _holdMoveSpeed: 3
+  _groundLayer:
     serializedVersion: 2
     m_Bits: 64
-  surfaceSkin: 0.05
-  maxWrapPoints: 8
-  wrapSkin: 0.02
-  allowReel: 1
-  reelSpeed: 5
-  reelAcceleration: 12
-  launchVelocityMultiplier: 1.8
-  reelForce: 35
-  maxReelSpeed: 25
-  flipThreshold: 1
+  _surfaceSkin: 0.05
+  _maxWrapPoints: 8
+  _wrapSkin: 0.02
+  _allowReel: 1
+  _reelSpeed: 3
+  _reelAcceleration: 15
+  _launchVelocityMultiplier: 1.2
+  _reelForce: 50
+  _maxReelSpeed: 25
+  _manualPullMaxSpeed: 4
+  _flipThreshold: 1
 --- !u!114 &3849016493055241487
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -324,14 +327,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 95c5d1c3036316243ae8e51e42dd8898, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerJump
-  jumpForce: 7
-  fallMultiplier: 2.5
-  lowJumpMultiplier: 3
-  groundLayer:
+  _jumpForce: 8
+  _fallMultiplier: 2.5
+  _lowJumpMultiplier: 5
+  _groundLayer:
     serializedVersion: 2
     m_Bits: 64
-  groundNormalMinY: 0.7
-  isGrounded: 0
+  _groundNormalMinY: 0.7
+  _isGrounded: 0
 --- !u!114 &3673338680654971195
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -344,8 +347,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3c191940bf7fb314e8b9f0b2297bb046, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement
-  moveSpeed: 8
-  flightMoveSpeed: 6
+  _moveSpeed: 8
+  _flightMoveSpeed: 6
 --- !u!114 &470674028171197251
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -358,8 +361,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e5ea4668fb070214b83d91582c8202d8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerSoundEmitter
-  soundIntensity: 7
-  soundSpeed: 3
+  _soundIntensity: 10
+  _soundSpeed: 5
 --- !u!114 &1022271265769026347
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -372,18 +375,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 63ede05e77c61f44ea1d9c3252b47351, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerTongueAttack
-  attackDamageRange: 4
-  attackDuration: 0.2
-  attackDamage: 10
-  tongueVisual: {fileID: 8594649383674415288}
-  mouthOffset: {x: 0.15, y: -0.05, z: 0}
-  hitRadius: 0.5
-  grappleableLayer:
+  _attackDamageRange: 5
+  _attackDuration: 0.2
+  _attackDamage: 10
+  _tongueVisual: {fileID: 8594649383674415288}
+  _mouthOffset: {x: 0.2, y: 0, z: 0}
+  _hitRadius: 0.5
+  _tongueTip: {fileID: 3029260122734603840}
+  _grappleableLayer:
     serializedVersion: 2
     m_Bits: 64
-  grappleRange: 4
-  aimConeAngle: 30
-  aimRayCount: 9
+  _grappleRange: 5
+  _aimConeAngle: 30
+  _aimRayCount: 9
 --- !u!114 &852259226681694234
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -492,7 +496,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 62899f850307741f2a39c98a8b639597, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.PlayerInput
-  m_Actions: {fileID: -944628639613478452, guid: 04272b3f327785b47833f96b045f0053, type: 3}
+  m_Actions: {fileID: 0}
   m_NotificationBehavior: 0
   m_UIInputModule: {fileID: 0}
   m_DeviceLostEvent:
@@ -623,8 +627,8 @@ LineRenderer:
       m_RotationOrder: 4
     colorGradient:
       serializedVersion: 2
-      key0: {r: 1, g: 1, b: 1, a: 1}
-      key1: {r: 1, g: 1, b: 1, a: 1}
+      key0: {r: 1, g: 0.8349056, b: 0.8349056, a: 1}
+      key1: {r: 1, g: 0.8349056, b: 0.8349056, a: 1}
       key2: {r: 0.6858491, g: 0.073934615, b: 0.17541695, a: 0}
       key3: {r: 0, g: 0, b: 0, a: 0}
       key4: {r: 0, g: 0, b: 0, a: 0}
@@ -647,7 +651,7 @@ LineRenderer:
       atime5: 0
       atime6: 0
       atime7: 0
-      m_Mode: 0
+      m_Mode: 2
       m_ColorSpace: 0
       m_NumColorKeys: 2
       m_NumAlphaKeys: 2
@@ -661,3 +665,131 @@ LineRenderer:
   m_UseWorldSpace: 1
   m_Loop: 0
   m_ApplyActiveColorSpace: 1
+--- !u!1 &7218951606607778137
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8858853614231131254}
+  - component: {fileID: 3942228621183632809}
+  - component: {fileID: 3029260122734603840}
+  m_Layer: 9
+  m_Name: Tongue Tip
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!4 &8858853614231131254
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7218951606607778137}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 1.2476008, y: 0.1746761, z: 0}
+  m_LocalScale: {x: 0.05, y: 0.05, z: 0.05}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5467278139564407436}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!212 &3942228621183632809
+SpriteRenderer:
+  serializedVersion: 2
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7218951606607778137}
+  m_Enabled: 1
+  m_CastShadows: 0
+  m_ReceiveShadows: 0
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 0
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 1b6d0f81c4e584c41b7785d5d8de41bd, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 0
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 1
+  m_MaskInteraction: 0
+  m_Sprite: {fileID: 8323525408386025021, guid: e275f8f78d78e4840af55e5831947375, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_FlipX: 0
+  m_FlipY: 0
+  m_DrawMode: 0
+  m_Size: {x: 0.2, y: 0.2}
+  m_AdaptiveModeThreshold: 0.5
+  m_SpriteTileMode: 0
+  m_WasSpriteAssigned: 1
+  m_SpriteSortPoint: 0
+--- !u!58 &3029260122734603840
+CircleCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7218951606607778137}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
+  m_Offset: {x: 0, y: 0}
+  m_Radius: 0.1
