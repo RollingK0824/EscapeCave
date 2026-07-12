@@ -11,55 +11,55 @@ using UnityEngine.InputSystem;
 public class PlayerMovement : MonoBehaviour
 {
     [Header("Movement")]
-    [SerializeField] private float moveSpeed = 8f;
+    [SerializeField] private float _moveSpeed = 8f;
 
     [Header("Flight")]
-    [SerializeField] private float flightMoveSpeed = 6f; // 비행 중 상하좌우 이동 속도
+    [SerializeField] private float _flightMoveSpeed = 6f; // 비행 중 상하좌우 이동 속도
 
-    private Rigidbody2D rb;
-    private Animator animator;
-    private SpriteRenderer spriteRenderer;
-    private PlayerGrappleHook grapple;
+    private Rigidbody2D _rb;
+    private Animator _animator;
+    private SpriteRenderer _spriteRenderer;
+    private PlayerGrappleHook _grapple;
 
-    private Vector2 moveInput;
-    private bool isFacingRight = true;
-    private readonly ContactPoint2D[] contactBuffer = new ContactPoint2D[8];
+    private Vector2 _moveInput;
+    private bool _isFacingRight = true;
+    private readonly ContactPoint2D[] _contactBuffer = new ContactPoint2D[8];
 
-    private bool isFlying;
-    private float originalGravityScale;
-    private Coroutine flightRoutine;
+    private bool _isFlying;
+    private float _originalGravityScale;
+    private Coroutine _flightRoutine;
 
     /// <summary>외부에서 이동을 잠글 때 사용 (공격/갈고리 중 등).</summary>
     public bool MovementLocked { get; set; } = false;
 
-    public bool IsFacingRight => isFacingRight;
-    public Vector2 MoveInput => moveInput;
-    public bool IsFlying => isFlying;
+    public bool IsFacingRight => _isFacingRight;
+    public Vector2 MoveInput => _moveInput;
+    public bool IsFlying => _isFlying;
 
     private void Awake()
     {
-        rb = GetComponent<Rigidbody2D>();
-        animator = GetComponent<Animator>();
-        spriteRenderer = GetComponent<SpriteRenderer>();
-        grapple = GetComponent<PlayerGrappleHook>();
+        _rb = GetComponent<Rigidbody2D>();
+        _animator = GetComponent<Animator>();
+        _spriteRenderer = GetComponent<SpriteRenderer>();
+        _grapple = GetComponent<PlayerGrappleHook>();
     }
 
     public void SetMoveInput(Vector2 input)
     {
-        moveInput = input;
+        _moveInput = input;
     }
 
     private void Update()
     {
-        if (MovementLocked || (grapple != null && grapple.IsHooking)) return;
+        if (MovementLocked || (_grapple != null && _grapple.IsHooking)) return;
 
-        if (moveInput.x != 0)
+        if (_moveInput.x != 0)
         {
             CheckMovementFlip();
         }
 
         // 비행 중에는 걷기 애니메이션이 덮어쓰지 않도록 막는다.
-        //animator.SetBool("IsWalking", moveInput.x != 0 && !isFlying);
+        _animator.SetBool("IsWalking", _moveInput.x != 0 && !_isFlying);
     }
 
     private void FixedUpdate()
@@ -70,7 +70,7 @@ public class PlayerMovement : MonoBehaviour
         // [현상] 공중에서 벽에 몸을 박은 채 이동키를 계속 누르고 있으면,
         //        캐릭터가 벽에 달라붙어 y축으로 전혀 떨어지지 않고 얼어붙었음.
         //
-        // [원인] 아래에서 매 물리 프레임 rb.linearVelocity.x에 이동 속도를 강제로
+        // [원인] 아래에서 매 물리 프레임 _rb.linearVelocity.x에 이동 속도를 강제로
         //        대입하는데, 벽 방향으로 계속 밀어 넣으면 물리 엔진이 벽 접촉면에
         //        큰 수직항력(normal force)을 만들고, 그에 비례한 "마찰력"이
         //        중력을 상쇄해버림. 결과적으로 벽에 매달린 것처럼 정지.
@@ -81,20 +81,20 @@ public class PlayerMovement : MonoBehaviour
         //        사라지므로 중력에 의해 자연스럽게 미끄러져 내려온다.
         //        (반대 방향으로 입력하면 벽 검사에 걸리지 않아 즉시 이탈 가능)
         // ────────────────────────────────────────────────────────────────
-        float inputX = moveInput.x;
+        float inputX = _moveInput.x;
         if (inputX != 0 && IsPressingIntoWall(Mathf.Sign(inputX)))
         {
             inputX = 0f;
         }
 
-        if (isFlying)
+        if (_isFlying)
         {
             // 비행 중: 좌우 + 상하 자유 이동, 중력 영향 없음(StartFlight에서 gravityScale 0으로 설정)
-            rb.linearVelocity = new Vector2(inputX * flightMoveSpeed, moveInput.y * flightMoveSpeed);
+            _rb.linearVelocity = new Vector2(inputX * _flightMoveSpeed, _moveInput.y * _flightMoveSpeed);
         }
         else
         {
-            rb.linearVelocity = new Vector2(inputX * moveSpeed, rb.linearVelocity.y);
+            _rb.linearVelocity = new Vector2(inputX * _moveSpeed, _rb.linearVelocity.y);
         }
     }
 
@@ -116,10 +116,10 @@ public class PlayerMovement : MonoBehaviour
     private bool IsPressingIntoWall(float dirX)
     {
         // 현재 이 Rigidbody에 닿아 있는 모든 접촉점을 버퍼에 받아온다 (할당 없음)
-        int count = rb.GetContacts(contactBuffer);
+        int count = _rb.GetContacts(_contactBuffer);
         for (int i = 0; i < count; i++)
         {
-            if (contactBuffer[i].normal.x * dirX < -0.7f)
+            if (_contactBuffer[i].normal.x * dirX < -0.7f)
             {
                 return true;
             }
@@ -135,44 +135,44 @@ public class PlayerMovement : MonoBehaviour
 public void StartFlight(float duration)
 {
     // 1. 기존 코루틴이 있다면 멈추기 전에 상태를 확실하게 복구
-    if (flightRoutine != null)
+    if (_flightRoutine != null)
     {
-        StopCoroutine(flightRoutine);
+        StopCoroutine(_flightRoutine);
         
         // 상태 초기화 (애니메이션과 중력값 원복)
-        rb.gravityScale = originalGravityScale;
-        animator.SetBool("IsFlying", false);
-        isFlying = false;
+        _rb.gravityScale = _originalGravityScale;
+        _animator.SetBool("IsFlying", false);
+        _isFlying = false;
     }
 
     // 2. 새로운 코루틴 시작
-    flightRoutine = StartCoroutine(FlightRoutine(duration));
+    _flightRoutine = StartCoroutine(FlightRoutine(duration));
 }
     private IEnumerator FlightRoutine(float duration)
     {
         // 1. 이미 비행 중이라면 루틴을 새로 시작하지 않음 (선택 사항)
-        if (isFlying) yield break;
+        if (_isFlying) yield break;
 
-        isFlying = true;
-        originalGravityScale = rb.gravityScale;
-        rb.gravityScale = 0f;
-        animator.SetBool("IsFlying", true);
+        _isFlying = true;
+        _originalGravityScale = _rb.gravityScale;
+        _rb.gravityScale = 0f;
+        _animator.SetBool("IsFlying", true);
 
         yield return new WaitForSeconds(duration);
 
         // 2. 루틴 종료 후 상태 복구
-        rb.gravityScale = originalGravityScale;
-        animator.SetBool("IsFlying", false);
-        isFlying = false;
+        _rb.gravityScale = _originalGravityScale;
+        _animator.SetBool("IsFlying", false);
+        _isFlying = false;
 
-        flightRoutine = null;
+        _flightRoutine = null;
     }
     #endregion
 
     #region Flip Logic
     private void CheckMovementFlip()
     {
-        if ((moveInput.x > 0 && !isFacingRight) || (moveInput.x < 0 && isFacingRight))
+        if ((_moveInput.x > 0 && !_isFacingRight) || (_moveInput.x < 0 && _isFacingRight))
         {
             Flip();
         }
@@ -184,11 +184,11 @@ public void StartFlight(float duration)
     /// </summary>
     public void FaceTowards(Vector3 worldTarget)
     {
-        if (worldTarget.x > transform.position.x && !isFacingRight)
+        if (worldTarget.x > transform.position.x && !_isFacingRight)
         {
             Flip();
         }
-        else if (worldTarget.x < transform.position.x && isFacingRight)
+        else if (worldTarget.x < transform.position.x && _isFacingRight)
         {
             Flip();
         }
@@ -196,18 +196,18 @@ public void StartFlight(float duration)
 
     public void Flip()
     {
-        isFacingRight = !isFacingRight;
+        _isFacingRight = !_isFacingRight;
 
-        if (spriteRenderer != null)
+        if (_spriteRenderer != null)
         {
             // 원본 스프라이트가 오른쪽을 보고 있다고 가정:
             // 오른쪽을 볼 때(true) flipX = false, 왼쪽을 볼 때(false) flipX = true
-            spriteRenderer.flipX = !isFacingRight;
+            _spriteRenderer.flipX = !_isFacingRight;
         }
     }
     public void SetFacing(bool faceRight)
     {
-        if (faceRight != isFacingRight)
+        if (faceRight != _isFacingRight)
         {
             Flip();
         }

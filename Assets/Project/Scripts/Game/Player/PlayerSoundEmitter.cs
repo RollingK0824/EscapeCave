@@ -7,29 +7,27 @@ using UnityEngine;
 [RequireComponent(typeof(Animator))]
 public class PlayerSoundEmitter : MonoBehaviour, IEchoable
 {
-    [SerializeField] private float soundIntensity;
-    [SerializeField] private float soundSpeed;
+    [SerializeField] private float _soundIntensity;
+    [SerializeField] private float _soundSpeed;
 
-    public float SoundIntensity => soundIntensity;
-    public float SoundSpeed => soundSpeed;
+    public float SoundIntensity => _soundIntensity;
+    public float SoundSpeed => _soundSpeed;
 
-    private Animator animator;
+    private Animator _animator;
 
     private void Awake()
     {
-        animator = GetComponent<Animator>();
+        _animator = GetComponent<Animator>();
     }
 
     public void Echo()
     {
         EchoManager.Instance.TriggerSound(transform.position, SoundIntensity, SoundSpeed);
-        Debug.Log($"PlayerSoundEmitter) position : ({transform.position})");
     }
 
     public void Cry()
     {
-        animator.SetTrigger("Cry");
-        Debug.Log("Cry called");
+        _animator.SetTrigger("Cry");
         Echo();
     }
 }
