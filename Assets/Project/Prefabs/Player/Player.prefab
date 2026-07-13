@@ -327,9 +327,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 95c5d1c3036316243ae8e51e42dd8898, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerJump
-  _jumpForce: 8
+  _jumpForce: 7
   _fallMultiplier: 2.5
-  _lowJumpMultiplier: 5
+  _lowJumpMultiplier: 3.5
   _groundLayer:
     serializedVersion: 2
     m_Bits: 64
@@ -382,6 +382,7 @@ MonoBehaviour:
   _mouthOffset: {x: 0.2, y: 0, z: 0}
   _hitRadius: 0.5
   _tongueTip: {fileID: 3029260122734603840}
+  _splashEffectPrefab: {fileID: 4085252551923712736, guid: adf226840c49cb1419f5d521339e09d2, type: 3}
   _grappleableLayer:
     serializedVersion: 2
     m_Bits: 64

@@ -17,6 +17,8 @@ public class PlayerTongueAttack : MonoBehaviour
     private float _hitRadius = 0.5f;
     [SerializeField, Tooltip("혀끝 원 오브젝트의 CircleCollider2D (비주얼 겸 히트박스). 이 radius가 실제 판정 크기가 됩니다.")]
     private CircleCollider2D _tongueTip;
+    [SerializeField, Tooltip("혀가 적에게 닿았을 때 재생할 침 튀기는 이펙트 프리팹 (PooledParticleEffect 필요)")]
+    private GameObject _splashEffectPrefab;
 
     [Header("Grapple Detection")]
     [Tooltip("IHookable 컴포넌트가 없어도 이 레이어에 속하면 자동으로 갈고리가 걸립니다.")]
@@ -74,6 +76,15 @@ public class PlayerTongueAttack : MonoBehaviour
 
         // 혀끝 원은 공격 중에만 보이도록 시작 시 꺼둡니다.
         SetTongueTipActive(false);
+
+        // 판정은 Physics2D.OverlapCircleAll로 수동으로만 하므로(트리거 여부 무관),
+        // 물리적으로 부딪히는 걸 막기 위해 항상 트리거로 강제합니다.
+        // (Is Trigger가 꺼져 있으면 Player Rigidbody2D의 콜라이더로 취급되어,
+        // 훅으로 벽에 붙여둔 동안 스윙 물리가 그 지점에 충돌하며 진자운동이 망가짐)
+        if (_tongueTip != null)
+        {
+            _tongueTip.isTrigger = true;
+        }
     }
 
     private void Update()
@@ -82,6 +93,16 @@ public class PlayerTongueAttack : MonoBehaviour
         {
             Vector3 mouseWorldPos = GetMouseWorldPosition();
             _movement.FaceTowards(mouseWorldPos);
+        }
+        else if (_grappleHook != null && _grappleHook.IsHooking)
+        {
+            // 훅이 걸려있는 동안은 텅팁이 벽에 붙은 지점에 그대로 보입니다.
+            SetTongueTipActive(true);
+            MoveTongueTip(_grappleHook.AnchorPoint);
+        }
+        else
+        {
+            SetTongueTipActive(false);
         }
     }
 
@@ -98,8 +119,9 @@ public class PlayerTongueAttack : MonoBehaviour
 
         Vector3 originPos = transform.position;
         Vector3 aimDir = (mouseWorldPos - originPos).normalized;
+        float mouseDist = Vector3.Distance(originPos, mouseWorldPos);
 
-        AimResult aim = FindAimTarget(originPos, aimDir);
+        AimResult aim = FindAimTarget(originPos, aimDir, mouseDist);
 
         Vector3 targetPos;
         if (aim.type != TargetType.None)
@@ -122,7 +144,7 @@ public class PlayerTongueAttack : MonoBehaviour
     /// 혀가 실제로 뻗어나갈 '조준 지점'을 찾습니다.
     /// 정확히 그 방향이 아니어도 부채꼴 범위 안이면 자동으로 보정됩니다.
     /// </summary>
-    private AimResult FindAimTarget(Vector3 origin, Vector3 aimDir)
+    private AimResult FindAimTarget(Vector3 origin, Vector3 aimDir, float maxWallDist)
     {
         float halfAngle = _aimConeAngle * 0.5f;
         Collider2D[] nearby = Physics2D.OverlapCircleAll(origin, _attackDamageRange);
@@ -130,7 +152,7 @@ public class PlayerTongueAttack : MonoBehaviour
         foreach (TargetType type in _priorityOrder)
         {
             AimResult candidate = type == TargetType.Wall
-                ? FindBestWallCandidate(origin, aimDir, halfAngle)
+                ? FindBestWallCandidate(origin, aimDir, halfAngle, maxWallDist)
                 : FindBestOverlapCandidate(nearby, origin, aimDir, halfAngle, type);
 
             if (candidate.type != TargetType.None)
@@ -180,10 +202,14 @@ public class PlayerTongueAttack : MonoBehaviour
     /// <summary>
     /// 부채꼴 레이캐스트로 벽/갈고리 지점을 탐색합니다 (적/아이템보다 긴 사거리).
     /// </summary>
-    private AimResult FindBestWallCandidate(Vector3 origin, Vector3 aimDir, float halfAngle)
+    private AimResult FindBestWallCandidate(Vector3 origin, Vector3 aimDir, float halfAngle, float maxDist)
     {
         AimResult best = new AimResult { type = TargetType.None };
         float bestScore = float.NegativeInfinity;
+
+        // 마우스까지의 거리로 사거리를 한 번 더 제한: 가까이 클릭했는데
+        // 같은 방향에 있는 먼 벽으로 훅이 걸려버리는 것을 방지.
+        float range = Mathf.Min(_grappleRange, maxDist);
 
         for (int i = 0; i < _aimRayCount; i++)
         {
@@ -191,11 +217,11 @@ public class PlayerTongueAttack : MonoBehaviour
             float angle = Mathf.Lerp(-halfAngle, halfAngle, t);
             Vector3 dir = Quaternion.Euler(0, 0, angle) * aimDir;
 
-            RaycastHit2D hit = Physics2D.Raycast(origin, dir, _grappleRange, _grappleableLayer);
+            RaycastHit2D hit = Physics2D.Raycast(origin, dir, range, _grappleableLayer);
             if (hit.collider == null) continue;
 
             float angleScore = 1f - (Mathf.Abs(angle) / halfAngle);
-            float distScore = 1f - (hit.distance / _grappleRange);
+            float distScore = 1f - (hit.distance / range);
             float score = angleScore * ANGLE_SCORE_WEIGHT + distScore * DISTANCE_SCORE_WEIGHT;
 
             if (score > bestScore)
@@ -304,6 +330,7 @@ public class PlayerTongueAttack : MonoBehaviour
                     {
                         damageable.TakeDamage(_attackDamage);
                     }
+                    SpawnSplashEffect(judgePosition);
                     yield return ReturnTongue(flippedMouthOffset, null);
                     yield break;
                 }
@@ -324,6 +351,7 @@ public class PlayerTongueAttack : MonoBehaviour
                         }
                         grabbedItems.Add(grabbable.GrabTransform);
                     }
+                    SpawnSplashEffect(judgePosition);
                     yield return ReturnTongue(flippedMouthOffset, grabbedItems);
                     yield break;
                 }
@@ -332,7 +360,10 @@ public class PlayerTongueAttack : MonoBehaviour
                     if (hookTarget == null) continue;
 
                     _tongueVisual.enabled = false;
-                    SetTongueTipActive(false);
+                    // 여기서 끄지 않고 훅 지점으로 스냅해둡니다 - Update()가
+                    // 훅이 풀릴 때까지 이 위치에 계속 표시해줍니다.
+                    MoveTongueTip(hookTarget.HookPoint);
+                    SpawnSplashEffect(hookTarget.HookPoint);
                     _grappleHook.StartHook(hookTarget.HookPoint);
                     _isAttacking = false;
                     yield break;
@@ -405,6 +436,23 @@ public class PlayerTongueAttack : MonoBehaviour
         if (_tongueTip != null)
         {
             _tongueTip.gameObject.SetActive(isActive);
+        }
+    }
+
+    private void SpawnSplashEffect(Vector3 position)
+    {
+        if (_splashEffectPrefab == null || PoolManager.Instance == null) return;
+
+        GameObject fx = PoolManager.Instance.Pop(_splashEffectPrefab, position, Quaternion.identity);
+        if (fx == null) return;
+
+        if (fx.TryGetComponent<PooledParticleEffect>(out var pooledEffect))
+        {
+            pooledEffect.Play(_splashEffectPrefab);
+        }
+        else
+        {
+            Debug.LogWarning($"{nameof(PlayerTongueAttack)}: {_splashEffectPrefab.name}에 PooledParticleEffect 컴포넌트가 없어서 자동으로 반납되지 않습니다.", _splashEffectPrefab);
         }
     }
 

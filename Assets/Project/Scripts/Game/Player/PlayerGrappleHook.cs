@@ -101,6 +101,9 @@ public partial class PlayerGrappleHook : MonoBehaviour
 
     private Vector2 ActivePivot => _ropePivots[_ropePivots.Count - 1];
 
+    /// <summary>혀(TongueTip)가 벽에 붙어있는 것처럼 보여줄 최초 훅 지점. 코너에 감겨도 바뀌지 않습니다.</summary>
+    public Vector2 AnchorPoint => _ropePivots.Count > 0 ? _ropePivots[0] : (Vector2)transform.position;
+
     private void Awake()
     {
         _rb = GetComponent<Rigidbody2D>();
