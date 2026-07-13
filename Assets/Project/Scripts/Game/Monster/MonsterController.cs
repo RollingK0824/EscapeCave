@@ -75,6 +75,8 @@ public class MonsterController : MonoBehaviour, IDamageable
 
         Rb.linearVelocity = new Vector2(direction.x * speed, Rb.linearVelocity.y);
         FlipSprite(direction);
+
+        Animator.SetBool("IsMoving", true);
     }
 
     public void FlipSprite(Vector2 direction)
@@ -98,6 +100,8 @@ public class MonsterController : MonoBehaviour, IDamageable
     public void Stop()
     {
         Rb.linearVelocity = new Vector2(0f, Rb.linearVelocity.y);
+
+        Animator.SetBool("IsMoving", false);
     }
 
     public Vector2 GetDirectionToTarget(Transform playerTransform)
@@ -137,6 +141,8 @@ public class MonsterController : MonoBehaviour, IDamageable
 
         Rb.linearVelocity = direction * speed;
         FlipSprite(direction);
+
+        Animator.SetBool("IsMoving", true);
     }
 
     public void MoveTowardTarget(Transform target, float speed)
@@ -187,6 +193,8 @@ public class MonsterController : MonoBehaviour, IDamageable
         }
 
         Rb.linearVelocity = new Vector2(Rb.linearVelocity.x, direction * Data.PatrolSpeed);
+
+        Animator.SetBool("IsMoving", true);
     }
 
     public void HorizontalPatrol(ref int direction, ref Vector2 startPosition)
@@ -209,6 +217,8 @@ public class MonsterController : MonoBehaviour, IDamageable
 
         Rb.linearVelocity = new Vector2(direction * Data.PatrolSpeed, Rb.linearVelocity.y);
         FlipSprite(new Vector2(direction, 0));
+
+        Animator.SetBool("IsMoving", true);
     }
 
     public bool IsPlayerDetectionRange(Transform playerTransform)
@@ -295,6 +305,11 @@ public class MonsterController : MonoBehaviour, IDamageable
 
         }
 
+        if (_data.HitReaction != HitReaction.Die)
+        {
+            Animator.SetTrigger("Hit");
+        }
+
         _btAgent.SetVariableValue("IsHit", true);
         _isHitReactiveActive = true;
     }
@@ -348,6 +363,9 @@ public class MonsterController : MonoBehaviour, IDamageable
     {
         SetState(MonsterState.DEAD);
         _btAgent.enabled = false;
+
+        Animator.SetBool("IsMoving", false);
+        Animator SetTrigger("Die");
 
         GameObject.Destroy(gameObject);
     }
