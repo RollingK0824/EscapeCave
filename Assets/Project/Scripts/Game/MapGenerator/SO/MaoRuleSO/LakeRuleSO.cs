@@ -1,62 +1,145 @@
 using UnityEngine;
 using System.Collections.Generic;
-using UnityEngine.Tilemaps;
 
 [CreateAssetMenu(fileName = "LakeRuleSO", menuName = "Scriptable Objects/Map/LakeRuleSO")]
 public class LakeRuleSO : BaseMapRuleSO
 {
-    [Header("호수 고유 설정")]
-    public int waterLevel = 15;
-    public float floorNoiseScale = 0.05f;
-    public int maxFloorHeight = 10;
-    public int minFloorHeight = 2;
-    public int ceilingHeight = 45;
+    [Header("호수 웅덩이 설정")]
+    public int baseFloorY = 20;
+    public int minPonds = 2;
+    public int maxPonds = 4;
+    public int minPondWidth = 15;
+    public int maxPondWidth = 35;
+    public int minPondDepth = 5;
+    public int maxPondDepth = 12;
 
     protected override int CarveTerrain(int startY)
     {
         for (int x = 0; x < chunkWidth; x++)
         {
-            float noise = Mathf.PerlinNoise((x * floorNoiseScale) + currentSeed, 0f);
-            int floorY = minFloorHeight + Mathf.FloorToInt(noise * (maxFloorHeight - minFloorHeight));
-
-            for (int y = floorY; y < ceilingHeight; y++)
+            for (int y = baseFloorY; y < chunkHeight; y++)
             {
-                if (y < chunkHeight) mapData[x, y] = 0;
+                mapData[x, y] = 0;
             }
-
-            for (int y = floorY; y <= waterLevel; y++)
-            {
-                if (y < chunkHeight && mapData[x, y] == 0) mapData[x, y] = 3;
-            }
-
-            if (x == 15) mainPath.Add(new Vector2Int(x, waterLevel + 4));
+            if (x == 15) mainPath.Add(new Vector2Int(x, baseFloorY + 2));
         }
-        return waterLevel + 4;
+
+        int pondCount = chunkRandom.Next(minPonds, maxPonds + 1);
+        for (int i = 0; i < pondCount; i++)
+        {
+            int pondCenter = chunkRandom.Next(blendRange + 10, chunkWidth - blendRange - 10);
+            int pondWidth = chunkRandom.Next(minPondWidth, maxPondWidth + 1);
+            int pondDepth = chunkRandom.Next(minPondDepth, maxPondDepth + 1);
+            int pondWaterLevel = baseFloorY - 2;
+
+            for (int x = pondCenter - pondWidth; x <= pondCenter + pondWidth; x++)
+            {
+                if (x >= 0 && x < chunkWidth)
+                {
+                    float normalizedDist = (float)Mathf.Abs(x - pondCenter) / pondWidth;
+                    int depthAtX = Mathf.RoundToInt(pondDepth * (1.0f - (normalizedDist * normalizedDist)));
+                    
+                    if (depthAtX > 0)
+                    {
+                        int newFloorY = baseFloorY - depthAtX;
+                        for (int y = newFloorY; y < baseFloorY; y++)
+                        {
+                            if (y >= 0 && y < chunkHeight) mapData[x, y] = 0;
+                        }
+                        for (int y = newFloorY; y <= pondWaterLevel; y++)
+                        {
+                            if (y >= 0 && y < chunkHeight && mapData[x, y] == 0) mapData[x, y] = 3;
+                        }
+                    }
+                }
+            }
+        }
+        
+        return baseFloorY + 2;
     }
 
     protected override Vector2Int PlacePlatforms(Vector2Int startPlatform)
     {
         Vector2Int lastPlatformEnd = startPlatform;
+        if (platformConfigurations == null || platformConfigurations.Count == 0) return lastPlatformEnd;
 
         int currentX = lastPlatformEnd.x + chunkRandom.Next(3, 7);
         if (currentX < 0) currentX = 0;
 
         while (currentX < chunkWidth - 5)
         {
-            int platLength = chunkRandom.Next(4, 9);
-            int platY = waterLevel + chunkRandom.Next(3, 10);
+            int platY = baseFloorY + chunkRandom.Next(3, 10);
 
-            for (int i = 0; i < platLength; i++)
+            PlatformSpawnRule rule = platformConfigurations[chunkRandom.Next(0, platformConfigurations.Count)];
+            if (chunkRandom.NextDouble() > rule.spawnChance)
             {
-                int px = currentX + i;
-                if (px < chunkWidth && mapData[px, platY] == 0)
-                {
-                    mapData[px, platY] = 2;
-                }
+                currentX += chunkRandom.Next(4, 9);
+                continue;
             }
 
-            lastPlatformEnd = new Vector2Int(currentX + platLength - 1, platY);
-            currentX += platLength + chunkRandom.Next(3, 7);
+            int requiredLength = rule.length;
+            int startX = currentX;
+
+            int checkMinX = startX - 1;
+            int checkMaxX = startX + requiredLength;
+            int checkMinY = platY - 1;
+            int checkMaxY = platY + 1;
+            
+            int markID = 2;
+
+            if (rule.type == PlatformType.Moving)
+            {
+                markID = 4;
+                if (rule.moveDirection == MoveDirection.Horizontal) checkMaxX += rule.moveRange;
+                else checkMaxY += rule.moveRange;
+            }
+            else if (rule.type == PlatformType.Pullable)
+            {
+                markID = 5;
+                checkMaxX += Mathf.CeilToInt(rule.pullLimit);
+            }
+
+            bool isClear = true;
+            for (int x = checkMinX; x <= checkMaxX; x++)
+            {
+                for (int y = checkMinY; y <= checkMaxY; y++)
+                {
+                    if (x >= 0 && x < chunkWidth && y >= 0 && y < chunkHeight)
+                    {
+                        int t = mapData[x, y];
+                        if (t == 1 || t == 2 || t == 4 || t == 5)
+                        {
+                            isClear = false;
+                            break;
+                        }
+                    }
+                }
+                if (!isClear) break;
+            }
+
+            if (isClear)
+            {
+                for (int x = startX; x < checkMaxX; x++)
+                {
+                    for (int y = platY; y <= checkMaxY - 1; y++)
+                    {
+                        if (x >= 0 && x < chunkWidth && y >= 0 && y < chunkHeight)
+                        {
+                            mapData[x, y] = markID;
+                        }
+                    }
+                }
+
+                pendingPlatforms.Add(new PlatformSpawnData
+                {
+                    localX = startX,
+                    localY = platY,
+                    rule = rule
+                });
+
+                lastPlatformEnd = new Vector2Int(startX + requiredLength - 1, platY);
+            }
+            currentX += requiredLength + chunkRandom.Next(3, 7);
         }
 
         return lastPlatformEnd;

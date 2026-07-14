@@ -20,19 +20,51 @@ public struct SpawnRule
     [Range(0f, 1f)] public float spawnChance;
 }
 
+[System.Serializable]
+public enum PlatformType
+{
+    Static,
+    Moving,
+    Pullable
+}
+
+[System.Serializable]
+public enum MoveDirection
+{
+    Horizontal,
+    Vertical
+}
+
+[System.Serializable]
+public struct PlatformSpawnRule
+{
+    public GameObject prefab;
+    public PlatformType type;
+    public int length;
+    [Range(0f, 1f)] public float spawnChance;
+    
+    public MoveDirection moveDirection;
+    public int moveRange;
+    public float speed;
+    
+    public float pullLimit;
+}
+
 public abstract class BaseMapRuleSO : ScriptableObject
 {
     [Header("공통 맵 크기 설정")]
     public int chunkWidth = 300;
     public int chunkHeight = 50;
+    public int blendRange = 30;
 
     [Header("테마별 타일 셋 (1번부터 순서대로 인스펙터 매핑)")]
     public List<TileBase> themeTiles = new List<TileBase>();
 
     [Header("오브젝트/몬스터 스폰 설정")]
-    public List<SpawnRule> platformSpawns; // 플랫폼 위 스폰
-    public List<SpawnRule> groundSpawns;   // 일반 바닥 스폰
-    public List<SpawnRule> ceilingSpawns;  // 천장 스폰
+    public List<PlatformSpawnRule> platformConfigurations; 
+    public List<SpawnRule> groundSpawns;   
+    public List<SpawnRule> ceilingSpawns;  
+    public List<SpawnRule> underPlatformSpawns; 
     [Tooltip("몬스터 간 최소 X축 스폰 간격 (타일 수)")]
     public int minSpawnGapX = 8;
 
@@ -44,10 +76,15 @@ public abstract class BaseMapRuleSO : ScriptableObject
     [System.NonSerialized] protected System.Random chunkRandom;
 
     protected List<Vector2Int> mainPath = new List<Vector2Int>();
+    
+    protected struct PlatformSpawnData
+    {
+        public int localX;
+        public int localY;
+        public PlatformSpawnRule rule;
+    }
+    protected List<PlatformSpawnData> pendingPlatforms = new List<PlatformSpawnData>();
 
-    /// <summary>
-    /// 전체 청크 생성 파이프라인의 실행 순서를 보장
-    /// </summary>
     public int GenerateChunk(ChunkGenParams genParams, out Vector2Int endPlatform)
     {
         this.globalTilemap = genParams.globalTilemap;
@@ -59,10 +96,13 @@ public abstract class BaseMapRuleSO : ScriptableObject
         this.chunkRandom = new System.Random((int)currentSeed);
         Random.InitState((int)currentSeed);
         mainPath.Clear();
+        pendingPlatforms.Clear();
 
         InitializeMap();
         int exitY = CarveTerrain(genParams.startY);
 
+        SmoothBoundaries(genParams.startY, exitY);
+        
         ForceTransitionTunnel(genParams.startY);
         endPlatform = PlacePlatforms(genParams.startPlatform);
 
@@ -81,6 +121,73 @@ public abstract class BaseMapRuleSO : ScriptableObject
         }
     }
 
+    protected void SmoothBoundaries(int startY, int exitY)
+    {
+        int tunnelRadius = 6;
+        
+        // 입구 보간
+        for (int x = 0; x < blendRange; x++)
+        {
+            float t = (float)x / blendRange;
+            int currentFloor = GetFloorY(x);
+            int startFloor = startY - tunnelRadius;
+            int smoothedFloor = Mathf.RoundToInt(Mathf.Lerp(startFloor, currentFloor, t));
+            
+            int currentCeil = GetCeilY(x);
+            int startCeil = startY + tunnelRadius;
+            int smoothedCeil = Mathf.RoundToInt(Mathf.Lerp(startCeil, currentCeil, t));
+            
+            ApplySmoothedColumn(x, smoothedFloor, smoothedCeil);
+        }
+
+        // 출구 보간
+        for (int x = chunkWidth - blendRange; x < chunkWidth; x++)
+        {
+            float t = (float)(x - (chunkWidth - blendRange)) / blendRange;
+            
+            int currentFloor = GetFloorY(x);
+            int exitFloor = exitY - tunnelRadius;
+            int smoothedFloor = Mathf.RoundToInt(Mathf.Lerp(currentFloor, exitFloor, t));
+            
+            int currentCeil = GetCeilY(x);
+            int exitCeil = exitY + tunnelRadius;
+            int smoothedCeil = Mathf.RoundToInt(Mathf.Lerp(currentCeil, exitCeil, t));
+            
+            ApplySmoothedColumn(x, smoothedFloor, smoothedCeil);
+        }
+    }
+
+    private int GetFloorY(int x)
+    {
+        for (int y = 0; y < chunkHeight; y++)
+        {
+            if (mapData[x, y] == 0 || mapData[x, y] == 3) return y;
+        }
+        return 0;
+    }
+
+    private int GetCeilY(int x)
+    {
+        for (int y = chunkHeight - 1; y >= 0; y--)
+        {
+            if (mapData[x, y] == 0 || mapData[x, y] == 3) return y;
+        }
+        return chunkHeight - 1;
+    }
+
+    private void ApplySmoothedColumn(int x, int floorY, int ceilY)
+    {
+        for (int y = 0; y < chunkHeight; y++)
+        {
+            if (y < floorY) mapData[x, y] = 1;
+            else if (y > ceilY) mapData[x, y] = 1;
+            else
+            {
+                if (mapData[x, y] == 1) mapData[x, y] = 0;
+            }
+        }
+    }
+
     private void RenderToTilemap()
     {
         TileBase[] tileArray = new TileBase[chunkWidth * chunkHeight];
@@ -90,6 +197,8 @@ public abstract class BaseMapRuleSO : ScriptableObject
             {
                 int tileID = mapData[x, y];
                 int index = x + y * chunkWidth;
+                if (tileID == 2 || tileID == 4 || tileID == 5) tileID = 0;
+                
                 tileArray[index] = (tileID > 0 && tileID <= themeTiles.Count) ? themeTiles[tileID - 1] : null;
             }
         }
@@ -132,34 +241,20 @@ public abstract class BaseMapRuleSO : ScriptableObject
     {
         if (spawnedList == null) return;
 
-        int lastPlatformSpawnX = -minSpawnGapX;
         int lastGroundSpawnX = -minSpawnGapX;
         int lastCeilingSpawnX = -minSpawnGapX;
+        int lastUnderPlatformSpawnX = -minSpawnGapX;
 
         for (int x = 0; x < chunkWidth; x++)
         {
             for (int y = 0; y < chunkHeight; y++)
             {
-                // 플랫폼 위 검사
-                if (y < chunkHeight - 1 && mapData[x, y] == 2 && mapData[x, y + 1] == 0)
-                {
-                    if (x - lastPlatformSpawnX >= minSpawnGapX)
-                    {
-                        if (TrySpawnObject(platformSpawns, x, y + 1))
-                        {
-                            lastPlatformSpawnX = x;
-                        }
-                    }
-                }
                 // 바닥 검사
-                else if (y < chunkHeight - 1 && mapData[x, y] == 1 && mapData[x, y + 1] == 0)
+                if (y < chunkHeight - 1 && mapData[x, y] == 1 && mapData[x, y + 1] == 0)
                 {
                     if (x - lastGroundSpawnX >= minSpawnGapX)
                     {
-                        if (TrySpawnObject(groundSpawns, x, y + 1))
-                        {
-                            lastGroundSpawnX = x;
-                        }
+                        if (TrySpawnObject(groundSpawns, x, y + 1)) lastGroundSpawnX = x;
                     }
                 }
 
@@ -168,17 +263,28 @@ public abstract class BaseMapRuleSO : ScriptableObject
                 {
                     if (x - lastCeilingSpawnX >= minSpawnGapX)
                     {
-                        if (TrySpawnObject(ceilingSpawns, x, y - 1))
-                        {
-                            lastCeilingSpawnX = x;
-                        }
+                        if (TrySpawnObject(ceilingSpawns, x, y - 1)) lastCeilingSpawnX = x;
+                    }
+                }
+
+                // 플랫폼 밑 검사
+                if (y > 0 && (mapData[x, y] == 2 || mapData[x, y] == 4 || mapData[x, y] == 5) && mapData[x, y - 1] == 0)
+                {
+                    if (x - lastUnderPlatformSpawnX >= minSpawnGapX)
+                    {
+                        if (TrySpawnObject(underPlatformSpawns, x, y - 1)) lastUnderPlatformSpawnX = x;
                     }
                 }
             }
         }
+
+        foreach (var data in pendingPlatforms)
+        {
+            SpawnPlatform(data);
+        }
     }
 
-    private bool TrySpawnObject(List<SpawnRule> rules, int localX, int localY)
+    protected bool TrySpawnObject(List<SpawnRule> rules, int localX, int localY)
     {
         if (rules == null || rules.Count == 0) return false;
 
@@ -193,12 +299,8 @@ public abstract class BaseMapRuleSO : ScriptableObject
         GameObject instance = Managers.PoolManager.Instance.Pop(rule.prefab, worldPos, Quaternion.identity);
         if (instance != null)
         {
-            // 원본 프리팹은 건드리지 않고, 스폰된 인스턴스에만 런타임에 동적으로 컴포넌트 추가
             var mapObj = instance.GetComponent<MapSpawnedObject>();
-            if (mapObj == null)
-            {
-                mapObj = instance.AddComponent<MapSpawnedObject>();
-            }
+            if (mapObj == null) mapObj = instance.AddComponent<MapSpawnedObject>();
             mapObj.poolKey = rule.prefab.GetInstanceID();
 
             spawnedList.Add(instance);
@@ -206,6 +308,38 @@ public abstract class BaseMapRuleSO : ScriptableObject
         }
 
         return false;
+    }
+
+    private void SpawnPlatform(PlatformSpawnData data)
+    {
+        if (data.rule.prefab == null) return;
+
+        Vector3Int cellPos = new Vector3Int(offsetX + data.localX, data.localY, 0);
+        // 중심 맞추기 (플랫폼 타일 폭 절반만큼 이동)
+        Vector3 worldPos = globalTilemap.CellToWorld(cellPos) + new Vector3(0.5f + (data.rule.length - 1) * 0.5f, 0.5f, 0);
+
+        GameObject instance = Managers.PoolManager.Instance.Pop(data.rule.prefab, worldPos, Quaternion.identity);
+        if (instance != null)
+        {
+            var mapObj = instance.GetComponent<MapSpawnedObject>();
+            if (mapObj == null) mapObj = instance.AddComponent<MapSpawnedObject>();
+            mapObj.poolKey = data.rule.prefab.GetInstanceID();
+
+            if (data.rule.type == PlatformType.Moving)
+            {
+                var movingPlatform = instance.GetComponent<MovingPlatform>();
+                if (movingPlatform == null) movingPlatform = instance.AddComponent<MovingPlatform>();
+                movingPlatform.Initialize(data.rule.moveDirection, data.rule.moveRange, data.rule.speed);
+            }
+            else if (data.rule.type == PlatformType.Pullable)
+            {
+                var pullablePlatform = instance.GetComponent<PullablePlatform>();
+                if (pullablePlatform == null) pullablePlatform = instance.AddComponent<PullablePlatform>();
+                pullablePlatform.Initialize(data.rule.pullLimit);
+            }
+
+            spawnedList.Add(instance);
+        }
     }
 
     protected abstract int CarveTerrain(int startY);
