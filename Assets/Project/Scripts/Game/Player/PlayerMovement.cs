@@ -16,10 +16,20 @@ public class PlayerMovement : MonoBehaviour
     [Header("Flight")]
     [SerializeField] private float _flightMoveSpeed = 6f; // 비행 중 상하좌우 이동 속도
 
+    [Header("Step Climb")]
+    [SerializeField, Tooltip("이 높이 이하의 수직 단차는 자동으로 타고 오릅니다.")]
+    private float _maxStepHeight = 0.4f;
+    [SerializeField, Tooltip("정면 단차를 감지하는 레이 길이")]
+    private float _stepCheckDistance = 0.3f;
+    [SerializeField, Tooltip("단차를 오를 때 초당 밀어올리는 속도. 너무 크면 순간이동처럼 튀고, 너무 작으면 계단에서 밀려 못 올라감.")]
+    private float _stepClimbSpeed = 6f;
+
     private Rigidbody2D _rb;
     private Animator _animator;
     private SpriteRenderer _spriteRenderer;
     private PlayerGrappleHook _grapple;
+    private PlayerJump _jump;
+    private Collider2D _collider;
 
     private Vector2 _moveInput;
     private bool _isFacingRight = true;
@@ -42,6 +52,8 @@ public class PlayerMovement : MonoBehaviour
         _animator = GetComponent<Animator>();
         _spriteRenderer = GetComponent<SpriteRenderer>();
         _grapple = GetComponent<PlayerGrappleHook>();
+        _jump = GetComponent<PlayerJump>();
+        _collider = GetComponent<Collider2D>();
     }
 
     public void SetMoveInput(Vector2 input)
@@ -82,6 +94,11 @@ public class PlayerMovement : MonoBehaviour
         //        (반대 방향으로 입력하면 벽 검사에 걸리지 않아 즉시 이탈 가능)
         // ────────────────────────────────────────────────────────────────
         float inputX = _moveInput.x;
+        if (inputX != 0 && !_isFlying && _jump != null && _jump.IsGrounded)
+        {
+            TryStepUp(Mathf.Sign(inputX));
+        }
+
         if (inputX != 0 && IsPressingIntoWall(Mathf.Sign(inputX)))
         {
             inputX = 0f;
@@ -125,6 +142,45 @@ public class PlayerMovement : MonoBehaviour
             }
         }
         return false;
+    }
+
+    /// <summary>
+    /// dirX 방향 정면에 <see cref="_maxStepHeight"/> 이하의 수직 단차가 있으면
+    /// 캐릭터를 그 위로 밀어 올려 계단식 지형을 자동으로 타고 오르게 합니다.
+    /// (발 높이 레이는 막혀있고, 단차 높이 레이는 뚫려있고, 그 지점 아래에 바닥이 있을 때만 동작)
+    /// </summary>
+    private bool TryStepUp(float dirX)
+    {
+        if (_collider == null || _jump == null) return false;
+
+        Bounds bounds = _collider.bounds;
+        Vector2 dir = new Vector2(dirX, 0f);
+        Vector2 footOrigin = new Vector2(bounds.center.x, bounds.min.y + 0.05f);
+
+        RaycastHit2D lowHit = Physics2D.Raycast(footOrigin, dir, _stepCheckDistance, _jump.GroundLayer);
+        if (lowHit.collider == null) return false;
+
+        Vector2 upperOrigin = footOrigin + Vector2.up * _maxStepHeight;
+        RaycastHit2D upperHit = Physics2D.Raycast(upperOrigin, dir, _stepCheckDistance, _jump.GroundLayer);
+        if (upperHit.collider != null) return false;
+
+        Vector2 downOrigin = upperOrigin + dir * _stepCheckDistance;
+        RaycastHit2D downHit = Physics2D.Raycast(downOrigin, Vector2.down, _maxStepHeight + 0.1f, _jump.GroundLayer);
+        if (downHit.collider == null) return false;
+
+        // 한 번에 순간이동시키지 않고, 목표 높이까지 초당 _stepClimbSpeed만큼만 밀어올린다.
+        // (즉시 스냅하면 중력이 같은 프레임에 다시 끌어내리면서 위아래로 튀는 현상이 생김)
+        float targetY = _rb.position.y + (downHit.point.y - bounds.min.y + 0.02f);
+        float newY = Mathf.MoveTowards(_rb.position.y, targetY, _stepClimbSpeed * Time.fixedDeltaTime);
+        _rb.position = new Vector2(_rb.position.x, newY);
+
+        // 밀어올리는 동안 잔여 낙하 속도가 남아있으면 중력과 상쇄되어 진동하므로 제거
+        if (_rb.linearVelocity.y < 0f)
+        {
+            _rb.linearVelocity = new Vector2(_rb.linearVelocity.x, 0f);
+        }
+
+        return true;
     }
 
     #region Flight Logic

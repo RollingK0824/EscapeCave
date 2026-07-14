@@ -11,6 +11,8 @@ public class PlayerLandingEffect : MonoBehaviour
     [SerializeField] private GameObject _landDustPrefab;
     [SerializeField, Tooltip("플레이어 기준 이펙트가 나올 위치 (보통 발밑)")]
     private Vector3 _spawnOffset = new Vector3(0f, -0f, 0f);
+    [SerializeField, Tooltip("이 값(월드 유닛) 이상 떨어졌을 때만 착지 더스트를 재생합니다. 계단 자동 등반처럼 살짝 뜨는 착지는 걸러냅니다.")]
+    private float _minFallDistance = 0.3f;
 
     private PlayerJump _jump;
 
@@ -26,8 +28,9 @@ public class PlayerLandingEffect : MonoBehaviour
             _jump.OnLanded -= HandleLanded;
     }
 
-    private void HandleLanded()
+    private void HandleLanded(float fallDistance)
     {
+        if (fallDistance < _minFallDistance) return;
         if (_landDustPrefab == null || PoolManager.Instance == null) return;
 
         GameObject fx = PoolManager.Instance.Pop(_landDustPrefab, transform.position + _spawnOffset, Quaternion.identity);
