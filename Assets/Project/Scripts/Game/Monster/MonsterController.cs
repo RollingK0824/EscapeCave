@@ -31,6 +31,7 @@ public class MonsterController : MonoBehaviour, IDamageable
     private static readonly int IsMovingHash = Animator.StringToHash("IsMoving");
     private static readonly int HitHash = Animator.StringToHash("Hit");
     private static readonly int DieHash = Animator.StringToHash("Die");
+    private static readonly int IsStunnedHash = Animator.StringToHash("IsStunned");
 
     public void SetState(MonsterState state)
     {
@@ -103,6 +104,11 @@ public class MonsterController : MonoBehaviour, IDamageable
     private void PlayDie()
     {
         Animator.SetTrigger(DieHash);
+    }
+
+    private void SetStunned(bool isStunned)
+    {
+        Animator.SetBool(IsStunnedHash, isStunned);
     }
 
     public void IncreaseMoveSpeed(float deltaTime)
@@ -360,6 +366,12 @@ public class MonsterController : MonoBehaviour, IDamageable
     public void StartStun()
     {
         Stop();
+        SetStunned(true);
+    }
+
+    public void EndStun()
+    {
+        SetStunned(false);
     }
 
     public void StartKnockback(Transform playerTransform)
