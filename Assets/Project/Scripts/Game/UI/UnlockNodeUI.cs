@@ -6,9 +6,12 @@ using Managers;
 public class UnlockNodeUI : MonoBehaviour
 {
     [SerializeField] private UnlockNodeData _nodeData;
+    public UnlockNodeData NodeData => _nodeData;
     [SerializeField] private Image _icon;
 
     [SerializeField] private Sprite _lockedIcon;
+    [SerializeField] private ConfirmPopup _confirmPopup;
+    [SerializeField] private TreeScrollController _scrollController;
     private Button _button;
 
     private void Awake()
@@ -22,24 +25,30 @@ public class UnlockNodeUI : MonoBehaviour
     }
     private void HandleClick()
     {
-        if (UnlockManager.Instance.TryUnlock(_nodeData))
+        if (!UnlockManager.Instance.CanUnlock(_nodeData)) return;
+
+        _confirmPopup.Show(() =>
         {
-            RefreshVisual();
+            if (UnlockManager.Instance.TryUnlock(_nodeData))
+            {
+                RefreshVisual();
+                _scrollController.ScrollToFrontier();
+            }
+        });
+    }
+    private void RefreshVisual()
+    {
+        if (_nodeData == null || _icon == null) return;
+
+        bool isUnlocked = UnlockManager.Instance.IsUnlocked(_nodeData);
+
+        if (isUnlocked)
+        {
+            _icon.sprite = _nodeData.unlockedIcon;
+        }
+        else
+        {
+            _icon.sprite = _lockedIcon;
         }
     }
-  private void RefreshVisual()
-{
-    if (_nodeData == null || _icon == null) return;
-
-    bool isUnlocked = UnlockManager.Instance.IsUnlocked(_nodeData);
-
-    if (isUnlocked)
-    {
-        _icon.sprite = _nodeData.requiredItem != null ? _nodeData.requiredItem.icon : null;
-    }
-    else
-    {
-        _icon.sprite = _lockedIcon;
-    }
-}
 }
