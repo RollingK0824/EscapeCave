@@ -47,8 +47,9 @@ MonoBehaviour:
   player: {fileID: 0}
   globalTilemap: {fileID: 0}
   stageRules:
-  - {fileID: 11400000, guid: f3808136a0023e742b2d62a252a61f79, type: 2}
   - {fileID: 11400000, guid: d6f304d7625c7f14389797ac0aa92666, type: 2}
+  - {fileID: 11400000, guid: f3808136a0023e742b2d62a252a61f79, type: 2}
+  - {fileID: 11400000, guid: 3a1c7985ec7de784e930419c2b332370, type: 2}
   masterSeed: 0
   useRandomSeedAtStart: 1
   cullingDistance: 45

@@ -40,7 +40,8 @@ public struct PlatformSpawnRule
 {
     public GameObject prefab;
     public PlatformType type;
-    public int length;
+    public int minLength;
+    public int maxLength;
     [Range(0f, 1f)] public float spawnChance;
     
     public MoveDirection moveDirection;
@@ -81,6 +82,7 @@ public abstract class BaseMapRuleSO : ScriptableObject
     {
         public int localX;
         public int localY;
+        public int chosenLength;
         public PlatformSpawnRule rule;
     }
     protected List<PlatformSpawnData> pendingPlatforms = new List<PlatformSpawnData>();
@@ -315,12 +317,35 @@ public abstract class BaseMapRuleSO : ScriptableObject
         if (data.rule.prefab == null) return;
 
         Vector3Int cellPos = new Vector3Int(offsetX + data.localX, data.localY, 0);
-        // 중심 맞추기 (플랫폼 타일 폭 절반만큼 이동)
-        Vector3 worldPos = globalTilemap.CellToWorld(cellPos) + new Vector3(0.5f + (data.rule.length - 1) * 0.5f, 0.5f, 0);
+        // 중심 맞추기 (결정된 플랫폼 타일 폭 절반만큼 이동)
+        Vector3 worldPos = globalTilemap.CellToWorld(cellPos) + new Vector3(0.5f + (data.chosenLength - 1) * 0.5f, 0.5f, 0);
 
         GameObject instance = Managers.PoolManager.Instance.Pop(data.rule.prefab, worldPos, Quaternion.identity);
         if (instance != null)
         {
+            // 1. SpriteRenderer 리사이징 (9-Slice 대응)
+            var spriteRenderer = instance.GetComponentInChildren<SpriteRenderer>();
+            if (spriteRenderer != null)
+            {
+                if (spriteRenderer.drawMode == SpriteDrawMode.Sliced || spriteRenderer.drawMode == SpriteDrawMode.Tiled)
+                {
+                    spriteRenderer.size = new Vector2(data.chosenLength, spriteRenderer.size.y);
+                }
+                else
+                {
+                    Vector3 scale = instance.transform.localScale;
+                    scale.x = data.chosenLength;
+                    instance.transform.localScale = scale;
+                }
+            }
+
+            // 2. BoxCollider2D 물리 영역 리사이징
+            var boxCollider = instance.GetComponentInChildren<BoxCollider2D>();
+            if (boxCollider != null)
+            {
+                boxCollider.size = new Vector2(data.chosenLength, boxCollider.size.y);
+            }
+
             var mapObj = instance.GetComponent<MapSpawnedObject>();
             if (mapObj == null) mapObj = instance.AddComponent<MapSpawnedObject>();
             mapObj.poolKey = data.rule.prefab.GetInstanceID();

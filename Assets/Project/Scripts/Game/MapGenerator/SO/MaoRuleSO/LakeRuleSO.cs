@@ -77,7 +77,11 @@ public class LakeRuleSO : BaseMapRuleSO
                 continue;
             }
 
-            int requiredLength = rule.length;
+            // 하이브리드 무작위 길이 결정 (방어코드 적용)
+            int chosenLength = chunkRandom.Next(rule.minLength, rule.maxLength + 1);
+            if (chosenLength < 1) chosenLength = 1;
+
+            int requiredLength = chosenLength;
             int startX = currentX;
 
             int checkMinX = startX - 1;
@@ -134,6 +138,7 @@ public class LakeRuleSO : BaseMapRuleSO
                 {
                     localX = startX,
                     localY = platY,
+                    chosenLength = chosenLength,
                     rule = rule
                 });
 

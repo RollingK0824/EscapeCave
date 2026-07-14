@@ -47,7 +47,11 @@ public class AbyssRuleSO : BaseMapRuleSO
                 
                 PlatformSpawnRule rule = platformConfigurations[chunkRandom.Next(0, platformConfigurations.Count)];
                 
-                int requiredLength = rule.length;
+                // 1. 하이브리드 무작위 길이 결정 (방어코드 적용)
+                int chosenLength = chunkRandom.Next(rule.minLength, rule.maxLength + 1);
+                if (chosenLength < 1) chosenLength = 1;
+
+                int requiredLength = chosenLength;
                 int startX = pathNode.x;
                 
                 int checkMinX = startX - 1;
@@ -100,10 +104,12 @@ public class AbyssRuleSO : BaseMapRuleSO
                         }
                     }
 
+                    // 2. 대기열에 결정된 임의 길이(chosenLength) 삽입
                     pendingPlatforms.Add(new PlatformSpawnData
                     {
                         localX = startX,
                         localY = platY,
+                        chosenLength = chosenLength,
                         rule = rule
                     });
 

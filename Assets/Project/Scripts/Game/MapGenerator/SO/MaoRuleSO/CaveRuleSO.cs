@@ -1,7 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-[CreateAssetMenu(fileName = "CaveRuleSO", menuName = "Scriptable Objects/CaveRuleSO")]
+[CreateAssetMenu(fileName = "CaveRuleSO", menuName = "Scriptable Objects/Map/CaveRuleSO")]
 public class CaveRuleSO : BaseMapRuleSO
 {
     [Header("동굴 고유 설정")]
@@ -54,7 +54,11 @@ public class CaveRuleSO : BaseMapRuleSO
                 PlatformSpawnRule rule = platformConfigurations[chunkRandom.Next(0, platformConfigurations.Count)];
                 if (chunkRandom.NextDouble() > rule.spawnChance) continue;
 
-                int requiredLength = rule.length;
+                // 하이브리드 무작위 길이 결정 (방어코드 적용)
+                int chosenLength = chunkRandom.Next(rule.minLength, rule.maxLength + 1);
+                if (chosenLength < 1) chosenLength = 1;
+
+                int requiredLength = chosenLength;
                 int startX = pathNode.x;
                 
                 int checkMinX = startX - 1;
@@ -111,6 +115,7 @@ public class CaveRuleSO : BaseMapRuleSO
                     {
                         localX = startX,
                         localY = platY,
+                        chosenLength = chosenLength,
                         rule = rule
                     });
 
