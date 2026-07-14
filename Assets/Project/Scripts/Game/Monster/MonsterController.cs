@@ -365,7 +365,7 @@ public class MonsterController : MonoBehaviour, IDamageable
         _btAgent.enabled = false;
 
         Animator.SetBool("IsMoving", false);
-        Animator SetTrigger("Die");
+        Animator.SetTrigger("Die");
 
         GameObject.Destroy(gameObject);
     }
