@@ -159,11 +159,11 @@ GameObject:
   - component: {fileID: 470674028171197251}
   - component: {fileID: 1022271265769026347}
   - component: {fileID: 852259226681694234}
-  - component: {fileID: 4504859931594366957}
   - component: {fileID: 7277321437538652231}
   - component: {fileID: 9014900174464736843}
   - component: {fileID: 941996135055051827}
   - component: {fileID: 8887727412271095439}
+  - component: {fileID: 7512031528248770810}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -273,7 +273,7 @@ Rigidbody2D:
     m_Bits: 0
   m_Interpolate: 0
   m_SleepingMode: 1
-  m_CollisionDetection: 0
+  m_CollisionDetection: 1
   m_Constraints: 4
 --- !u!114 &7722364611076811132
 MonoBehaviour:
@@ -350,6 +350,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement
   _moveSpeed: 8
   _flightMoveSpeed: 6
+  _maxStepHeight: 0.5
+  _stepCheckDistance: 0.4
+  _stepClimbSpeed: 15
 --- !u!114 &470674028171197251
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -402,52 +405,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2fc86d38be4649741b50f0e364bfb896, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
---- !u!61 &4504859931594366957
-BoxCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3113228121251580108}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Density: 1
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_ForceSendLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ForceReceiveLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ContactCaptureLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_CallbackLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_IsTrigger: 0
-  m_UsedByEffector: 0
-  m_CompositeOperation: 0
-  m_CompositeOrder: 0
-  m_Offset: {x: 0.011253402, y: -0.072497755}
-  m_SpriteTilingProperty:
-    border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 1, y: 1}
-    newSize: {x: 0.15, y: 0.11}
-    adaptiveTilingThreshold: 0.5
-    drawMode: 0
-    adaptiveTiling: 0
-  m_AutoTiling: 0
-  m_Size: {x: 0.2774932, y: 0.1849955}
-  m_EdgeRadius: 0
 --- !u!95 &7277321437538652231
 Animator:
   serializedVersion: 7
@@ -530,6 +487,44 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerLandingEffect
   _landDustPrefab: {fileID: 2360633571516378368, guid: 4de153b8fa6263c4ba7a52b7976c934c, type: 3}
   _spawnOffset: {x: 0, y: -0.5, z: 0}
+  _minFallDistance: 0.3
+--- !u!70 &7512031528248770810
+CapsuleCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3113228121251580108}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
+  m_Offset: {x: 0.0041130288, y: -0.05}
+  m_Size: {x: 0.24088031, y: 0.1}
+  m_Direction: 0
 --- !u!1 &6222933713009483835
 GameObject:
   m_ObjectHideFlags: 0

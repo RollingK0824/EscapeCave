@@ -24,7 +24,9 @@ public class PlayerJump : MonoBehaviour
     // Stay에서 매 물리 프레임 갱신해 이 문제를 없앱니다.
     private readonly Dictionary<Collider2D, bool> _groundContacts = new Dictionary<Collider2D, bool>();
     private bool _isJumpPressed;
-    public event System.Action OnLanded;
+    /// <summary>착지 시점에 낙하 높이(월드 유닛)를 함께 전달합니다. 계단 자동 등반처럼
+    /// 살짝 떴다 붙는 경우는 낙하 높이가 거의 0이라 착지 이펙트 쪽에서 걸러낼 수 있습니다.</summary>
+    public event System.Action<float> OnLanded;
     private Rigidbody2D _rb;
     private Animator _animator;
 
@@ -32,7 +34,9 @@ public class PlayerJump : MonoBehaviour
     public bool JumpPhysicsLocked { get; set; } = false;
 
     public bool IsGrounded => _isGrounded;
+    public LayerMask GroundLayer => _groundLayer;
     private bool _wasGrounded;
+    private float _airbornePeakY;
 
     private void Awake()
     {
@@ -45,12 +49,24 @@ public class PlayerJump : MonoBehaviour
         _wasGrounded = _isGrounded;
         _isGrounded = IsAnyContactGround();
 
+        if (_wasGrounded && !_isGrounded)
+        {
+            // 방금 공중으로 떴다: 이 시점 높이를 낙하 시작점으로 기록
+            _airbornePeakY = transform.position.y;
+        }
+        else if (!_isGrounded)
+        {
+            // 공중에 떠있는 동안의 최고 높이를 계속 갱신 (점프 후 정점 포함)
+            _airbornePeakY = Mathf.Max(_airbornePeakY, transform.position.y);
+        }
+
         if (!_wasGrounded && _isGrounded)
         {
             // 착지 시점: 점프 입력을 강제로 해제하여 다음 점프를 대기하게 함
             _isJumpPressed = false;
             _animator.SetBool("IsJump", false);
-            OnLanded?.Invoke();
+            float fallDistance = _airbornePeakY - transform.position.y;
+            OnLanded?.Invoke(fallDistance);
         }
 
         _animator.SetBool("IsGrounded", _isGrounded);

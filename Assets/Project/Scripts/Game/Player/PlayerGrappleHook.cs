@@ -116,7 +116,7 @@ public partial class PlayerGrappleHook : MonoBehaviour
         if (_jump != null)
             _jump.OnLanded += HandleLanded;
     }
-    private void HandleLanded()
+    private void HandleLanded(float fallDistance)
     {
         if (IsHooking)
             Release();
