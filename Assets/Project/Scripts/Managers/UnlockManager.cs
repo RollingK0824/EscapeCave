@@ -31,14 +31,15 @@ namespace Managers
                 if (!IsUnlocked(prereq)) return false;
             }
 
-            return InventoryManager.Instance.HasItem(node.requiredItem);
+            return GoldManager.Instance.HasEnoughGold(node.cost);
         }
+
 
         public bool TryUnlock(UnlockNodeData node)
         {
             if (!CanUnlock(node)) return false;
 
-            InventoryManager.Instance.ConsumeItem(node.requiredItem);
+            GoldManager.Instance.TrySpendGold(node.cost);
             _unlockedIds.Add(node.nodeId);
 
             PlayerPrefs.SetInt(SaveKey(node), 1);
