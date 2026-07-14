@@ -47,6 +47,15 @@ TextureImporter:
   - first:
       213: 4419668502950860722
     second: Bat_14
+  - first:
+      213: -3428020802489031309
+    second: Bat_15
+  - first:
+      213: 6413210283945640860
+    second: Bat_16
+  - first:
+      213: 2325743687340750653
+    second: Bat_17
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -159,9 +168,9 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 48
-        width: 16
-        height: 24
+        y: 320
+        width: 64
+        height: 64
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -180,10 +189,10 @@ TextureImporter:
       name: Bat_1
       rect:
         serializedVersion: 2
-        x: 16
-        y: 48
-        width: 16
-        height: 24
+        x: 64
+        y: 320
+        width: 64
+        height: 64
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -202,10 +211,10 @@ TextureImporter:
       name: Bat_2
       rect:
         serializedVersion: 2
-        x: 32
-        y: 48
-        width: 16
-        height: 24
+        x: 128
+        y: 320
+        width: 64
+        height: 64
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -224,10 +233,10 @@ TextureImporter:
       name: Bat_3
       rect:
         serializedVersion: 2
-        x: 48
-        y: 48
-        width: 16
-        height: 24
+        x: 192
+        y: 320
+        width: 64
+        height: 64
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -246,10 +255,10 @@ TextureImporter:
       name: Bat_4
       rect:
         serializedVersion: 2
-        x: 64
-        y: 48
-        width: 16
-        height: 24
+        x: 0
+        y: 256
+        width: 64
+        height: 64
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -269,9 +278,9 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 24
-        width: 16
-        height: 24
+        y: 192
+        width: 64
+        height: 64
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -290,10 +299,10 @@ TextureImporter:
       name: Bat_6
       rect:
         serializedVersion: 2
-        x: 16
-        y: 24
-        width: 16
-        height: 24
+        x: 0
+        y: 128
+        width: 64
+        height: 64
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -312,10 +321,10 @@ TextureImporter:
       name: Bat_7
       rect:
         serializedVersion: 2
-        x: 32
-        y: 24
-        width: 16
-        height: 24
+        x: 64
+        y: 128
+        width: 64
+        height: 64
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -334,10 +343,10 @@ TextureImporter:
       name: Bat_8
       rect:
         serializedVersion: 2
-        x: 48
-        y: 24
-        width: 16
-        height: 24
+        x: 128
+        y: 128
+        width: 64
+        height: 64
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -356,10 +365,10 @@ TextureImporter:
       name: Bat_9
       rect:
         serializedVersion: 2
-        x: 64
-        y: 24
-        width: 16
-        height: 24
+        x: 192
+        y: 128
+        width: 64
+        height: 64
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -379,9 +388,9 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 0
-        width: 16
-        height: 24
+        y: 64
+        width: 64
+        height: 64
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -400,10 +409,10 @@ TextureImporter:
       name: Bat_11
       rect:
         serializedVersion: 2
-        x: 16
-        y: 0
-        width: 16
-        height: 24
+        x: 64
+        y: 64
+        width: 64
+        height: 64
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -422,10 +431,10 @@ TextureImporter:
       name: Bat_12
       rect:
         serializedVersion: 2
-        x: 32
+        x: 0
         y: 0
-        width: 16
-        height: 24
+        width: 64
+        height: 64
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -444,10 +453,10 @@ TextureImporter:
       name: Bat_13
       rect:
         serializedVersion: 2
-        x: 48
+        x: 64
         y: 0
-        width: 16
-        height: 24
+        width: 64
+        height: 64
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -466,10 +475,10 @@ TextureImporter:
       name: Bat_14
       rect:
         serializedVersion: 2
-        x: 64
+        x: 128
         y: 0
-        width: 16
-        height: 24
+        width: 64
+        height: 64
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -488,7 +497,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 0d36134128a923345afbc94f5f6ae985
+    spriteID: 501df3596d31fa640b29e04de3c5fa3a
     internalID: 0
     vertices: []
     indices: 
@@ -498,7 +507,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries:
       - key: SpriteEditor.SliceSettings
-        value: '{"sliceOnImport":false,"gridCellCount":{"x":5.0,"y":3.0},"gridSpriteSize":{"x":16.0,"y":24.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":2,"keepEmptyRects":false,"isAlternate":false}'
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":16.0,"y":16.0},"gridSpriteSize":{"x":64.0,"y":64.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":1,"keepEmptyRects":false,"isAlternate":false}'
     nameFileIdTable:
       Bat_0: 8647823593821616703
       Bat_1: 5681806813702538305
