@@ -75,7 +75,38 @@ namespace Managers
             slots[index] = null;
             UpdateSlotUI(index);
         }
+        public bool HasItem(ItemData item)
+        {
+            if(item==null) return false;
 
+            foreach ( ItemData slotItem in slots)
+            {
+                if (slotItem == item)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public bool ConsumeItem(ItemData item)
+        {
+            if (item == null) return false;
+
+            for (int i = 0; i < slots.Length; i++)
+            {
+                if (slots[i] == item)
+                {
+                    slots[i] = null;
+                    UpdateSlotUI(i);
+                    Debug.Log($"{item.name} 아이템이 소비되었습니다.");
+                    return true;
+                }
+            }
+
+            Debug.Log($"{item.name} 아이템이 인벤토리에 없습니다.");
+            return false;
+        }
         private void ApplyItemEffect(ItemData item)
         {
             if (player == null)
