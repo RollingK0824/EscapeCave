@@ -28,6 +28,9 @@ public class MonsterController : MonoBehaviour, IDamageable
     private MonsterState _currentState = MonsterState.IDLE;
     
     public MonsterState CurrentState => _currentState;
+    private static readonly int IsMovingHash = Animator.StringToHash("IsMoving");
+    private static readonly int HitHash = Animator.StringToHash("Hit");
+    private static readonly int DieHash = Animator.StringToHash("Die");
 
     public void SetState(MonsterState state)
     {
@@ -76,7 +79,7 @@ public class MonsterController : MonoBehaviour, IDamageable
         Rb.linearVelocity = new Vector2(direction.x * speed, Rb.linearVelocity.y);
         FlipSprite(direction);
 
-        Animator.SetBool("IsMoving", true);
+        SetMoving(true);
     }
 
     public void FlipSprite(Vector2 direction)
@@ -85,6 +88,21 @@ public class MonsterController : MonoBehaviour, IDamageable
         {
             SpriteRenderer.flipX = direction.x < 0;
         }
+    }
+
+    private void SetMoving(bool isMoving)
+    {
+        Animator.SetBool(IsMovingHash, isMoving);
+    }
+
+    private void PlayHit()
+    {
+        Animator.SetTrigger(HitHash);
+    }
+
+    private void PlayDie()
+    {
+        Animator.SetTrigger(DieHash);
     }
 
     public void IncreaseMoveSpeed(float deltaTime)
@@ -101,7 +119,7 @@ public class MonsterController : MonoBehaviour, IDamageable
     {
         Rb.linearVelocity = new Vector2(0f, Rb.linearVelocity.y);
 
-        Animator.SetBool("IsMoving", false);
+        SetMoving(false);
     }
 
     public Vector2 GetDirectionToTarget(Transform playerTransform)
@@ -142,7 +160,7 @@ public class MonsterController : MonoBehaviour, IDamageable
         Rb.linearVelocity = direction * speed;
         FlipSprite(direction);
 
-        Animator.SetBool("IsMoving", true);
+        SetMoving(true);
     }
 
     public void MoveTowardTarget(Transform target, float speed)
@@ -194,7 +212,7 @@ public class MonsterController : MonoBehaviour, IDamageable
 
         Rb.linearVelocity = new Vector2(Rb.linearVelocity.x, direction * Data.PatrolSpeed);
 
-        Animator.SetBool("IsMoving", true);
+        SetMoving(true);
     }
 
     public void HorizontalPatrol(ref int direction, ref Vector2 startPosition)
@@ -218,7 +236,7 @@ public class MonsterController : MonoBehaviour, IDamageable
         Rb.linearVelocity = new Vector2(direction * Data.PatrolSpeed, Rb.linearVelocity.y);
         FlipSprite(new Vector2(direction, 0));
 
-        Animator.SetBool("IsMoving", true);
+        SetMoving(true);
     }
 
     public bool IsPlayerDetectionRange(Transform playerTransform)
@@ -305,10 +323,7 @@ public class MonsterController : MonoBehaviour, IDamageable
 
         }
 
-        if (_data.HitReaction != HitReaction.Die)
-        {
-            Animator.SetTrigger("Hit");
-        }
+        PlayHit();
 
         _btAgent.SetVariableValue("IsHit", true);
         _isHitReactiveActive = true;
@@ -364,10 +379,10 @@ public class MonsterController : MonoBehaviour, IDamageable
         SetState(MonsterState.DEAD);
         _btAgent.enabled = false;
 
-        Animator.SetBool("IsMoving", false);
-        Animator.SetTrigger("Die");
+        SetMoving(false);
+        PlayDie();
 
-        GameObject.Destroy(gameObject);
+        GameObject.Destroy(gameObject, Data.DieAnimationDuration);
     }
 
     public void OnDestroy()
