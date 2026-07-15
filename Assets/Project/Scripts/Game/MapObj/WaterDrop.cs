@@ -1,3 +1,4 @@
+using Managers;
 using UnityEngine;
 
 /// <summary>
@@ -40,6 +41,7 @@ public class WaterDrop : MonoBehaviour, IEchoable
         if (Managers.EchoManager.Instance != null)
         {
             Managers.EchoManager.Instance.TriggerSound(transform.position, SoundIntensity, SoundSpeed);
+            SoundManager.Instance.PlaySFX("WaterDrip", transform.position);
         }
     }
 
