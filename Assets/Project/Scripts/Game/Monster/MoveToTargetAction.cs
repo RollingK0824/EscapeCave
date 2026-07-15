@@ -29,7 +29,7 @@ public partial class MoveToTargetAction : Action
             return Status.Failure;
         }
 
-        Monster.Value.MoveTowardTarget(PlayerTransform.Value, Monster.Value.Data.MoveSpeed);
+        Monster.Value.MoveTowardTarget(PlayerTransform.Value, Monster.Value.CurrentMoveSpeed);
 
         return Status.Running;
     }

@@ -39,6 +39,7 @@ public partial class StunAction : Action
 
     protected override void OnEnd()
     {
+        Monster.Value?.EndStun();
         Monster.Value?.ResetHitTrigger();
     }
 }

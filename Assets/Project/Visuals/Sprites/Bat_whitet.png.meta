@@ -1,61 +1,61 @@
 fileFormatVersion: 2
-guid: 1dbe2c84ae2307f4286ddcacc104c97d
+guid: 8a3f6e04bcf34934a82952a10d9e988a
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 8647823593821616703
-    second: Bat_0
+      213: 4828125634891466294
+    second: Bat_whitet_0
   - first:
-      213: 5681806813702538305
-    second: Bat_1
+      213: -6904716198136456841
+    second: Bat_whitet_1
   - first:
-      213: 697682191857345388
-    second: Bat_2
+      213: -4982143610128867187
+    second: Bat_whitet_2
   - first:
-      213: 6993031405965254486
-    second: Bat_3
+      213: 1979593226152387354
+    second: Bat_whitet_3
   - first:
-      213: -8835117555573905559
-    second: Bat_4
+      213: 2463534924914711126
+    second: Bat_whitet_4
   - first:
-      213: -1477298914128971197
-    second: Bat_5
+      213: 3669555377623557315
+    second: Bat_whitet_5
   - first:
-      213: -1085711696175172977
-    second: Bat_6
+      213: 1060787161648460442
+    second: Bat_whitet_6
   - first:
-      213: -650004520372281371
-    second: Bat_7
+      213: -1756401670366672207
+    second: Bat_whitet_7
   - first:
-      213: 5596611908343470214
-    second: Bat_8
+      213: 4622202557119975671
+    second: Bat_whitet_8
   - first:
-      213: -2103701215377653077
-    second: Bat_9
+      213: -6506360438165177537
+    second: Bat_whitet_9
   - first:
-      213: -9149983406214727455
-    second: Bat_10
+      213: 4086158452778590429
+    second: Bat_whitet_10
   - first:
-      213: 8822500520823344939
-    second: Bat_11
+      213: 8280454821062592822
+    second: Bat_whitet_11
   - first:
-      213: 8094889547237836083
-    second: Bat_12
+      213: -6714261569781101323
+    second: Bat_whitet_12
   - first:
-      213: 3715899403775863448
-    second: Bat_13
+      213: 7089314132014572545
+    second: Bat_whitet_13
   - first:
-      213: 4419668502950860722
-    second: Bat_14
+      213: -3373218625798788301
+    second: Bat_whitet_14
   - first:
-      213: -3428020802489031309
-    second: Bat_15
+      213: -8948502075572788648
+    second: Bat_whitet_15
   - first:
-      213: 6413210283945640860
-    second: Bat_16
+      213: 8082753006021903545
+    second: Bat_whitet_16
   - first:
-      213: 2325743687340750653
-    second: Bat_17
+      213: 6538199612677971034
+    second: Bat_whitet_17
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -164,7 +164,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Bat_0
+      name: Bat_whitet_0
       rect:
         serializedVersion: 2
         x: 0
@@ -179,14 +179,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: f3abafd8dbd330870800000000000000
-      internalID: 8647823593821616703
+      spriteID: 636c9a63fa2f00340800000000000000
+      internalID: 4828125634891466294
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Bat_1
+      name: Bat_whitet_1
       rect:
         serializedVersion: 2
         x: 64
@@ -201,14 +201,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 144422d8135d9de40800000000000000
-      internalID: 5681806813702538305
+      spriteID: 779d03753358d20a0800000000000000
+      internalID: -6904716198136456841
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Bat_2
+      name: Bat_whitet_2
       rect:
         serializedVersion: 2
         x: 128
@@ -223,14 +223,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: c63e5cbc14aaea900800000000000000
-      internalID: 697682191857345388
+      spriteID: d80694a78cedbdab0800000000000000
+      internalID: -4982143610128867187
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Bat_3
+      name: Bat_whitet_3
       rect:
         serializedVersion: 2
         x: 192
@@ -245,14 +245,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 65f95b7530d3c0160800000000000000
-      internalID: 6993031405965254486
+      spriteID: a1325940d8de87b10800000000000000
+      internalID: 1979593226152387354
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Bat_4
+      name: Bat_whitet_4
       rect:
         serializedVersion: 2
         x: 0
@@ -267,14 +267,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 9672337c46b536580800000000000000
-      internalID: -8835117555573905559
+      spriteID: 65a5f4b36fb303220800000000000000
+      internalID: 2463534924914711126
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Bat_5
+      name: Bat_whitet_5
       rect:
         serializedVersion: 2
         x: 0
@@ -289,14 +289,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 34ab544f6749f7be0800000000000000
-      internalID: -1477298914128971197
+      spriteID: 3c460ee7c21ece230800000000000000
+      internalID: 3669555377623557315
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Bat_6
+      name: Bat_whitet_6
       rect:
         serializedVersion: 2
         x: 0
@@ -311,14 +311,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: f82fdf4f6f6cee0f0800000000000000
-      internalID: -1085711696175172977
+      spriteID: a92f950ad4ca8be00800000000000000
+      internalID: 1060787161648460442
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Bat_7
+      name: Bat_whitet_7
       rect:
         serializedVersion: 2
         x: 64
@@ -333,14 +333,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 5efdfc42558baf6f0800000000000000
-      internalID: -650004520372281371
+      spriteID: 1ba44e29cf100a7e0800000000000000
+      internalID: -1756401670366672207
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Bat_8
+      name: Bat_whitet_8
       rect:
         serializedVersion: 2
         x: 128
@@ -355,14 +355,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 6889886e0e82bad40800000000000000
-      internalID: 5596611908343470214
+      spriteID: 7f0d9097cbc552040800000000000000
+      internalID: 4622202557119975671
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Bat_9
+      name: Bat_whitet_9
       rect:
         serializedVersion: 2
         x: 192
@@ -377,14 +377,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: ba28bd7f3e62ec2e0800000000000000
-      internalID: -2103701215377653077
+      spriteID: f3b728657a3c4b5a0800000000000000
+      internalID: -6506360438165177537
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Bat_10
+      name: Bat_whitet_10
       rect:
         serializedVersion: 2
         x: 0
@@ -399,14 +399,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 1e83adb129ab40180800000000000000
-      internalID: -9149983406214727455
+      spriteID: dd0e3d1a673f4b830800000000000000
+      internalID: 4086158452778590429
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Bat_11
+      name: Bat_whitet_11
       rect:
         serializedVersion: 2
         x: 64
@@ -421,14 +421,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: b2fcf56ea71df6a70800000000000000
-      internalID: 8822500520823344939
+      spriteID: 6394b1cb9c51ae270800000000000000
+      internalID: 8280454821062592822
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Bat_12
+      name: Bat_whitet_12
       rect:
         serializedVersion: 2
         x: 0
@@ -443,14 +443,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 33542279723d65070800000000000000
-      internalID: 8094889547237836083
+      spriteID: 5fc042c0da622d2a0800000000000000
+      internalID: -6714261569781101323
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Bat_13
+      name: Bat_whitet_13
       rect:
         serializedVersion: 2
         x: 64
@@ -465,14 +465,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 89a652fe1d6819330800000000000000
-      internalID: 3715899403775863448
+      spriteID: 104a2eb64ad426260800000000000000
+      internalID: 7089314132014572545
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Bat_14
+      name: Bat_whitet_14
       rect:
         serializedVersion: 2
         x: 128
@@ -487,8 +487,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 2b75e574611d55d30800000000000000
-      internalID: 4419668502950860722
+      spriteID: 33b288b288bef21d0800000000000000
+      internalID: -3373218625798788301
       vertices: []
       indices: 
       edges: []
@@ -497,7 +497,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 501df3596d31fa640b29e04de3c5fa3a
+    spriteID: 20caccf75bd1076489515593ddfe1b9a
     internalID: 0
     vertices: []
     indices: 
@@ -507,23 +507,23 @@ TextureImporter:
     spriteCustomMetadata:
       entries:
       - key: SpriteEditor.SliceSettings
-        value: '{"sliceOnImport":false,"gridCellCount":{"x":16.0,"y":16.0},"gridSpriteSize":{"x":64.0,"y":64.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":1,"keepEmptyRects":false,"isAlternate":false}'
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":64.0,"y":64.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":1,"keepEmptyRects":false,"isAlternate":false}'
     nameFileIdTable:
-      Bat_0: 8647823593821616703
-      Bat_1: 5681806813702538305
-      Bat_10: -9149983406214727455
-      Bat_11: 8822500520823344939
-      Bat_12: 8094889547237836083
-      Bat_13: 3715899403775863448
-      Bat_14: 4419668502950860722
-      Bat_2: 697682191857345388
-      Bat_3: 6993031405965254486
-      Bat_4: -8835117555573905559
-      Bat_5: -1477298914128971197
-      Bat_6: -1085711696175172977
-      Bat_7: -650004520372281371
-      Bat_8: 5596611908343470214
-      Bat_9: -2103701215377653077
+      Bat_whitet_0: 4828125634891466294
+      Bat_whitet_1: -6904716198136456841
+      Bat_whitet_10: 4086158452778590429
+      Bat_whitet_11: 8280454821062592822
+      Bat_whitet_12: -6714261569781101323
+      Bat_whitet_13: 7089314132014572545
+      Bat_whitet_14: -3373218625798788301
+      Bat_whitet_2: -4982143610128867187
+      Bat_whitet_3: 1979593226152387354
+      Bat_whitet_4: 2463534924914711126
+      Bat_whitet_5: 3669555377623557315
+      Bat_whitet_6: 1060787161648460442
+      Bat_whitet_7: -1756401670366672207
+      Bat_whitet_8: 4622202557119975671
+      Bat_whitet_9: -6506360438165177537
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

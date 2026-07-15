@@ -28,6 +28,10 @@ public class MonsterController : MonoBehaviour, IDamageable
     private MonsterState _currentState = MonsterState.IDLE;
     
     public MonsterState CurrentState => _currentState;
+    private static readonly int IsMovingHash = Animator.StringToHash("IsMoving");
+    private static readonly int HitHash = Animator.StringToHash("Hit");
+    private static readonly int DieHash = Animator.StringToHash("Die");
+    private static readonly int IsStunnedHash = Animator.StringToHash("IsStunned");
 
     public void SetState(MonsterState state)
     {
@@ -38,6 +42,8 @@ public class MonsterController : MonoBehaviour, IDamageable
 
     private Vector2 _lastHitDirection;
     private bool _isHitReactiveActive;
+    public float CurrentMoveSpeed { get; private set; }
+
 
     private void Awake()
     {
@@ -53,6 +59,10 @@ public class MonsterController : MonoBehaviour, IDamageable
         _btAgent.SetVariableValue("IsDetected", false);
         _btAgent.SetVariableValue("IsHit", false);
         _btAgent.SetVariableValue("HitReaction", _data.HitReaction);
+
+        Managers.MonsterManager.RegisterMonster(this);
+
+        CurrentMoveSpeed = Data.MoveSpeed;
     }
 
     private void Start()
@@ -69,6 +79,8 @@ public class MonsterController : MonoBehaviour, IDamageable
 
         Rb.linearVelocity = new Vector2(direction.x * speed, Rb.linearVelocity.y);
         FlipSprite(direction);
+
+        SetMoving(true);
     }
 
     public void FlipSprite(Vector2 direction)
@@ -79,9 +91,41 @@ public class MonsterController : MonoBehaviour, IDamageable
         }
     }
 
+    private void SetMoving(bool isMoving)
+    {
+        Animator.SetBool(IsMovingHash, isMoving);
+    }
+
+    private void PlayHit()
+    {
+        Animator.SetTrigger(HitHash);
+    }
+
+    private void PlayDie()
+    {
+        Animator.SetTrigger(DieHash);
+    }
+
+    private void SetStunned(bool isStunned)
+    {
+        Animator.SetBool(IsStunnedHash, isStunned);
+    }
+
+    public void IncreaseMoveSpeed(float deltaTime)
+    {
+        CurrentMoveSpeed += Data.SpeedRampRate * deltaTime;
+
+        if (Data.MaxMoveSpeed > 0f)
+        {
+            CurrentMoveSpeed = Mathf.Min(CurrentMoveSpeed, Data.MaxMoveSpeed);
+        }
+    }
+
     public void Stop()
     {
         Rb.linearVelocity = new Vector2(0f, Rb.linearVelocity.y);
+
+        SetMoving(false);
     }
 
     public Vector2 GetDirectionToTarget(Transform playerTransform)
@@ -121,6 +165,8 @@ public class MonsterController : MonoBehaviour, IDamageable
 
         Rb.linearVelocity = direction * speed;
         FlipSprite(direction);
+
+        SetMoving(true);
     }
 
     public void MoveTowardTarget(Transform target, float speed)
@@ -171,6 +217,8 @@ public class MonsterController : MonoBehaviour, IDamageable
         }
 
         Rb.linearVelocity = new Vector2(Rb.linearVelocity.x, direction * Data.PatrolSpeed);
+
+        SetMoving(true);
     }
 
     public void HorizontalPatrol(ref int direction, ref Vector2 startPosition)
@@ -193,6 +241,8 @@ public class MonsterController : MonoBehaviour, IDamageable
 
         Rb.linearVelocity = new Vector2(direction * Data.PatrolSpeed, Rb.linearVelocity.y);
         FlipSprite(new Vector2(direction, 0));
+
+        SetMoving(true);
     }
 
     public bool IsPlayerDetectionRange(Transform playerTransform)
@@ -279,6 +329,8 @@ public class MonsterController : MonoBehaviour, IDamageable
 
         }
 
+        PlayHit();
+
         _btAgent.SetVariableValue("IsHit", true);
         _isHitReactiveActive = true;
     }
@@ -301,9 +353,25 @@ public class MonsterController : MonoBehaviour, IDamageable
         _isHitReactiveActive = false;
     }
 
+    public void NotifySound()
+    {
+        _btAgent.SetVariableValue("SoundTrigger", true);
+    }
+
+    public void NotifyVibration()
+    {
+        _btAgent.SetVariableValue("VibTrigger", true);
+    }
+
     public void StartStun()
     {
         Stop();
+        SetStunned(true);
+    }
+
+    public void EndStun()
+    {
+        SetStunned(false);
     }
 
     public void StartKnockback(Transform playerTransform)
@@ -323,6 +391,14 @@ public class MonsterController : MonoBehaviour, IDamageable
         SetState(MonsterState.DEAD);
         _btAgent.enabled = false;
 
-        GameObject.Destroy(gameObject);
+        SetMoving(false);
+        PlayDie();
+
+        GameObject.Destroy(gameObject, Data.DieAnimationDuration);
+    }
+
+    public void OnDestroy()
+    {
+        Managers.MonsterManager.UnregisterMonster(this);
     }
 }

@@ -1,61 +1,55 @@
 fileFormatVersion: 2
-guid: 1dbe2c84ae2307f4286ddcacc104c97d
+guid: 8cb8b16ef4d3dd14380fe74ed07163ad
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 8647823593821616703
-    second: Bat_0
+      213: 5746764926269108267
+    second: Shark_0
   - first:
-      213: 5681806813702538305
-    second: Bat_1
+      213: 303420649233120723
+    second: Shark_1
   - first:
-      213: 697682191857345388
-    second: Bat_2
+      213: -2667083108151795400
+    second: Shark_2
   - first:
-      213: 6993031405965254486
-    second: Bat_3
+      213: -1188171541994365872
+    second: Shark_3
   - first:
-      213: -8835117555573905559
-    second: Bat_4
+      213: -6443143152671075294
+    second: Shark_4
   - first:
-      213: -1477298914128971197
-    second: Bat_5
+      213: -9221222104238743887
+    second: Shark_5
   - first:
-      213: -1085711696175172977
-    second: Bat_6
+      213: 606708205016773565
+    second: Shark_6
   - first:
-      213: -650004520372281371
-    second: Bat_7
+      213: -1166654819748465478
+    second: Shark_7
   - first:
-      213: 5596611908343470214
-    second: Bat_8
+      213: -6582753985955235636
+    second: Shark_8
   - first:
-      213: -2103701215377653077
-    second: Bat_9
+      213: 4446947673199342103
+    second: Shark_9
   - first:
-      213: -9149983406214727455
-    second: Bat_10
+      213: -113069949435566741
+    second: Shark_10
   - first:
-      213: 8822500520823344939
-    second: Bat_11
+      213: -5098738669257863861
+    second: Shark_11
   - first:
-      213: 8094889547237836083
-    second: Bat_12
+      213: -1804030686354823259
+    second: Shark_12
   - first:
-      213: 3715899403775863448
-    second: Bat_13
+      213: 3222940141236203219
+    second: Shark_13
   - first:
-      213: 4419668502950860722
-    second: Bat_14
+      213: 2138600498061705106
+    second: Shark_14
   - first:
-      213: -3428020802489031309
-    second: Bat_15
-  - first:
-      213: 6413210283945640860
-    second: Bat_16
-  - first:
-      213: 2325743687340750653
-    second: Bat_17
+      213: -6662369581173553113
+    second: Shark_15
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -102,7 +96,7 @@ TextureImporter:
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 16
+  spritePixelsToUnits: 8
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -164,13 +158,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Bat_0
+      name: Shark_0
       rect:
         serializedVersion: 2
         x: 0
-        y: 320
-        width: 64
-        height: 64
+        y: 32
+        width: 32
+        height: 32
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -179,20 +173,42 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: f3abafd8dbd330870800000000000000
-      internalID: 8647823593821616703
+      spriteID: b20b1f5b04c90cf40800000000000000
+      internalID: 5746764926269108267
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Bat_1
+      name: Shark_1
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 32
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3ddfe0f0977f53400800000000000000
+      internalID: 303420649233120723
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Shark_2
       rect:
         serializedVersion: 2
         x: 64
-        y: 320
-        width: 64
-        height: 64
+        y: 32
+        width: 32
+        height: 32
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -201,20 +217,42 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 144422d8135d9de40800000000000000
-      internalID: 5681806813702538305
+      spriteID: 831ea204b0e9cfad0800000000000000
+      internalID: -2667083108151795400
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Bat_2
+      name: Shark_3
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 32
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 05c923b1744c28fe0800000000000000
+      internalID: -1188171541994365872
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Shark_4
       rect:
         serializedVersion: 2
         x: 128
-        y: 320
-        width: 64
-        height: 64
+        y: 32
+        width: 32
+        height: 32
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -223,20 +261,42 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: c63e5cbc14aaea900800000000000000
-      internalID: 697682191857345388
+      spriteID: 224dc0c907b5596a0800000000000000
+      internalID: -6443143152671075294
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Bat_3
+      name: Shark_5
+      rect:
+        serializedVersion: 2
+        x: 160
+        y: 32
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1be9ed13a53a70080800000000000000
+      internalID: -9221222104238743887
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Shark_6
       rect:
         serializedVersion: 2
         x: 192
-        y: 320
-        width: 64
-        height: 64
+        y: 32
+        width: 32
+        height: 32
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -245,20 +305,42 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 65f95b7530d3c0160800000000000000
-      internalID: 6993031405965254486
+      spriteID: db3f652e5e57b6800800000000000000
+      internalID: 606708205016773565
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Bat_4
+      name: Shark_7
+      rect:
+        serializedVersion: 2
+        x: 224
+        y: 32
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ab435656f953fcfe0800000000000000
+      internalID: -1166654819748465478
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Shark_8
       rect:
         serializedVersion: 2
         x: 0
-        y: 256
-        width: 64
-        height: 64
+        y: 0
+        width: 32
+        height: 32
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -267,20 +349,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 9672337c46b536580800000000000000
-      internalID: -8835117555573905559
+      spriteID: cc8f95f602c55a4a0800000000000000
+      internalID: -6582753985955235636
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Bat_5
+      name: Shark_9
       rect:
         serializedVersion: 2
-        x: 0
-        y: 192
-        width: 64
-        height: 64
+        x: 32
+        y: 0
+        width: 32
+        height: 32
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -289,42 +371,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 34ab544f6749f7be0800000000000000
-      internalID: -1477298914128971197
+      spriteID: 712fbcb095bb6bd30800000000000000
+      internalID: 4446947673199342103
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Bat_6
-      rect:
-        serializedVersion: 2
-        x: 0
-        y: 128
-        width: 64
-        height: 64
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: f82fdf4f6f6cee0f0800000000000000
-      internalID: -1085711696175172977
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Bat_7
+      name: Shark_10
       rect:
         serializedVersion: 2
         x: 64
-        y: 128
-        width: 64
-        height: 64
+        y: 0
+        width: 32
+        height: 32
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -333,20 +393,42 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 5efdfc42558baf6f0800000000000000
-      internalID: -650004520372281371
+      spriteID: b652f15ea7b4e6ef0800000000000000
+      internalID: -113069949435566741
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Bat_8
+      name: Shark_11
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 0
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b4d4650d134ad39b0800000000000000
+      internalID: -5098738669257863861
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Shark_12
       rect:
         serializedVersion: 2
         x: 128
-        y: 128
-        width: 64
-        height: 64
+        y: 0
+        width: 32
+        height: 32
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -355,86 +437,42 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 6889886e0e82bad40800000000000000
-      internalID: 5596611908343470214
+      spriteID: 5a7aaef16abc6f6e0800000000000000
+      internalID: -1804030686354823259
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Bat_9
+      name: Shark_13
+      rect:
+        serializedVersion: 2
+        x: 160
+        y: 0
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3de2bba8bfe2abc20800000000000000
+      internalID: 3222940141236203219
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Shark_14
       rect:
         serializedVersion: 2
         x: 192
-        y: 128
-        width: 64
-        height: 64
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: ba28bd7f3e62ec2e0800000000000000
-      internalID: -2103701215377653077
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Bat_10
-      rect:
-        serializedVersion: 2
-        x: 0
-        y: 64
-        width: 64
-        height: 64
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 1e83adb129ab40180800000000000000
-      internalID: -9149983406214727455
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Bat_11
-      rect:
-        serializedVersion: 2
-        x: 64
-        y: 64
-        width: 64
-        height: 64
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: b2fcf56ea71df6a70800000000000000
-      internalID: 8822500520823344939
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Bat_12
-      rect:
-        serializedVersion: 2
-        x: 0
         y: 0
-        width: 64
-        height: 64
+        width: 32
+        height: 32
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -443,20 +481,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 33542279723d65070800000000000000
-      internalID: 8094889547237836083
+      spriteID: 29ff07b72d5ddad10800000000000000
+      internalID: 2138600498061705106
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Bat_13
+      name: Shark_15
       rect:
         serializedVersion: 2
-        x: 64
+        x: 224
         y: 0
-        width: 64
-        height: 64
+        width: 32
+        height: 32
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -465,30 +503,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 89a652fe1d6819330800000000000000
-      internalID: 3715899403775863448
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Bat_14
-      rect:
-        serializedVersion: 2
-        x: 128
-        y: 0
-        width: 64
-        height: 64
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 2b75e574611d55d30800000000000000
-      internalID: 4419668502950860722
+      spriteID: 72848c72a228a83a0800000000000000
+      internalID: -6662369581173553113
       vertices: []
       indices: 
       edges: []
@@ -497,7 +513,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 501df3596d31fa640b29e04de3c5fa3a
+    spriteID: 9cc34ff851fea084ea2bf9868accb007
     internalID: 0
     vertices: []
     indices: 
@@ -507,23 +523,24 @@ TextureImporter:
     spriteCustomMetadata:
       entries:
       - key: SpriteEditor.SliceSettings
-        value: '{"sliceOnImport":false,"gridCellCount":{"x":16.0,"y":16.0},"gridSpriteSize":{"x":64.0,"y":64.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":1,"keepEmptyRects":false,"isAlternate":false}'
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":32.0,"y":32.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":1,"keepEmptyRects":false,"isAlternate":false}'
     nameFileIdTable:
-      Bat_0: 8647823593821616703
-      Bat_1: 5681806813702538305
-      Bat_10: -9149983406214727455
-      Bat_11: 8822500520823344939
-      Bat_12: 8094889547237836083
-      Bat_13: 3715899403775863448
-      Bat_14: 4419668502950860722
-      Bat_2: 697682191857345388
-      Bat_3: 6993031405965254486
-      Bat_4: -8835117555573905559
-      Bat_5: -1477298914128971197
-      Bat_6: -1085711696175172977
-      Bat_7: -650004520372281371
-      Bat_8: 5596611908343470214
-      Bat_9: -2103701215377653077
+      Shark_0: 5746764926269108267
+      Shark_1: 303420649233120723
+      Shark_10: -113069949435566741
+      Shark_11: -5098738669257863861
+      Shark_12: -1804030686354823259
+      Shark_13: 3222940141236203219
+      Shark_14: 2138600498061705106
+      Shark_15: -6662369581173553113
+      Shark_2: -2667083108151795400
+      Shark_3: -1188171541994365872
+      Shark_4: -6443143152671075294
+      Shark_5: -9221222104238743887
+      Shark_6: 606708205016773565
+      Shark_7: -1166654819748465478
+      Shark_8: -6582753985955235636
+      Shark_9: 4446947673199342103
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

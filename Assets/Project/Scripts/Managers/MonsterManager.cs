@@ -1,3 +1,5 @@
+using NUnit.Framework;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Managers
@@ -5,6 +7,7 @@ namespace Managers
     public static class MonsterManager
     {
         public static Transform PlayerTransform { get; private set; }
+        private static readonly List<MonsterController> _monsters = new List<MonsterController>();
 
         public static void RegisterPlayer(Transform playerTransform)
         {
@@ -16,6 +19,26 @@ namespace Managers
             if (PlayerTransform == playerTransform)
             {
                 PlayerTransform = null;
+            }
+        }
+
+        public static void RegisterMonster(MonsterController monster) => _monsters.Add(monster);
+
+        public static void UnregisterMonster(MonsterController monster) => _monsters.Remove(monster);
+
+        public static void NotifySound()
+        {
+            foreach(var monster in _monsters)
+            {
+                monster?.NotifySound();
+            }
+        }
+
+        public static void NotifyVibration()
+        {
+            foreach(var monster in _monsters)
+            {
+                monster?.NotifyVibration();
             }
         }
     }

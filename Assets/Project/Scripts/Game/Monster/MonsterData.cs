@@ -62,9 +62,14 @@ public class MonsterData : ScriptableObject
     public float StunDuration = 2f;
     public float NoticeDuration = 0.5f;
     public float AggroResetTime = 3f;
+    public float DieAnimationDuration = 0.5f;
 
     [Header("물리")]
     public float GravityScale = 1f;
     public bool UseGravity = true;
     public bool FliesFreely = false;
+
+    [Header("추격 난이도")]
+    public float SpeedRampRate = 0f;
+    public float MaxMoveSpeed = 0f;
 }
