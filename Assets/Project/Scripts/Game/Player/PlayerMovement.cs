@@ -39,6 +39,10 @@ public class PlayerMovement : MonoBehaviour
     private float _originalGravityScale;
     private Coroutine _flightRoutine;
 
+    // Animator 파라미터를 문자열로 넘기면 호출마다 해싱 비용이 들어서, 매 프레임 쓰는 것들은 해시를 캐싱한다.
+    private static readonly int _isWalkingHash = Animator.StringToHash("IsWalking");
+    private static readonly int _isFlyingHash = Animator.StringToHash("IsFlying");
+
     /// <summary>외부에서 이동을 잠글 때 사용 (공격/갈고리 중 등).</summary>
     public bool MovementLocked { get; set; } = false;
 
@@ -71,7 +75,7 @@ public class PlayerMovement : MonoBehaviour
         }
 
         // 비행 중에는 걷기 애니메이션이 덮어쓰지 않도록 막는다.
-        _animator.SetBool("IsWalking", _moveInput.x != 0 && !_isFlying);
+        _animator.SetBool(_isWalkingHash, _moveInput.x != 0 && !_isFlying);
     }
 
     private void FixedUpdate()
@@ -197,7 +201,7 @@ public void StartFlight(float duration)
         
         // 상태 초기화 (애니메이션과 중력값 원복)
         _rb.gravityScale = _originalGravityScale;
-        _animator.SetBool("IsFlying", false);
+        _animator.SetBool(_isFlyingHash, false);
         _isFlying = false;
     }
 
@@ -212,13 +216,13 @@ public void StartFlight(float duration)
         _isFlying = true;
         _originalGravityScale = _rb.gravityScale;
         _rb.gravityScale = 0f;
-        _animator.SetBool("IsFlying", true);
+        _animator.SetBool(_isFlyingHash, true);
 
         yield return new WaitForSeconds(duration);
 
         // 2. 루틴 종료 후 상태 복구
         _rb.gravityScale = _originalGravityScale;
-        _animator.SetBool("IsFlying", false);
+        _animator.SetBool(_isFlyingHash, false);
         _isFlying = false;
 
         _flightRoutine = null;

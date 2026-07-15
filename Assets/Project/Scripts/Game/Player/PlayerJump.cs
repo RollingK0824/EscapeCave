@@ -24,6 +24,11 @@ public class PlayerJump : MonoBehaviour
     // Stay에서 매 물리 프레임 갱신해 이 문제를 없앱니다.
     private readonly Dictionary<Collider2D, bool> _groundContacts = new Dictionary<Collider2D, bool>();
     private bool _isJumpPressed;
+
+    // Animator 파라미터를 문자열로 넘기면 호출마다 해싱 비용이 들어서, 매 프레임 쓰는 것들은 해시를 캐싱한다.
+    private static readonly int _isJumpHash = Animator.StringToHash("IsJump");
+    private static readonly int _isGroundedHash = Animator.StringToHash("IsGrounded");
+    private static readonly int _jumpHash = Animator.StringToHash("Jump");
     /// <summary>착지 시점에 낙하 높이(월드 유닛)를 함께 전달합니다. 계단 자동 등반처럼
     /// 살짝 떴다 붙는 경우는 낙하 높이가 거의 0이라 착지 이펙트 쪽에서 걸러낼 수 있습니다.</summary>
     public event System.Action<float> OnLanded;
@@ -64,12 +69,12 @@ public class PlayerJump : MonoBehaviour
         {
             // 착지 시점: 점프 입력을 강제로 해제하여 다음 점프를 대기하게 함
             _isJumpPressed = false;
-            _animator.SetBool("IsJump", false);
+            _animator.SetBool(_isJumpHash, false);
             float fallDistance = _airbornePeakY - transform.position.y;
             OnLanded?.Invoke(fallDistance);
         }
 
-        _animator.SetBool("IsGrounded", _isGrounded);
+        _animator.SetBool(_isGroundedHash, _isGrounded);
     }
 
     private void FixedUpdate()
@@ -116,10 +121,13 @@ public class PlayerJump : MonoBehaviour
         if (((1 << collision.gameObject.layer) & _groundLayer) == 0)
             return;
 
+        // collision.contacts 프로퍼티는 호출마다 새 배열을 할당하는데, 이 메서드는
+        // OnCollisionStay에서 매 물리 프레임 불리므로 GetContact(i)로 무할당 순회한다.
         bool isGroundContact = false;
-        foreach (ContactPoint2D contact in collision.contacts)
+        int contactCount = collision.contactCount;
+        for (int i = 0; i < contactCount; i++)
         {
-            if (contact.normal.y > _groundNormalMinY)
+            if (collision.GetContact(i).normal.y > _groundNormalMinY)
             {
                 isGroundContact = true;
                 break;
@@ -146,14 +154,14 @@ public class PlayerJump : MonoBehaviour
 
         _rb.linearVelocity = new Vector2(_rb.linearVelocity.x, _jumpForce);
         _isJumpPressed = true;
-        _animator.SetTrigger("Jump");
-        _animator.SetBool("IsJump", _isJumpPressed);
+        _animator.SetTrigger(_jumpHash);
+        _animator.SetBool(_isJumpHash, _isJumpPressed);
     }
 
     public void CancelJump()
     {
         _isJumpPressed = false;
-        _animator.SetBool("IsJump", _isJumpPressed);
+        _animator.SetBool(_isJumpHash, _isJumpPressed);
     }
     #endregion
 }
