@@ -14,16 +14,19 @@ using UnityEngine;
 [RequireComponent(typeof(PlayerTongueAttack))]
 [RequireComponent(typeof(PlayerGrappleHook))]
 [RequireComponent(typeof(PlayerSoundEmitter))]
-public class PlayerController : MonoBehaviour
+public class PlayerController : MonoBehaviour, IDamageable
 {
     private PlayerMovement _movement;
     private PlayerJump _jump;
     private PlayerTongueAttack _tongueAttack;
     private PlayerGrappleHook _grappleHook;
     private PlayerSoundEmitter _soundEmitter;
-
+    private Animator _animator;
     private PlayerControls _controls;
     private bool _attackHeld;
+
+    public bool IsDead { get; private set; }
+    public event System.Action OnDeath;
 
     private void Awake()
     {
@@ -32,7 +35,7 @@ public class PlayerController : MonoBehaviour
         _tongueAttack = GetComponent<PlayerTongueAttack>();
         _grappleHook = GetComponent<PlayerGrappleHook>();
         _soundEmitter = GetComponent<PlayerSoundEmitter>();
-
+        _animator = GetComponent<Animator>();
         // 몬스터 관련 로직 추가
         Managers.MonsterManager.RegisterPlayer(transform);
     }
@@ -82,10 +85,27 @@ public class PlayerController : MonoBehaviour
 
     private void HandleAttackInput()
     {
+        if (IsDead) return;
         if (_grappleHook.IsHooking) return;
         if (_tongueAttack.IsAttacking) return;
 
         _tongueAttack.Attack();
+    }
+
+    public void TakeDamage(float damage)
+    {
+        if (IsDead) return;
+
+        Die();
+    }
+
+    private void Die()
+    {
+        if (IsDead) return;
+
+        IsDead = true;
+        _controls?.Disable();
+        OnDeath?.Invoke();
     }
 
     // 몬스터 관련 로직 추가
