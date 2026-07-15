@@ -8,31 +8,36 @@ using UnityEngine.InputSystem;
 public class PlayerTongueAttack : MonoBehaviour
 {
     [Header("Tongue Attack")]
-    [SerializeField] private float attackDamageRange = 5f;   // 적/아이템 판정 사거리
-    [SerializeField] private float attackDuration = 0.2f;
-    [SerializeField] private float attackDamage = 10f;
-    [SerializeField] private LineRenderer tongueVisual;
-    [SerializeField] private Vector3 mouthOffset = new Vector3(0.3f, 0.2f, 0f);
-    [SerializeField] private float hitRadius = 0.5f;
+    [SerializeField] private float _attackDamageRange = 5f;   // 적/아이템 판정 사거리
+    [SerializeField] private float _attackDuration = 0.2f;
+    [SerializeField] private float _attackDamage = 10f;
+    [SerializeField] private LineRenderer _tongueVisual;
+    [SerializeField] private Vector3 _mouthOffset = new Vector3(0.3f, 0.2f, 0f);
+    [SerializeField, Tooltip("혀끝 원(Tongue Tip)이 연결 안 됐을 때 대신 쓰는 판정 반경")]
+    private float _hitRadius = 0.5f;
+    [SerializeField, Tooltip("혀끝 원 오브젝트의 CircleCollider2D (비주얼 겸 히트박스). 이 radius가 실제 판정 크기가 됩니다.")]
+    private CircleCollider2D _tongueTip;
+    [SerializeField, Tooltip("혀가 적에게 닿았을 때 재생할 침 튀기는 이펙트 프리팹 (PooledParticleEffect 필요)")]
+    private GameObject _splashEffectPrefab;
 
     [Header("Grapple Detection")]
     [Tooltip("IHookable 컴포넌트가 없어도 이 레이어에 속하면 자동으로 갈고리가 걸립니다.")]
-    [SerializeField] private LayerMask grappleableLayer;
-    [SerializeField] private float grappleRange = 8f;         // 갈고리 판정 사거리 (공격보다 길게)
+    [SerializeField] private LayerMask _grappleableLayer;
+    [SerializeField] private float _grappleRange = 8f;         // 갈고리 판정 사거리 (공격보다 길게)
 
     [Header("Auto-aim")]
     [SerializeField, Tooltip("마우스 방향 기준 좌우로 탐색할 총 각도")]
-    private float aimConeAngle = 30f;
+    private float _aimConeAngle = 30f;
     [SerializeField, Tooltip("부채꼴 안에서 벽/갈고리를 탐색할 레이 개수")]
-    private int aimRayCount = 9;
+    private int _aimRayCount = 9;
 
-    private bool isAttacking;
-    public bool IsAttacking => isAttacking;
+    private bool _isAttacking;
+    public bool IsAttacking => _isAttacking;
 
-    private Animator animator;
-    private PlayerMovement movement;
-    private PlayerGrappleHook grappleHook;
-    private PlayerSoundEmitter soundEmitter;
+    private Animator _animator;
+    private PlayerMovement _movement;
+    private PlayerGrappleHook _grappleHook;
+    private PlayerSoundEmitter _soundEmitter;
 
     private enum TargetType { None, Enemy, Item, Wall }
 
@@ -45,46 +50,89 @@ public class PlayerTongueAttack : MonoBehaviour
     // 조준 보정(FindAimTarget)과 최종 판정(TongueRoutine) 두 곳 모두
     // 이 순서 하나만 참조하도록 만들어, "적 > 아이템 > 벽" 우선순위 규칙이
     // 서로 다른 두 곳에 따로따로 구현되어 어긋나는 일을 막습니다.
-    private static readonly TargetType[] PriorityOrder = { TargetType.Enemy, TargetType.Item, TargetType.Wall };
+    private static readonly TargetType[] _priorityOrder = { TargetType.Enemy, TargetType.Item, TargetType.Wall };
 
     // 부채꼴 안 후보들을 비교할 때 쓰는 가중치 (카테고리 우선순위가 아니라,
     // 같은 카테고리 안에서 각도/거리로 미세 조정하는 용도)
-    private const float AngleScoreWeight = 10f;
-    private const float DistanceScoreWeight = 5f;
+    private const float ANGLE_SCORE_WEIGHT = 10f;
+    private const float DISTANCE_SCORE_WEIGHT = 5f;
     // 공격자 자신의 콜라이더 등, 거리가 0에 가까운 후보를 걸러내는 최소 거리
-    private const float MinTargetDistance = 0.01f;
+    private const float MIN_TARGET_DISTANCE = 0.01f;
+    // 혀끝이 입에서 이만큼(+혀끝 반경) 이상 나아간 뒤부터 이동 중 접촉 판정을 시작
+    // (플레이어가 서 있는 발밑 지형에 뻗자마자 붙어버리는 것 방지)
+    private const float MIN_TIP_TRAVEL = 0.1f;
+
+    // Physics2D.OverlapCircleAll은 호출마다 새 배열을 할당하는데, 혀가 뻗는 동안에는
+    // 매 프레임 판정이 돌아서 GC가 쌓인다. 결과 리스트를 재사용하는 오버로드로 무할당 조회한다.
+    private ContactFilter2D _overlapFilter;
+    private readonly List<Collider2D> _overlapResults = new List<Collider2D>(16);
 
     private void Awake()
     {
-        animator = GetComponent<Animator>();
-        movement = GetComponent<PlayerMovement>();
-        grappleHook = GetComponent<PlayerGrappleHook>();
-        soundEmitter = GetComponent<PlayerSoundEmitter>();
+        _animator = GetComponent<Animator>();
+        _movement = GetComponent<PlayerMovement>();
+        _grappleHook = GetComponent<PlayerGrappleHook>();
+        _soundEmitter = GetComponent<PlayerSoundEmitter>();
+
+        // 기존 OverlapCircleAll의 기본 판정 조건과 동일하게 맞춘다
+        // (레이어: DefaultRaycastLayers = Ignore Raycast 제외 전체, 트리거: 전역 설정을 따름)
+        _overlapFilter.NoFilter();
+        _overlapFilter.SetLayerMask(Physics2D.DefaultRaycastLayers);
+        _overlapFilter.useTriggers = Physics2D.queriesHitTriggers;
+
+        if (_tongueVisual == null)
+        {
+            Debug.LogError($"{nameof(PlayerTongueAttack)}: tongueVisual이 인스펙터에 연결되지 않았습니다.", this);
+        }
+
+        // 혀끝 원은 공격 중에만 보이도록 시작 시 꺼둡니다.
+        SetTongueTipActive(false);
+
+        // 판정은 Physics2D.OverlapCircle 수동 조회로만 하므로(트리거 여부 무관),
+        // 물리적으로 부딪히는 걸 막기 위해 항상 트리거로 강제합니다.
+        // (Is Trigger가 꺼져 있으면 Player Rigidbody2D의 콜라이더로 취급되어,
+        // 훅으로 벽에 붙여둔 동안 스윙 물리가 그 지점에 충돌하며 진자운동이 망가짐)
+        if (_tongueTip != null)
+        {
+            _tongueTip.isTrigger = true;
+        }
     }
 
     private void Update()
     {
-        if (isAttacking)
+        if (_isAttacking)
         {
             Vector3 mouseWorldPos = GetMouseWorldPosition();
-            movement.FaceTowards(mouseWorldPos);
+            _movement.FaceTowards(mouseWorldPos);
+        }
+        else if (_grappleHook != null && _grappleHook.IsHooking)
+        {
+            // 훅이 걸려있는 동안은 텅팁이 벽에 붙은 지점에 그대로 보입니다.
+            SetTongueTipActive(true);
+            MoveTongueTip(_grappleHook.AnchorPoint);
+        }
+        else
+        {
+            SetTongueTipActive(false);
         }
     }
 
     public void Attack()
     {
-        if (isAttacking) return;
-        if (movement.IsFlying) return; // 비행 중 공격 차단
+        if (_isAttacking) return;
+        if (_movement.IsFlying) return; // 비행 중 공격 차단
+        if (_tongueVisual == null) return; // 인스펙터 연결 누락 시 NRE 방지
 
-        animator.SetTrigger("Attack");
+        _animator.SetTrigger("Attack");
 
         Vector3 mouseWorldPos = GetMouseWorldPosition();
-        movement.FaceTowards(mouseWorldPos);
+        _movement.FaceTowards(mouseWorldPos);
 
         Vector3 originPos = transform.position;
         Vector3 aimDir = (mouseWorldPos - originPos).normalized;
+        float mouseDist = Vector3.Distance(originPos, mouseWorldPos);
 
-        AimResult aim = FindAimTarget(originPos, aimDir);
+        AimResult aim = FindAimTarget(originPos, aimDir, mouseDist);
 
         Vector3 targetPos;
         if (aim.type != TargetType.None)
@@ -94,29 +142,29 @@ public class PlayerTongueAttack : MonoBehaviour
         else
         {
             // 아무 후보도 없으면 그냥 마우스 방향으로 공격 사거리만큼 뻗음
-            float dist = Mathf.Min(Vector3.Distance(originPos, mouseWorldPos), attackDamageRange);
+            float dist = Mathf.Min(Vector3.Distance(originPos, mouseWorldPos), _attackDamageRange);
             targetPos = originPos + aimDir * dist;
         }
 
-        soundEmitter?.Echo();
+        _soundEmitter?.Echo();
         StartCoroutine(TongueRoutine(targetPos));
     }
 
     /// <summary>
-    /// 마우스 방향 부채꼴 안에서 우선순위(PriorityOrder: 적 > 아이템 > 벽)에 따라
+    /// 마우스 방향 부채꼴 안에서 우선순위(_priorityOrder: 적 > 아이템 > 벽)에 따라
     /// 혀가 실제로 뻗어나갈 '조준 지점'을 찾습니다.
     /// 정확히 그 방향이 아니어도 부채꼴 범위 안이면 자동으로 보정됩니다.
     /// </summary>
-    private AimResult FindAimTarget(Vector3 origin, Vector3 aimDir)
+    private AimResult FindAimTarget(Vector3 origin, Vector3 aimDir, float maxWallDist)
     {
-        float halfAngle = aimConeAngle * 0.5f;
-        Collider2D[] nearby = Physics2D.OverlapCircleAll(origin, attackDamageRange);
+        float halfAngle = _aimConeAngle * 0.5f;
+        Physics2D.OverlapCircle(origin, _attackDamageRange, _overlapFilter, _overlapResults);
 
-        foreach (TargetType type in PriorityOrder)
+        foreach (TargetType type in _priorityOrder)
         {
             AimResult candidate = type == TargetType.Wall
-                ? FindBestWallCandidate(origin, aimDir, halfAngle)
-                : FindBestOverlapCandidate(nearby, origin, aimDir, halfAngle, type);
+                ? FindBestWallCandidate(origin, aimDir, halfAngle, maxWallDist)
+                : FindBestOverlapCandidate(_overlapResults, origin, aimDir, halfAngle, type);
 
             if (candidate.type != TargetType.None)
                 return candidate;
@@ -129,7 +177,7 @@ public class PlayerTongueAttack : MonoBehaviour
     /// 부채꼴(halfAngle) 안에서 지정된 type(Enemy는 IDamageable, Item은 IGrabbable)을
     /// 가진 후보 중, 조준 방향에 가깝고 가까운 순으로 가장 좋은 후보 하나를 고릅니다.
     /// </summary>
-    private AimResult FindBestOverlapCandidate(Collider2D[] candidates, Vector3 origin, Vector3 aimDir, float halfAngle, TargetType type)
+    private AimResult FindBestOverlapCandidate(List<Collider2D> candidates, Vector3 origin, Vector3 aimDir, float halfAngle, TargetType type)
     {
         AimResult best = new AimResult { type = TargetType.None };
         float bestScore = float.NegativeInfinity;
@@ -138,19 +186,19 @@ public class PlayerTongueAttack : MonoBehaviour
         {
             Vector3 toCol = (Vector3)col.bounds.center - origin;
             float dist = toCol.magnitude;
-            if (dist < MinTargetDistance || dist > attackDamageRange) continue;
+            if (dist < MIN_TARGET_DISTANCE || dist > _attackDamageRange) continue;
 
             float angle = Vector3.Angle(aimDir, toCol);
             if (angle > halfAngle) continue;
 
             bool matches = type == TargetType.Enemy
-                ? col.GetComponent<IDamageable>() != null
-                : col.GetComponent<IGrabbable>() != null;
+                ? col.TryGetComponent<IDamageable>(out _)
+                : col.TryGetComponent<IGrabbable>(out _);
             if (!matches) continue;
 
             float angleScore = 1f - (angle / halfAngle);
-            float distScore = 1f - (dist / attackDamageRange);
-            float score = angleScore * AngleScoreWeight + distScore * DistanceScoreWeight;
+            float distScore = 1f - (dist / _attackDamageRange);
+            float score = angleScore * ANGLE_SCORE_WEIGHT + distScore * DISTANCE_SCORE_WEIGHT;
 
             if (score > bestScore)
             {
@@ -165,23 +213,27 @@ public class PlayerTongueAttack : MonoBehaviour
     /// <summary>
     /// 부채꼴 레이캐스트로 벽/갈고리 지점을 탐색합니다 (적/아이템보다 긴 사거리).
     /// </summary>
-    private AimResult FindBestWallCandidate(Vector3 origin, Vector3 aimDir, float halfAngle)
+    private AimResult FindBestWallCandidate(Vector3 origin, Vector3 aimDir, float halfAngle, float maxDist)
     {
         AimResult best = new AimResult { type = TargetType.None };
         float bestScore = float.NegativeInfinity;
 
-        for (int i = 0; i < aimRayCount; i++)
+        // 마우스까지의 거리로 사거리를 한 번 더 제한: 가까이 클릭했는데
+        // 같은 방향에 있는 먼 벽으로 훅이 걸려버리는 것을 방지.
+        float range = Mathf.Min(_grappleRange, maxDist);
+
+        for (int i = 0; i < _aimRayCount; i++)
         {
-            float t = aimRayCount == 1 ? 0f : (float)i / (aimRayCount - 1);
+            float t = _aimRayCount == 1 ? 0f : (float)i / (_aimRayCount - 1);
             float angle = Mathf.Lerp(-halfAngle, halfAngle, t);
             Vector3 dir = Quaternion.Euler(0, 0, angle) * aimDir;
 
-            RaycastHit2D hit = Physics2D.Raycast(origin, dir, grappleRange, grappleableLayer);
+            RaycastHit2D hit = Physics2D.Raycast(origin, dir, range, _grappleableLayer);
             if (hit.collider == null) continue;
 
             float angleScore = 1f - (Mathf.Abs(angle) / halfAngle);
-            float distScore = 1f - (hit.distance / grappleRange);
-            float score = angleScore * AngleScoreWeight + distScore * DistanceScoreWeight;
+            float distScore = 1f - (hit.distance / range);
+            float score = angleScore * ANGLE_SCORE_WEIGHT + distScore * DISTANCE_SCORE_WEIGHT;
 
             if (score > bestScore)
             {
@@ -204,34 +256,53 @@ public class PlayerTongueAttack : MonoBehaviour
 
     private IEnumerator TongueRoutine(Vector3 targetPosition)
     {
-        isAttacking = true;
-        tongueVisual.enabled = true;
+        _isAttacking = true;
+        _tongueVisual.enabled = true;
+        SetTongueTipActive(true);
 
         Vector3 flippedMouthOffset = new Vector3(
-            movement.IsFacingRight ? mouthOffset.x : -mouthOffset.x,
-            mouthOffset.y,
-            mouthOffset.z);
+            _movement.IsFacingRight ? _mouthOffset.x : -_mouthOffset.x,
+            _mouthOffset.y,
+            _mouthOffset.z);
+
+        Vector3 startTipPos = transform.position + flippedMouthOffset;
+        // 뻗는 도중 혀끝 원에 뭔가 닿으면 목표까지 안 가고 그 지점에서 판정합니다
+        // (개구리 혀처럼 "처음 닿은 것"에 붙는 동작).
+        Vector3 judgePosition = targetPosition;
 
         // ===== 뻗는 구간 =====
         float elapsedTime = 0f;
-        while (elapsedTime < attackDuration)
+        while (elapsedTime < _attackDuration)
         {
-            Vector3 currentTip = Vector3.Lerp(transform.position + flippedMouthOffset, targetPosition, elapsedTime / attackDuration);
-            tongueVisual.SetPosition(0, transform.position + flippedMouthOffset);
-            tongueVisual.SetPosition(1, currentTip);
+            Vector3 currentTip = Vector3.Lerp(transform.position + flippedMouthOffset, targetPosition, elapsedTime / _attackDuration);
+            _tongueVisual.SetPosition(0, transform.position + flippedMouthOffset);
+            _tongueVisual.SetPosition(1, currentTip);
+            MoveTongueTip(currentTip);
+
+            // 입 바로 앞(발밑 지형 등)에 뻗자마자 붙지 않도록, 최소 진행 거리 이후부터 검사
+            if (Vector3.Distance(startTipPos, currentTip) > GetTipRadius() + MIN_TIP_TRAVEL
+                && TipTouchesAnything(currentTip))
+            {
+                judgePosition = currentTip;
+                break;
+            }
+
             elapsedTime += Time.deltaTime;
             yield return null;
         }
 
-        // ===== 최종 판정: 도달 지점 주변에서 우선순위(적 > 아이템 > 벽) 적용 =====
-        Collider2D[] hits = Physics2D.OverlapCircleAll(targetPosition, hitRadius);
+        // ===== 최종 판정: 닿은(또는 도달한) 지점 주변에서 우선순위(적 > 아이템 > 벽) 적용 =====
+        Physics2D.OverlapCircle(judgePosition, GetTipRadius(), _overlapFilter, _overlapResults);
 
         List<IDamageable> damageTargets = new List<IDamageable>();
         List<IGrabbable> grabTargets = new List<IGrabbable>();
         IHookable hookTarget = null;
 
-        foreach (var hit in hits)
+        foreach (var hit in _overlapResults)
         {
+            // 플레이어 자신과 그 자식(혀끝 원 콜라이더 포함)은 판정에서 제외
+            if (hit.transform.IsChildOf(transform)) continue;
+
             if (hit.TryGetComponent<IDamageable>(out var damageable))
             {
                 damageTargets.Add(damageable);
@@ -248,17 +319,17 @@ public class PlayerTongueAttack : MonoBehaviour
                 {
                     hookTarget = hookable;
                 }
-                else if (((1 << hit.gameObject.layer) & grappleableLayer) != 0)
+                else if (((1 << hit.gameObject.layer) & _grappleableLayer) != 0)
                 {
-                    Vector3 point = hit.ClosestPoint(targetPosition);
-                    hookTarget = new StaticHookPoint(point);
+                    Vector3 point = hit.ClosestPoint(judgePosition);
+                    hookTarget = new TransformHookPoint(hit.transform, point);
                 }
             }
         }
 
-        // 우선순위 판정: FindAimTarget과 동일한 PriorityOrder를 그대로 따라가며,
+        // 우선순위 판정: FindAimTarget과 동일한 _priorityOrder를 그대로 따라가며,
         // 앞 카테고리에 후보가 없으면 다음 카테고리로 넘어갑니다.
-        foreach (TargetType type in PriorityOrder)
+        foreach (TargetType type in _priorityOrder)
         {
             switch (type)
             {
@@ -268,8 +339,9 @@ public class PlayerTongueAttack : MonoBehaviour
 
                     foreach (var damageable in damageTargets)
                     {
-                        damageable.TakeDamage(attackDamage);
+                        damageable.TakeDamage(_attackDamage);
                     }
+                    SpawnSplashEffect(judgePosition);
                     yield return ReturnTongue(flippedMouthOffset, null);
                     yield break;
                 }
@@ -290,6 +362,7 @@ public class PlayerTongueAttack : MonoBehaviour
                         }
                         grabbedItems.Add(grabbable.GrabTransform);
                     }
+                    SpawnSplashEffect(judgePosition);
                     yield return ReturnTongue(flippedMouthOffset, grabbedItems);
                     yield break;
                 }
@@ -297,9 +370,13 @@ public class PlayerTongueAttack : MonoBehaviour
                 {
                     if (hookTarget == null) continue;
 
-                    tongueVisual.enabled = false;
-                    grappleHook.StartHook(hookTarget.HookPoint);
-                    isAttacking = false;
+                    _tongueVisual.enabled = false;
+                    // 여기서 끄지 않고 훅 지점으로 스냅해둡니다 - Update()가
+                    // 훅이 풀릴 때까지 이 위치에 계속 표시해줍니다.
+                    MoveTongueTip(hookTarget.HookPoint);
+                    SpawnSplashEffect(hookTarget.HookPoint);
+                    _grappleHook.StartHook(hookTarget);
+                    _isAttacking = false;
                     yield break;
                 }
             }
@@ -311,14 +388,15 @@ public class PlayerTongueAttack : MonoBehaviour
 
     private IEnumerator ReturnTongue(Vector3 flippedMouthOffset, List<Transform> grabbedItems)
     {
-        Vector3 startTip = tongueVisual.GetPosition(1);
+        Vector3 startTip = _tongueVisual.GetPosition(1);
         float elapsedTime = 0f;
 
-        while (elapsedTime < attackDuration)
+        while (elapsedTime < _attackDuration)
         {
-            Vector3 currentTip = Vector3.Lerp(startTip, transform.position + flippedMouthOffset, elapsedTime / attackDuration);
-            tongueVisual.SetPosition(0, transform.position + flippedMouthOffset);
-            tongueVisual.SetPosition(1, currentTip);
+            Vector3 currentTip = Vector3.Lerp(startTip, transform.position + flippedMouthOffset, elapsedTime / _attackDuration);
+            _tongueVisual.SetPosition(0, transform.position + flippedMouthOffset);
+            _tongueVisual.SetPosition(1, currentTip);
+            MoveTongueTip(currentTip);
 
             if (grabbedItems != null)
             {
@@ -341,24 +419,99 @@ public class PlayerTongueAttack : MonoBehaviour
             }
         }
 
-        tongueVisual.enabled = false;
-        isAttacking = false;
+        SetTongueTipActive(false);
+        _tongueVisual.enabled = false;
+        _isAttacking = false;
+    }
+
+    /// <summary>혀끝 판정 반경. 혀끝 콜라이더가 연결돼 있으면 그 radius(스케일 반영)를, 없으면 _hitRadius를 사용합니다.</summary>
+    private float GetTipRadius()
+    {
+        if (_tongueTip != null)
+        {
+            return _tongueTip.radius * Mathf.Abs(_tongueTip.transform.lossyScale.x);
+        }
+        return _hitRadius;
+    }
+
+    private void MoveTongueTip(Vector3 position)
+    {
+        if (_tongueTip != null)
+        {
+            _tongueTip.transform.position = position;
+        }
+    }
+
+    private void SetTongueTipActive(bool isActive)
+    {
+        if (_tongueTip != null)
+        {
+            _tongueTip.gameObject.SetActive(isActive);
+        }
+    }
+
+    private void SpawnSplashEffect(Vector3 position)
+    {
+        if (_splashEffectPrefab == null || PoolManager.Instance == null) return;
+
+        GameObject fx = PoolManager.Instance.Pop(_splashEffectPrefab, position, Quaternion.identity);
+        if (fx == null) return;
+
+        if (fx.TryGetComponent<PooledParticleEffect>(out var pooledEffect))
+        {
+            pooledEffect.Play(_splashEffectPrefab);
+        }
+        else
+        {
+            Debug.LogWarning($"{nameof(PlayerTongueAttack)}: {_splashEffectPrefab.name}에 PooledParticleEffect 컴포넌트가 없어서 자동으로 반납되지 않습니다.", _splashEffectPrefab);
+        }
+    }
+
+    /// <summary>
+    /// 혀끝 원 범위 안에 판정 대상(적/아이템/훅 대상/갈고리 레이어)이 하나라도 있는지 검사합니다.
+    /// 뻗는 도중 매 프레임 호출되어, 처음 닿은 지점에서 혀를 멈추게 하는 용도입니다.
+    /// </summary>
+    private bool TipTouchesAnything(Vector3 tipPosition)
+    {
+        Physics2D.OverlapCircle(tipPosition, GetTipRadius(), _overlapFilter, _overlapResults);
+        foreach (var hit in _overlapResults)
+        {
+            if (hit.transform.IsChildOf(transform)) continue;
+
+            if (hit.TryGetComponent<IDamageable>(out _)) return true;
+            if (hit.TryGetComponent<IGrabbable>(out _)) return true;
+            if (hit.TryGetComponent<IHookable>(out var hookable) && hookable.CanHook) return true;
+            if (((1 << hit.gameObject.layer) & _grappleableLayer) != 0) return true;
+        }
+        return false;
     }
 
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, attackDamageRange);
+        Gizmos.DrawWireSphere(transform.position, _attackDamageRange);
 
         Gizmos.color = Color.cyan;
-        Gizmos.DrawWireSphere(transform.position, grappleRange);
+        Gizmos.DrawWireSphere(transform.position, _grappleRange);
     }
 
-    private class StaticHookPoint : IHookable
+    /// <summary>
+    /// IHookable을 직접 구현하지 않은 grappleableLayer 콜라이더에 훅을 걸 때 쓰는 대체 앵커.
+    /// 히트 지점을 대상 Transform 기준 로컬 좌표로 저장해두면, 이동 플랫폼처럼 대상이
+    /// 움직여도 HookPoint가 그 Transform을 따라 매 프레임 갱신됩니다.
+    /// </summary>
+    private class TransformHookPoint : IHookable
     {
-        private readonly Vector3 point;
-        public StaticHookPoint(Vector3 point) => this.point = point;
-        public Vector3 HookPoint => point;
+        private readonly Transform _transform;
+        private readonly Vector3 _localOffset;
+
+        public TransformHookPoint(Transform transform, Vector3 worldPoint)
+        {
+            _transform = transform;
+            _localOffset = transform != null ? transform.InverseTransformPoint(worldPoint) : worldPoint;
+        }
+
+        public Vector3 HookPoint => _transform != null ? _transform.TransformPoint(_localOffset) : _localOffset;
         public bool CanHook => true;
     }
 }

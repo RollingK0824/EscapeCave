@@ -1,7 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-[CreateAssetMenu(fileName = "CaveRuleSO", menuName = "Scriptable Objects/CaveRuleSO")]
+[CreateAssetMenu(fileName = "CaveRuleSO", menuName = "Scriptable Objects/Map/CaveRuleSO")]
 public class CaveRuleSO : BaseMapRuleSO
 {
     [Header("동굴 고유 설정")]
@@ -40,6 +40,7 @@ public class CaveRuleSO : BaseMapRuleSO
     protected override Vector2Int PlacePlatforms(Vector2Int startPlatform)
     {
         Vector2Int lastPlatformEnd = startPlatform;
+        if (platformConfigurations == null || platformConfigurations.Count == 0) return lastPlatformEnd;
 
         foreach (Vector2Int pathNode in mainPath)
         {
@@ -49,33 +50,76 @@ public class CaveRuleSO : BaseMapRuleSO
             if (distX >= maxJumpDistance || distY >= maxJumpDistance)
             {
                 int platY = pathNode.y - 2;
-                int platformLength = chunkRandom.Next(3, 7);
-                bool isClear = true;
+                
+                PlatformSpawnRule rule = platformConfigurations[chunkRandom.Next(0, platformConfigurations.Count)];
+                if (chunkRandom.NextDouble() > rule.spawnChance) continue;
 
-                for (int x = pathNode.x - 1; x <= pathNode.x + platformLength; x++)
+                // 하이브리드 무작위 길이 결정 (방어코드 적용)
+                int chosenLength = chunkRandom.Next(rule.minLength, rule.maxLength + 1);
+                if (chosenLength < 1) chosenLength = 1;
+
+                int requiredLength = chosenLength;
+                int startX = pathNode.x;
+                
+                int checkMinX = startX - 1;
+                int checkMaxX = startX + requiredLength;
+                int checkMinY = platY - 1;
+                int checkMaxY = platY + 1;
+                
+                int markID = 2;
+
+                if (rule.type == PlatformType.Moving)
                 {
-                    for (int y = platY - 1; y <= platY + 1; y++)
+                    markID = 4;
+                    if (rule.moveDirection == MoveDirection.Horizontal) checkMaxX += rule.moveRange;
+                    else checkMaxY += rule.moveRange;
+                }
+                else if (rule.type == PlatformType.Pullable)
+                {
+                    markID = 5;
+                    checkMaxX += Mathf.CeilToInt(rule.pullLimit);
+                }
+
+                bool isClear = true;
+                for (int x = checkMinX; x <= checkMaxX; x++)
+                {
+                    for (int y = checkMinY; y <= checkMaxY; y++)
                     {
                         if (x >= 0 && x < chunkWidth && y >= 0 && y < chunkHeight)
-                            if (mapData[x, y] == 2) { isClear = false; break; }
+                        {
+                            int t = mapData[x, y];
+                            if (t == 1 || t == 2 || t == 4 || t == 5)
+                            {
+                                isClear = false;
+                                break;
+                            }
+                        }
                     }
                     if (!isClear) break;
                 }
 
                 if (isClear)
                 {
-                    int actuallyPlaced = 0;
-                    for (int i = 0; i < platformLength; i++)
+                    for (int x = startX; x < checkMaxX; x++)
                     {
-                        int px = pathNode.x + i;
-                        if (px >= 0 && px < chunkWidth && platY >= 0 && platY < chunkHeight && mapData[px, platY] == 0)
+                        for (int y = platY; y <= checkMaxY - 1; y++)
                         {
-                            mapData[px, platY] = 2;
-                            actuallyPlaced++;
+                            if (x >= 0 && x < chunkWidth && y >= 0 && y < chunkHeight)
+                            {
+                                mapData[x, y] = markID;
+                            }
                         }
                     }
-                    if (actuallyPlaced > 0)
-                        lastPlatformEnd = new Vector2Int(pathNode.x + actuallyPlaced - 1, platY);
+
+                    pendingPlatforms.Add(new PlatformSpawnData
+                    {
+                        localX = startX,
+                        localY = platY,
+                        chosenLength = chosenLength,
+                        rule = rule
+                    });
+
+                    lastPlatformEnd = new Vector2Int(startX + requiredLength - 1, platY);
                 }
             }
         }
