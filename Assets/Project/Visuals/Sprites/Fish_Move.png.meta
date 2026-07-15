@@ -1,28 +1,19 @@
 fileFormatVersion: 2
-guid: 4acb062c182f8a04e9c57520777393b8
+guid: e6a78e4b6bced214dab660d553b40730
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -4630377482273862143
-    second: Fish_Die_0
+      213: -1270080388623016381
+    second: Fish_Move_0
   - first:
-      213: 8809898575936499621
-    second: Fish_Die_1
+      213: -917591157216386028
+    second: Fish_Move_1
   - first:
-      213: -53670043197010247
-    second: Fish_Die_2
+      213: 4505950690115918427
+    second: Fish_Move_2
   - first:
-      213: 6222285919889336267
-    second: Fish_Die_3
-  - first:
-      213: -6786160635176064635
-    second: Fish_Die_4
-  - first:
-      213: -3272552862489344554
-    second: Fish_Die_5
-  - first:
-      213: 5700818976951885892
-    second: Fish_Die_6
+      213: 1373105808311279846
+    second: Fish_Move_3
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -69,7 +60,7 @@ TextureImporter:
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 8
+  spritePixelsToUnits: 16
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -131,7 +122,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Fish_Die_0
+      name: Fish_Move_0
       rect:
         serializedVersion: 2
         x: 0
@@ -146,14 +137,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 10e491176389dbfb0800000000000000
-      internalID: -4630377482273862143
+      spriteID: 34e5fef9d94cf5ee0800000000000000
+      internalID: -1270080388623016381
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Fish_Die_1
+      name: Fish_Move_1
       rect:
         serializedVersion: 2
         x: 48
@@ -168,14 +159,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 5af2ae5f31c034a70800000000000000
-      internalID: 8809898575936499621
+      spriteID: 414e31144bf0443f0800000000000000
+      internalID: -917591157216386028
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Fish_Die_2
+      name: Fish_Move_2
       rect:
         serializedVersion: 2
         x: 96
@@ -190,14 +181,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 9be892c4163514ff0800000000000000
-      internalID: -53670043197010247
+      spriteID: b5a19c3774a588e30800000000000000
+      internalID: 4505950690115918427
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Fish_Die_3
+      name: Fish_Move_3
       rect:
         serializedVersion: 2
         x: 144
@@ -212,74 +203,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: bc72be9b3100a5650800000000000000
-      internalID: 6222285919889336267
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Fish_Die_4
-      rect:
-        serializedVersion: 2
-        x: 192
-        y: 0
-        width: 48
-        height: 48
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 589679f5bd6b2d1a0800000000000000
-      internalID: -6786160635176064635
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Fish_Die_5
-      rect:
-        serializedVersion: 2
-        x: 240
-        y: 0
-        width: 48
-        height: 48
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 6d582a2a28e8592d0800000000000000
-      internalID: -3272552862489344554
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Fish_Die_6
-      rect:
-        serializedVersion: 2
-        x: 288
-        y: 0
-        width: 48
-        height: 48
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 440e502c7a06d1f40800000000000000
-      internalID: 5700818976951885892
+      spriteID: 6e06b6725704e0310800000000000000
+      internalID: 1373105808311279846
       vertices: []
       indices: 
       edges: []
@@ -288,7 +213,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 68412dd53b8541a42b61250a7ffcc33c
+    spriteID: 48d0d1699079e694691998044e6a5fb6
     internalID: 0
     vertices: []
     indices: 
@@ -300,13 +225,10 @@ TextureImporter:
       - key: SpriteEditor.SliceSettings
         value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":48.0,"y":48.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":1,"keepEmptyRects":false,"isAlternate":false}'
     nameFileIdTable:
-      Fish_Die_0: -4630377482273862143
-      Fish_Die_1: 8809898575936499621
-      Fish_Die_2: -53670043197010247
-      Fish_Die_3: 6222285919889336267
-      Fish_Die_4: -6786160635176064635
-      Fish_Die_5: -3272552862489344554
-      Fish_Die_6: 5700818976951885892
+      Fish_Move_0: -1270080388623016381
+      Fish_Move_1: -917591157216386028
+      Fish_Move_2: 4505950690115918427
+      Fish_Move_3: 1373105808311279846
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
