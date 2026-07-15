@@ -96,6 +96,11 @@ public partial class PlayerGrappleHook : MonoBehaviour
     private bool _isHolding;
     private Vector2 _prevWrapCheckPos; // 지난 물리 프레임의 플레이어 위치 (고속 스윙 wrap 터널링 보완용)
 
+    // 훅을 건 대상. 움직이는 플랫폼처럼 HookPoint가 매 프레임 바뀌는 대상이면,
+    // FixedUpdate마다 _ropePivots[0](최초 앵커)을 이 값으로 다시 동기화해서
+    // 로프가 훅을 건 "순간의 좌표"가 아니라 대상의 "현재 위치"를 따라가게 한다.
+    private IHookable _anchorHookable;
+
     public bool IsHooking { get; private set; }
     public bool IsHolding => _isHolding;
 
@@ -139,8 +144,10 @@ public partial class PlayerGrappleHook : MonoBehaviour
         _reelInInput = isPressed;
     }
 
-    public void StartHook(Vector3 point)
+    public void StartHook(IHookable hookable)
     {
+        Vector3 point = hookable.HookPoint;
+
         _isAutoReeling = false;
         _isHolding = false;
         RestoreGravityAfterHold();
@@ -153,6 +160,7 @@ public partial class PlayerGrappleHook : MonoBehaviour
             _retractRoutine = null;
         }
 
+        _anchorHookable = hookable;
         _ropePivots.Clear();
         _ropePivots.Add(point);
         _ropeLength = Vector2.Distance(_rb.position, point);
@@ -185,6 +193,7 @@ public partial class PlayerGrappleHook : MonoBehaviour
         IsHooking = false;
         _isHolding = false;
         _isAutoReeling = false;
+        _anchorHookable = null;
         RestoreGravityAfterHold();
 
         if (_ropeVisual != null && _ropePivots.Count > 0)
@@ -213,6 +222,8 @@ public partial class PlayerGrappleHook : MonoBehaviour
     {
         if (!IsHooking) return;
 
+        SyncAnchorPivot();
+
         if (_isHolding)
         {
             UpdateHold();
@@ -220,6 +231,17 @@ public partial class PlayerGrappleHook : MonoBehaviour
         }
 
         UpdateSwing();
+    }
+
+    /// <summary>
+    /// 최초 앵커(_ropePivots[0])를 훅 대상의 현재 HookPoint로 매 프레임 갱신합니다.
+    /// 대상이 정적 지형이면 값이 그대로 유지되고, 움직이는 플랫폼처럼 HookPoint가
+    /// 매 프레임 바뀌는 대상이면 로프가 그 이동을 그대로 따라갑니다.
+    /// </summary>
+    private void SyncAnchorPivot()
+    {
+        if (_anchorHookable == null || _ropePivots.Count == 0) return;
+        _ropePivots[0] = _anchorHookable.HookPoint;
     }
 
     private void RestoreGravityAfterHold()
