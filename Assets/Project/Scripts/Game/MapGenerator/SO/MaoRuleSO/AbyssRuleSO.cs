@@ -1,40 +1,34 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-[CreateAssetMenu(fileName = "CaveRuleSO", menuName = "Scriptable Objects/Map/CaveRuleSO")]
-public class CaveRuleSO : BaseMapRuleSO
+[CreateAssetMenu(fileName = "AbyssRuleSO", menuName = "Scriptable Objects/Map/AbyssRuleSO")]
+public class AbyssRuleSO : BaseMapRuleSO
 {
-    [Header("동굴 고유 설정")]
-    public int tunnelRadius = 6;
+    [Header("심연 고유 설정")]
+    public int ceilingHeight = 45;
     public int minJumpDistance = 4;
     public int maxJumpDistance = 8;
 
     protected override int CarveTerrain(int startY)
     {
-        Vector2Int currentPos = new Vector2Int(0, startY);
-
-        while (currentPos.x < chunkWidth - 5)
+        for (int x = 0; x < chunkWidth; x++)
         {
-            int nextX = Mathf.Min(currentPos.x + chunkRandom.Next(20, 40), chunkWidth - 1);
-            int nextY = chunkRandom.Next(tunnelRadius + 5, chunkHeight - tunnelRadius - 5);
-            Vector2Int nextWaypoint = new Vector2Int(nextX, nextY);
-
-            while (currentPos != nextWaypoint)
+            for (int y = 0; y < ceilingHeight; y++)
             {
-                if (!mainPath.Contains(currentPos)) mainPath.Add(currentPos);
-
-                CarveCircle(currentPos, tunnelRadius);
-
-                if (currentPos.x < nextWaypoint.x && currentPos.y != nextWaypoint.y)
-                {
-                    if (chunkRandom.NextDouble() < 0.5) currentPos.x++;
-                    else currentPos.y += (nextWaypoint.y > currentPos.y) ? 1 : -1;
-                }
-                else if (currentPos.x < nextWaypoint.x) currentPos.x++;
-                else if (currentPos.y != nextWaypoint.y) currentPos.y += (nextWaypoint.y > currentPos.y) ? 1 : -1;
+                if (y < chunkHeight) mapData[x, y] = 0;
             }
         }
-        return currentPos.y;
+        
+        int currentY = startY;
+        for (int x = 15; x < chunkWidth - 15; x += chunkRandom.Next(10, 20))
+        {
+            currentY += chunkRandom.Next(-5, 6);
+            if (currentY < 5) currentY = 5;
+            if (currentY > ceilingHeight - 10) currentY = ceilingHeight - 10;
+            mainPath.Add(new Vector2Int(x, currentY));
+        }
+
+        return currentY;
     }
 
     protected override Vector2Int PlacePlatforms(Vector2Int startPlatform)
@@ -52,9 +46,8 @@ public class CaveRuleSO : BaseMapRuleSO
                 int platY = pathNode.y - 2;
                 
                 PlatformSpawnRule rule = platformConfigurations[chunkRandom.Next(0, platformConfigurations.Count)];
-                if (chunkRandom.NextDouble() > rule.spawnChance) continue;
-
-                // 하이브리드 무작위 길이 결정 (방어코드 적용)
+                
+                // 1. 하이브리드 무작위 길이 결정 (방어코드 적용)
                 int chosenLength = chunkRandom.Next(rule.minLength, rule.maxLength + 1);
                 if (chosenLength < 1) chosenLength = 1;
 
@@ -111,6 +104,7 @@ public class CaveRuleSO : BaseMapRuleSO
                         }
                     }
 
+                    // 2. 대기열에 결정된 임의 길이(chosenLength) 삽입
                     pendingPlatforms.Add(new PlatformSpawnData
                     {
                         localX = startX,
@@ -124,24 +118,5 @@ public class CaveRuleSO : BaseMapRuleSO
             }
         }
         return lastPlatformEnd;
-    }
-
-    private void CarveCircle(Vector2Int center, int radius)
-    {
-        for (int x = -radius; x <= radius; x++)
-        {
-            for (int y = -radius; y <= radius; y++)
-            {
-                if (x * x + y * y <= radius * radius)
-                {
-                    int targetX = center.x + x;
-                    int targetY = center.y + y;
-                    if (targetX >= 0 && targetX < chunkWidth && targetY >= 0 && targetY < chunkHeight)
-                    {
-                        mapData[targetX, targetY] = 0;
-                    }
-                }
-            }
-        }
     }
 }

@@ -60,6 +60,9 @@ public class MapGenerator : MonoBehaviour
         _mapDataBuffer = new int[_chunkWidth, initialRule.chunkHeight];
         _clearBuffer = new TileBase[_chunkWidth * initialRule.chunkHeight];
 
+        /* 임시 테스트용 플레이어 위치 변경 로직 */
+        player.position = new Vector3(0, _lastExitY, 0);
+
         InitializeGlobalMap();
     }
 
