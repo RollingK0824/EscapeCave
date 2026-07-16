@@ -44,14 +44,14 @@ public class PlayerController : MonoBehaviour, IDamageable
         _invincibility = GetComponent<PlayerInvincibility>();
         // 몬스터 관련 로직 추가
         Managers.MonsterManager.RegisterPlayer(transform);
-        if (jump != null)
+        if (_jump != null)
         {
-            jump.OnLanded += HandleLanded;
+            _jump.OnLanded += HandleLanded;
         }
     }
 
     // 몬스터 관련 로직 추가
-    private void HandleLanded()
+    private void HandleLanded(float fallDistance)
     {
         Managers.MonsterManager.NotifyVibration();
     }
@@ -130,9 +130,9 @@ public class PlayerController : MonoBehaviour, IDamageable
     private void OnDestroy()
     {
         Managers.MonsterManager.UnregisterPlayer(transform);
-        if (jump != null)
+        if (_jump != null)
         {
-            jump.OnLanded -= HandleLanded;
+            _jump.OnLanded -= HandleLanded;
         }
     }
 }
