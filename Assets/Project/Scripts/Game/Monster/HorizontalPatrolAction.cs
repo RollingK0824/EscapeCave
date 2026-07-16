@@ -12,7 +12,6 @@ public partial class HorizontalPatrolAction : Action
     [SerializeReference] public BlackboardVariable<MonsterController> Monster;
 
     private MonsterController _monster;
-    private Vector2 _startPosition;
     private int _direction = 1;
     
     protected override Status OnStart()
@@ -24,7 +23,6 @@ public partial class HorizontalPatrolAction : Action
             return Status.Failure;
         }
 
-        _startPosition = _monster.transform.position;
         _direction = 1;
 
         return Status.Running;
@@ -33,7 +31,7 @@ public partial class HorizontalPatrolAction : Action
     protected override Status OnUpdate()
     {
         
-        _monster.HorizontalPatrol(ref _direction, ref _startPosition);
+        _monster.HorizontalPatrol(ref _direction);
         return Status.Running;
     }
 

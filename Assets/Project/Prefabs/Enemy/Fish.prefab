@@ -195,6 +195,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MonsterController
   _data: {fileID: 11400000, guid: 20b30fe628583a24f8aa1921bb953478, type: 2}
+  _terrainLayer:
+    serializedVersion: 2
+    m_Bits: 64
 --- !u!114 &255005535738740511
 MonoBehaviour:
   m_ObjectHideFlags: 0
