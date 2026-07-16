@@ -16,6 +16,6 @@ public partial class IsInAttackRangeCondition : Condition
             return false;
         }
 
-        return Monster.Value.IsInAttackRange(PlayerTransform.Value);
+        return Monster.Value.IsInAttackRange(Monster.Value.GetChaseTarget(PlayerTransform.Value));
     }
 }

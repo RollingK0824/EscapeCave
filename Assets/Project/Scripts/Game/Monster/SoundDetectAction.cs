@@ -40,7 +40,7 @@ public partial class SoundDetectAction : Action
             return Status.Failure;
         }
         
-        if (Monster.Value.IsPlayerDetectionRange(PlayerTransform.Value))
+        if (Monster.Value.IsWithinDetectionRange(Monster.Value.SoundSource))
         {
             IsDetected.Value = true;
 

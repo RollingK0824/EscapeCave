@@ -26,11 +26,11 @@ namespace Managers
 
         public static void UnregisterMonster(MonsterController monster) => _monsters.Remove(monster);
 
-        public static void NotifySound()
+        public static void NotifySound(Transform source, float lureDuration = 0f)
         {
             foreach(var monster in _monsters)
             {
-                monster?.NotifySound();
+                monster?.NotifySound(source, lureDuration);
             }
         }
 

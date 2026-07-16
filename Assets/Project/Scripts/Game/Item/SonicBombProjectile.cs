@@ -200,5 +200,7 @@ public class SonicBombProjectile : MonoBehaviour, IEchoable
         {
             Managers.EchoManager.Instance.TriggerSound(transform.position, _soundIntensity, _soundSpeed);
         }
+
+        Managers.MonsterManager.NotifySound(transform, _lureDuration);
     }
 }

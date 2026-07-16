@@ -30,7 +30,7 @@ public partial class AggroResetAction : Action
             return Status.Failure;
         }
 
-        if (Monster.Value.TryResetAggro(Time.deltaTime, PlayerTransform.Value))
+        if (Monster.Value.TryResetAggro(Time.deltaTime, Monster.Value.GetChaseTarget(PlayerTransform.Value)))
         {
             IsDetected.Value = false;
             return Status.Success;
