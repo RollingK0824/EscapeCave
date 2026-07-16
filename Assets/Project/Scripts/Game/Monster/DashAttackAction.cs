@@ -33,7 +33,7 @@ public partial class DashAttackAction : Action
 
         float distanceRemaining = Monster.Value.GetDistanceToTarget(PlayerTransform.Value);
 
-        if (!Monster.Value.IsChargeDurationElapsed(_elapsed)/* && distanceRemaining > Monster.Value.Data.AttackRange*/)
+        if (!Monster.Value.IsChargeDurationElapsed(_elapsed) && distanceRemaining > Monster.Value.Data.AttackRange)
         {
             Monster.Value.MoveAlongDirection(_dashDirection, Monster.Value.Data.ChargeSpeed);
             return Status.Running;
