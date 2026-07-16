@@ -38,6 +38,10 @@ public class PlayerJump : MonoBehaviour
     /// <summary>외부에서 점프/낙하 물리를 잠글 때 사용 (갈고리로 스윙 중일 때 등).</summary>
     public bool JumpPhysicsLocked { get; set; } = false;
 
+    /// <summary>물속에 있는 동안 PlayerMovement가 설정. 접지 여부와 무관하게 점프를 허용하고,
+    /// 마리오 스타일 가변 중력 배율은 건너뛰어 rb.gravityScale만으로 가라앉게 둡니다.</summary>
+    public bool IsInWater { get; set; } = false;
+
     public bool IsGrounded => _isGrounded;
     public LayerMask GroundLayer => _groundLayer;
     private bool _wasGrounded;
@@ -79,7 +83,7 @@ public class PlayerJump : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (JumpPhysicsLocked) return;
+        if (JumpPhysicsLocked || IsInWater) return;
 
         // 마리오 스타일 가변 점프 물리 로직
         if (_rb.linearVelocity.y < 0)
@@ -150,7 +154,7 @@ public class PlayerJump : MonoBehaviour
     #region Jump Actions
     public void StartJump()
     {
-        if (!_isGrounded || JumpPhysicsLocked) return;
+        if ((!_isGrounded && !IsInWater) || JumpPhysicsLocked) return;
 
         _rb.linearVelocity = new Vector2(_rb.linearVelocity.x, _jumpForce);
         _isJumpPressed = true;

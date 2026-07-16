@@ -561,6 +561,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement
   _moveSpeed: 8
   _flightMoveSpeed: 6
+  _swimGravityScale: 0.3
+  _waterLayer:
+    serializedVersion: 2
+    m_Bits: 16
   _maxStepHeight: 0.5
   _stepCheckDistance: 0.4
   _stepClimbSpeed: 15
@@ -616,6 +620,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2fc86d38be4649741b50f0e364bfb896, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
+  _gameOverSceneName: GameOver
 --- !u!95 &7277321437538652231
 Animator:
   serializedVersion: 7
