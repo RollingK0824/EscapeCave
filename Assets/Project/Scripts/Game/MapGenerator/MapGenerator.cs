@@ -7,6 +7,7 @@ public class MapGenerator : MonoBehaviour
     [Header("단일 글로벌 타일맵 및 추적")]
     public Transform player;
     public Tilemap globalTilemap;
+    public Tilemap waterTilemap;
 
     [Header("스테이지 테마 리스트")]
     public BaseMapRuleSO[] stageRules;
@@ -78,6 +79,7 @@ public class MapGenerator : MonoBehaviour
             ChunkGenParams genParams = new ChunkGenParams
             {
                 globalTilemap = this.globalTilemap,
+                waterTilemap = this.waterTilemap,
                 mapData = this._mapDataBuffer,
                 offsetX = this._chunkOffsets[i],
                 startY = this._lastExitY,
@@ -156,6 +158,7 @@ public class MapGenerator : MonoBehaviour
 
         BoundsInt clearBounds = new BoundsInt(_chunkOffsets[pastIdx], 0, 0, _chunkWidth, stageRules[0].chunkHeight, 1);
         globalTilemap.SetTilesBlock(clearBounds, _clearBuffer);
+        if (waterTilemap != null) waterTilemap.SetTilesBlock(clearBounds, _clearBuffer);
 
         float maxPosX = Mathf.Max(_chunkOffsets[0], _chunkOffsets[1], _chunkOffsets[2]);
         int newOffsetX = Mathf.RoundToInt(maxPosX + _chunkWidth);
@@ -168,6 +171,7 @@ public class MapGenerator : MonoBehaviour
         ChunkGenParams genParams = new ChunkGenParams
         {
             globalTilemap = this.globalTilemap,
+            waterTilemap = this.waterTilemap,
             mapData = this._mapDataBuffer,
             offsetX = newOffsetX,
             startY = this._lastExitY,

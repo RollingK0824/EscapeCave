@@ -5,6 +5,7 @@ using System.Collections.Generic;
 public struct ChunkGenParams
 {
     public Tilemap globalTilemap;
+    public Tilemap waterTilemap;
     public int[,] mapData;
     public int offsetX;
     public int startY;
@@ -70,6 +71,7 @@ public abstract class BaseMapRuleSO : ScriptableObject
     public int minSpawnGapX = 8;
 
     [System.NonSerialized] protected Tilemap globalTilemap;
+    [System.NonSerialized] protected Tilemap waterTilemap;
     [System.NonSerialized] protected int[,] mapData;
     [System.NonSerialized] protected int offsetX;
     [System.NonSerialized] protected float currentSeed;
@@ -90,6 +92,7 @@ public abstract class BaseMapRuleSO : ScriptableObject
     public int GenerateChunk(ChunkGenParams genParams, out Vector2Int endPlatform)
     {
         this.globalTilemap = genParams.globalTilemap;
+        this.waterTilemap = genParams.waterTilemap;
         this.mapData = genParams.mapData;
         this.offsetX = genParams.offsetX;
         this.currentSeed = genParams.seed;
@@ -192,20 +195,42 @@ public abstract class BaseMapRuleSO : ScriptableObject
 
     private void RenderToTilemap()
     {
-        TileBase[] tileArray = new TileBase[chunkWidth * chunkHeight];
+        TileBase[] globalTileArray = new TileBase[chunkWidth * chunkHeight];
+        TileBase[] waterTileArray = new TileBase[chunkWidth * chunkHeight];
+
         for (int x = 0; x < chunkWidth; x++)
         {
             for (int y = 0; y < chunkHeight; y++)
             {
                 int tileID = mapData[x, y];
                 int index = x + y * chunkWidth;
-                if (tileID == 2 || tileID == 4 || tileID == 5) tileID = 0;
                 
-                tileArray[index] = (tileID > 0 && tileID <= themeTiles.Count) ? themeTiles[tileID - 1] : null;
+                if (tileID == 2 || tileID == 4 || tileID == 5)
+                {
+                    tileID = 0;
+                }
+
+                if (tileID == 3 || tileID == 6)
+                {
+                    // 물 관련 타일(3: 수면, 6: 물속)은 waterTilemap에 렌더링
+                    waterTileArray[index] = (tileID > 0 && tileID <= themeTiles.Count) ? themeTiles[tileID - 1] : null;
+                    globalTileArray[index] = null;
+                }
+                else
+                {
+                    // 일반 지형 타일은 globalTilemap에 렌더링
+                    globalTileArray[index] = (tileID > 0 && tileID <= themeTiles.Count) ? themeTiles[tileID - 1] : null;
+                    waterTileArray[index] = null;
+                }
             }
         }
+
         BoundsInt bounds = new BoundsInt(offsetX, 0, 0, chunkWidth, chunkHeight, 1);
-        globalTilemap.SetTilesBlock(bounds, tileArray);
+        globalTilemap.SetTilesBlock(bounds, globalTileArray);
+        if (waterTilemap != null)
+        {
+            waterTilemap.SetTilesBlock(bounds, waterTileArray);
+        }
     }
 
     private void ForceTransitionTunnel(int startY)

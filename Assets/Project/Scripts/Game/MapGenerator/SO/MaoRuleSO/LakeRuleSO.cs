@@ -46,9 +46,25 @@ public class LakeRuleSO : BaseMapRuleSO
                         {
                             if (y >= 0 && y < chunkHeight) mapData[x, y] = 0;
                         }
+                        int startPondX = pondCenter - pondWidth;
                         for (int y = newFloorY; y <= pondWaterLevel; y++)
                         {
-                            if (y >= 0 && y < chunkHeight && mapData[x, y] == 0) mapData[x, y] = 3;
+                            if (y >= 0 && y < chunkHeight && mapData[x, y] == 0)
+                            {
+                                if (y == pondWaterLevel)
+                                {
+                                    // 수면 타일(ID 3)은 5칸 간격으로 띄엄띄엄 배치
+                                    if ((x - startPondX) % 5 == 0)
+                                    {
+                                        mapData[x, y] = 3;
+                                    }
+                                }
+                                else
+                                {
+                                    // 물속은 빈틈 없이 물속 타일(ID 6)로 채움
+                                    mapData[x, y] = 6;
+                                }
+                            }
                         }
                     }
                 }
