@@ -35,8 +35,7 @@ namespace Managers
 
             for (int i = 0; i < slotIcons.Length; i++)
             {
-                if (slotIcons[i] != null)
-                    slotIcons[i].enabled = false;
+                UpdateSlotUI(i);
             }
         }
 

@@ -7,9 +7,20 @@ using UnityEngine;
 /// </summary>
 public class PlayerInvincibility : MonoBehaviour
 {
+    [Tooltip("무적 상태를 나타내는 이펙트 오브젝트 (직접 만든 반투명 이펙트). 무적 동안만 켜집니다.")]
+    [SerializeField] private GameObject _invincibilityEffect;
+
     private Coroutine _routine;
 
     public bool IsInvincible { get; private set; }
+
+    private void Awake()
+    {
+        if (_invincibilityEffect != null)
+        {
+            _invincibilityEffect.SetActive(false);
+        }
+    }
 
     public void StartInvincibility(float duration)
     {
@@ -23,8 +34,18 @@ public class PlayerInvincibility : MonoBehaviour
     private IEnumerator InvincibilityRoutine(float duration)
     {
         IsInvincible = true;
+        if (_invincibilityEffect != null)
+        {
+            _invincibilityEffect.SetActive(true);
+        }
+
         yield return new WaitForSeconds(duration);
+
         IsInvincible = false;
+        if (_invincibilityEffect != null)
+        {
+            _invincibilityEffect.SetActive(false);
+        }
         _routine = null;
     }
 }

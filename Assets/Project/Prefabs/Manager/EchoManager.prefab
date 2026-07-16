@@ -11,7 +11,6 @@ GameObject:
   - component: {fileID: 3835682280840056625}
   - component: {fileID: 7823164755384662763}
   - component: {fileID: 395698807635564705}
-  - component: {fileID: 8424161773286770603}
   m_Layer: 0
   m_Name: EchoManager
   m_TagString: Untagged
@@ -62,17 +61,3 @@ MonoBehaviour:
   _postProMaterial: {fileID: 2100000, guid: a685e4c7bcf7af441bec07e1a50eed8b, type: 2}
   _echoWaveRT: {fileID: 8400000, guid: c60227b1610595040a48f39547a83077, type: 2}
   _echoWaveMaskLayerName: EchoWaveMask
---- !u!114 &8424161773286770603
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8041725213262424710}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d1b9f89a08ee9424ab4f8f8c8bd1cacd, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::RenderTargetEcholocationController
-  intensity: 5
-  speed: 3
