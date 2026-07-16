@@ -16,6 +16,12 @@ public class PlayerMovement : MonoBehaviour
     [Header("Flight")]
     [SerializeField] private float _flightMoveSpeed = 6f; // 비행 중 상하좌우 이동 속도
 
+    [Header("Swim")]
+    [SerializeField, Tooltip("물속에서 적용할 중력 배율(0~1). 낮을수록 천천히 가라앉습니다.")]
+    private float _swimGravityScale = 0.3f;
+    [SerializeField, Tooltip("이 레이어에 속한 트리거 콜라이더에 닿으면 물속 상태로 전환됩니다.")]
+    private LayerMask _waterLayer;
+
     [Header("Step Climb")]
     [SerializeField, Tooltip("이 높이 이하의 수직 단차는 자동으로 타고 오릅니다.")]
     private float _maxStepHeight = 0.4f;
@@ -39,6 +45,9 @@ public class PlayerMovement : MonoBehaviour
     private float _originalGravityScale;
     private Coroutine _flightRoutine;
 
+    private bool _isSwimming;
+    private float _defaultGravityScale; // Awake에서 한 번만 캐싱되는 원래 중력값
+
     // Animator 파라미터를 문자열로 넘기면 호출마다 해싱 비용이 들어서, 매 프레임 쓰는 것들은 해시를 캐싱한다.
     private static readonly int _isWalkingHash = Animator.StringToHash("IsWalking");
     private static readonly int _isFlyingHash = Animator.StringToHash("IsFlying");
@@ -58,6 +67,7 @@ public class PlayerMovement : MonoBehaviour
         _grapple = GetComponent<PlayerGrappleHook>();
         _jump = GetComponent<PlayerJump>();
         _collider = GetComponent<Collider2D>();
+        _defaultGravityScale = _rb.gravityScale;
     }
 
     public void SetMoveInput(Vector2 input)
@@ -226,6 +236,28 @@ public void StartFlight(float duration)
         _isFlying = false;
 
         _flightRoutine = null;
+    }
+    #endregion
+
+    #region Swim Logic
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (((1 << other.gameObject.layer) & _waterLayer) == 0) return;
+        if (_isSwimming) return;
+
+        _isSwimming = true;
+        _rb.gravityScale = _swimGravityScale;
+        if (_jump != null) _jump.IsInWater = true;
+    }
+
+    private void OnTriggerExit2D(Collider2D other)
+    {
+        if (((1 << other.gameObject.layer) & _waterLayer) == 0) return;
+        if (!_isSwimming) return;
+
+        _isSwimming = false;
+        _rb.gravityScale = _defaultGravityScale;
+        if (_jump != null) _jump.IsInWater = false;
     }
     #endregion
 
