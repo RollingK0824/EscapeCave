@@ -426,6 +426,35 @@ public class MonsterController : MonoBehaviour, IDamageable
         Stop();
     }
 
+    private bool _isTouchingPlayer;
+
+    public bool IsTouchingPlayer => _isTouchingPlayer;
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.collider.TryGetComponent<PlayerController>(out _))
+        {
+            _isTouchingPlayer = true;
+        }
+    }
+
+    private void OnCollisionExit2D(Collision2D collision)
+    {
+        if (collision.collider.TryGetComponent<PlayerController>(out _))
+        {
+            _isTouchingPlayer = false;
+        }    
+    }
+
+    public void KnockbackPlayer(Transform playerTransform)
+    {
+        if (playerTransform.TryGetComponent<Rigidbody2D>(out var playerRb))
+        {
+            Vector2 direction = (playerTransform.position - transform.position).normalized;
+            playerRb.AddForce(direction * Data.KnockbackForce, ForceMode2D.Impulse);
+        }
+    }
+
     public void Die()
     {
         SetState(MonsterState.DEAD);
