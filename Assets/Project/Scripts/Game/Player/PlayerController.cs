@@ -28,6 +28,7 @@ public class PlayerController : MonoBehaviour, IDamageable
     // 쉴드/무적 아이템 효과 (없어도 동작하도록 선택적으로 참조).
     private PlayerShield _shield;
     private PlayerInvincibility _invincibility;
+    private PlayerItemThrower _itemThrower;
 
     public bool IsDead { get; private set; }
     public event System.Action OnDeath;
@@ -42,6 +43,7 @@ public class PlayerController : MonoBehaviour, IDamageable
         _animator = GetComponent<Animator>();
         _shield = GetComponent<PlayerShield>();
         _invincibility = GetComponent<PlayerInvincibility>();
+        _itemThrower = GetComponent<PlayerItemThrower>();
         // 몬스터 관련 로직 추가
         Managers.MonsterManager.RegisterPlayer(transform);
     }
@@ -92,6 +94,7 @@ public class PlayerController : MonoBehaviour, IDamageable
     private void HandleAttackInput()
     {
         if (IsDead) return;
+        if (_itemThrower != null && _itemThrower.IsAiming) return; // 아이템 조준/투척 중엔 혀 공격 차단
         if (_grappleHook.IsHooking) return;
         if (_tongueAttack.IsAttacking) return;
 

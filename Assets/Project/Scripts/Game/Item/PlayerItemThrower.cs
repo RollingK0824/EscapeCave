@@ -127,7 +127,7 @@ public class PlayerItemThrower : MonoBehaviour
         SonicBombProjectile projectile = projectileObj.GetComponent<SonicBombProjectile>();
         if (projectile != null)
         {
-            projectile.Launch(item.projectilePrefab, velocity, item.fuseTime, item.soundIntensity, item.soundSpeed);
+            projectile.Launch(item.projectilePrefab, velocity, item.fuseTime, item.soundIntensity, item.soundSpeed, item.lureDuration, item.pingInterval, item.impactDelay, item.spinSpeed);
         }
 
         CancelAim();
