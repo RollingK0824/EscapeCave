@@ -123,7 +123,7 @@ public class PlayerController : MonoBehaviour, IDamageable
         Die();
     }
 
-    private void Die()
+    public void Die()
     {
         if (IsDead) return;
 

@@ -18,7 +18,9 @@ public partial class AttackHitAction : Action
             return Status.Failure;
         }
 
-        if (PlayerTransform.Value.TryGetComponent<IDamageable>(out var damageable))
+        Transform target = Monster.Value.GetChaseTarget(PlayerTransform.Value);
+
+        if (target.TryGetComponent<IDamageable>(out var damageable))
         {
             damageable.TakeDamage(Monster.Value.Data.AttackDamage);
         }

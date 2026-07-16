@@ -28,6 +28,8 @@ public class MonsterController : MonoBehaviour, IDamageable
 
     private float _outOfRangeElapsed;
     private bool _isInAttackRangeSticky;
+    private Transform _soundSource;
+    private float _bombLureExpiry = -1f;
 
     private MonsterState _currentState = MonsterState.IDLE;
     
@@ -354,6 +356,25 @@ public class MonsterController : MonoBehaviour, IDamageable
         _btAgent.SetVariableValue("SoundTrigger", false);
     }
 
+    public Transform SoundSource => _soundSource;
+
+    public Transform GetChaseTarget(Transform playerTransform)
+    {
+        return (Time.time < _bombLureExpiry && _soundSource != null) ? _soundSource : playerTransform;
+    }
+
+    public bool IsWithinDetectionRange(Transform source)
+    {
+        if (source == null)
+        {
+            return false;
+        }
+
+        float distance = Vector2.Distance(transform.position, source.position);
+
+        return distance <= Data.DetectionRange;
+    }
+
     public void ResetVibTrigger()
     {
         _btAgent.SetVariableValue("VibTrigger", false);
@@ -365,9 +386,16 @@ public class MonsterController : MonoBehaviour, IDamageable
         _isHitReactiveActive = false;
     }
 
-    public void NotifySound()
+    public void NotifySound(Transform source, float lureDuration)
     {
         _btAgent.SetVariableValue("SoundTrigger", true);
+
+        _soundSource = source;
+
+        if (lureDuration > 0f)
+        {
+            _bombLureExpiry = Time.time + lureDuration;
+        }
     }
 
     public void NotifyVibration()
@@ -396,6 +424,35 @@ public class MonsterController : MonoBehaviour, IDamageable
     public void EndKnockback()
     {
         Stop();
+    }
+
+    private bool _isTouchingPlayer;
+
+    public bool IsTouchingPlayer => _isTouchingPlayer;
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.collider.TryGetComponent<PlayerController>(out _))
+        {
+            _isTouchingPlayer = true;
+        }
+    }
+
+    private void OnCollisionExit2D(Collision2D collision)
+    {
+        if (collision.collider.TryGetComponent<PlayerController>(out _))
+        {
+            _isTouchingPlayer = false;
+        }    
+    }
+
+    public void KnockbackPlayer(Transform playerTransform)
+    {
+        if (playerTransform.TryGetComponent<Rigidbody2D>(out var playerRb))
+        {
+            Vector2 direction = (playerTransform.position - transform.position).normalized;
+            playerRb.AddForce(direction * Data.KnockbackForce, ForceMode2D.Impulse);
+        }
     }
 
     public void Die()
