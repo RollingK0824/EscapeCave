@@ -12,6 +12,10 @@ namespace Managers
         [Header("Player Reference")]
         [SerializeField] private PlayerMovement player;
 
+        private PlayerItemThrower _itemThrower;
+        private PlayerShield _shield;
+        private PlayerInvincibility _invincibility;
+
         protected override void Awake()
         {
             base.Awake();
@@ -20,6 +24,13 @@ namespace Managers
             if (player == null)
             {
                 player = FindFirstObjectByType<PlayerMovement>();
+            }
+
+            if (player != null)
+            {
+                _itemThrower = player.GetComponent<PlayerItemThrower>();
+                _shield = player.GetComponent<PlayerShield>();
+                _invincibility = player.GetComponent<PlayerInvincibility>();
             }
 
             for (int i = 0; i < slotIcons.Length; i++)
@@ -70,8 +81,27 @@ namespace Managers
 
             Debug.Log($"{index}번 슬롯 아이템 사용: {item.name}");
 
-            ApplyItemEffect(item);
+            if (item.type == ItemType.SonicBomb)
+            {
+                // 조준/투척이 완료된 뒤에 콜백으로 슬롯을 소비한다 (조준 중 취소하면 소비되지 않음).
+                if (_itemThrower == null)
+                {
+                    Debug.LogWarning("InventoryManager: PlayerItemThrower 참조가 없어 소리폭탄을 사용할 수 없습니다.");
+                    return;
+                }
 
+                if (_itemThrower.IsAiming) return;
+
+                _itemThrower.BeginAim(item, () => ConsumeSlot(index));
+                return;
+            }
+
+            ApplyItemEffect(item);
+            ConsumeSlot(index);
+        }
+
+        private void ConsumeSlot(int index)
+        {
             slots[index] = null;
             UpdateSlotUI(index);
         }
@@ -121,7 +151,26 @@ namespace Managers
                     player.StartFlight(item.duration);
                     break;
 
+                case ItemType.Shield:
+                    if (_shield == null)
+                    {
+                        Debug.LogWarning("InventoryManager: PlayerShield 참조가 없어 쉴드를 적용할 수 없습니다.");
+                        break;
+                    }
+                    _shield.ActivateShield();
+                    break;
+
+                case ItemType.Invincibility:
+                    if (_invincibility == null)
+                    {
+                        Debug.LogWarning("InventoryManager: PlayerInvincibility 참조가 없어 무적을 적용할 수 없습니다.");
+                        break;
+                    }
+                    _invincibility.StartInvincibility(item.duration);
+                    break;
+
                 case ItemType.None:
+                case ItemType.SonicBomb:
                 default:
                     break;
             }
