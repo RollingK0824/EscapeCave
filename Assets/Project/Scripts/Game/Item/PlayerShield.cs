@@ -6,11 +6,26 @@ using UnityEngine;
 /// </summary>
 public class PlayerShield : MonoBehaviour
 {
+    [Tooltip("쉴드 상태를 나타내는 이펙트 오브젝트 (직접 만든 이펙트). 쉴드가 있는 동안만 켜집니다.")]
+    [SerializeField] private GameObject _shieldEffect;
+
     public bool HasShield { get; private set; }
+
+    private void Awake()
+    {
+        if (_shieldEffect != null)
+        {
+            _shieldEffect.SetActive(false);
+        }
+    }
 
     public void ActivateShield()
     {
         HasShield = true;
+        if (_shieldEffect != null)
+        {
+            _shieldEffect.SetActive(true);
+        }
     }
 
     /// <summary>
@@ -21,6 +36,10 @@ public class PlayerShield : MonoBehaviour
         if (!HasShield) return false;
 
         HasShield = false;
+        if (_shieldEffect != null)
+        {
+            _shieldEffect.SetActive(false);
+        }
         return true;
     }
 }
