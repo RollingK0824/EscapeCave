@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 /// <summary>
 /// 입력을 수신해서 각 전담 컴포넌트(PlayerMovement, PlayerJump, PlayerTongueAttack,
@@ -31,6 +32,8 @@ public class PlayerController : MonoBehaviour, IDamageable
 
     public bool IsDead { get; private set; }
     public event System.Action OnDeath;
+
+    [SerializeField] private string _gameOverSceneName = "GameOver";
 
     private void Awake()
     {
@@ -124,6 +127,8 @@ public class PlayerController : MonoBehaviour, IDamageable
         IsDead = true;
         _controls?.Disable();
         OnDeath?.Invoke();
+
+        SceneManager.LoadScene(_gameOverSceneName);
     }
 
     // 몬스터 관련 로직 추가
