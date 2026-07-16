@@ -76,7 +76,7 @@ public class PlayerTongueAttack : MonoBehaviour
 
         // 기존 OverlapCircleAll의 기본 판정 조건과 동일하게 맞춘다
         // (레이어: DefaultRaycastLayers = Ignore Raycast 제외 전체, 트리거: 전역 설정을 따름)
-        _overlapFilter.NoFilter();
+        _overlapFilter = ContactFilter2D.noFilter;
         _overlapFilter.SetLayerMask(Physics2D.DefaultRaycastLayers);
         _overlapFilter.useTriggers = Physics2D.queriesHitTriggers;
 
