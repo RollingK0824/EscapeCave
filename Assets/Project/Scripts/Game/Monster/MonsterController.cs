@@ -21,6 +21,10 @@ public class MonsterController : MonoBehaviour, IDamageable
     public SpriteRenderer SpriteRenderer { get; private set; }
     public Animator Animator { get; private set; }
     private BehaviorGraphAgent _btAgent;
+    private Collider2D _collider;
+
+    [Header("물리")]
+    [SerializeField] private LayerMask _terrainLayer;
 
     private float _outOfRangeElapsed;
     private bool _isInAttackRangeSticky;
@@ -52,6 +56,7 @@ public class MonsterController : MonoBehaviour, IDamageable
 
         Animator = GetComponent<Animator>();
         _btAgent = GetComponent<BehaviorGraphAgent>();
+        _collider = GetComponentInChildren<Collider2D>();
 
         _btAgent.SetVariableValue("Monster", this);
         _btAgent.SetVariableValue("SoundTrigger", false);
@@ -198,6 +203,19 @@ public class MonsterController : MonoBehaviour, IDamageable
         }
     }
 
+    private static readonly RaycastHit2D[] _wallCastBuffer = new RaycastHit2D[1];
+
+    private bool IsBlocked(Vector2 direction)
+    {
+        var filter = new ContactFilter2D();
+        filter.SetLayerMask(_terrainLayer);
+        filter.useTriggers = false;
+
+        int hitCount = _collider.Cast(direction, filter, _wallCastBuffer, 0.1f);
+
+        return hitCount > 0;
+    }    
+
     public void VerticalPatrol(ref int direction, ref Vector2 startPosition)
     {
         if (_isHitReactiveActive)
@@ -221,22 +239,16 @@ public class MonsterController : MonoBehaviour, IDamageable
         SetMoving(true);
     }
 
-    public void HorizontalPatrol(ref int direction, ref Vector2 startPosition)
+    public void HorizontalPatrol(ref int direction)
     {
         if (_isHitReactiveActive)
         {
             return;
         }
 
-        float delta = transform.position.x - startPosition.x;
-
-        if (delta >= Data.PatrolRange)
+        if (IsBlocked(new Vector2(direction, 0)))
         {
-            direction = -1;
-        }
-        else if (delta <= -Data.PatrolRange)
-        {
-            direction = 1;
+            direction *= -1;
         }
 
         Rb.linearVelocity = new Vector2(direction * Data.PatrolSpeed, Rb.linearVelocity.y);
