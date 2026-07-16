@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -35,7 +36,9 @@ public class PlayerController : MonoBehaviour, IDamageable
     public event System.Action OnDeath;
 
     [SerializeField] private string _gameOverSceneName = "GameOver";
-
+    // 사망시 카메라 확대용 
+    [SerializeField] private Unity.Cinemachine.CinemachineCamera _cinemachineCamera;
+    [SerializeField] private float _deathZoomOrthoSize = 2f; 
     private void Awake()
     {
         _movement = GetComponent<PlayerMovement>();
@@ -47,6 +50,11 @@ public class PlayerController : MonoBehaviour, IDamageable
         _shield = GetComponent<PlayerShield>();
         _invincibility = GetComponent<PlayerInvincibility>();
         _itemThrower = GetComponent<PlayerItemThrower>();
+        // 죽음연출 카메라용추가
+        if (_cinemachineCamera == null)
+        {
+            _cinemachineCamera = FindFirstObjectByType<Unity.Cinemachine.CinemachineCamera>();
+        }
         // 몬스터 관련 로직 추가
         Managers.MonsterManager.RegisterPlayer(transform);
         if (_jump != null)
@@ -131,9 +139,35 @@ public class PlayerController : MonoBehaviour, IDamageable
         _controls?.Disable();
         OnDeath?.Invoke();
 
+        StartCoroutine(DieRoutine());
+
+    }
+    private IEnumerator DieRoutine()
+    {
+
+        _animator.SetTrigger("Die");
+
+        yield return ZoomInRoutine(3f);
+
         SceneManager.LoadScene(_gameOverSceneName);
     }
+    private IEnumerator ZoomInRoutine(float duration)
+    {
+        float startSize = _cinemachineCamera.Lens.OrthographicSize;
+        float elapsed = 0f;
 
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / duration;
+
+            var lens = _cinemachineCamera.Lens;
+            lens.OrthographicSize = Mathf.Lerp(startSize, _deathZoomOrthoSize, t);
+            _cinemachineCamera.Lens = lens;
+
+            yield return null;
+        }
+    }
     // 몬스터 관련 로직 추가
     private void OnDestroy()
     {
