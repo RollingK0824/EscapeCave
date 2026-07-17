@@ -841,7 +841,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PauseMenu
   pauseMenuPanel: {fileID: 2886419828803020980}
   optionsPanel: {fileID: 127945007640544334}
-  titleSceneName: TitleMenu
+  titleSceneName: Title Screen
 --- !u!224 &579758134492606559
 RectTransform:
   m_ObjectHideFlags: 0
