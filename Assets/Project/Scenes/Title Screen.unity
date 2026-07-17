@@ -151,7 +151,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d46155e28228ee044800c99ef5180a22, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TitleMenu
-  gameSceneName: UI
+  gameSceneName: ProtoType
   optionsPanel: {fileID: 545015896}
 --- !u!114 &23194004
 MonoBehaviour:
