@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &8041725213262424710
+--- !u!1 &145684347789358250
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,22 +8,22 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 3835682280840056625}
-  - component: {fileID: 395698807635564705}
+  - component: {fileID: 3444105167051842898}
+  - component: {fileID: 8431954165265747789}
   m_Layer: 0
-  m_Name: EchoManager
+  m_Name: ObjectPoolManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &3835682280840056625
+--- !u!4 &3444105167051842898
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8041725213262424710}
+  m_GameObject: {fileID: 145684347789358250}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -32,19 +32,15 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &395698807635564705
+--- !u!114 &8431954165265747789
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8041725213262424710}
+  m_GameObject: {fileID: 145684347789358250}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1713a83d910486745850cb97c0e10d7f, type: 3}
+  m_Script: {fileID: 11500000, guid: 4551277d91bd8af4bb76ffa8dcd59ba4, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Managers.EchoManager
-  _wavePrefab: {fileID: 2086630295895750901, guid: 8123d37340d47e6429cb3d5c01be9225, type: 3}
-  _postProMaterial: {fileID: 2100000, guid: a685e4c7bcf7af441bec07e1a50eed8b, type: 2}
-  _echoWaveRT: {fileID: 8400000, guid: c60227b1610595040a48f39547a83077, type: 2}
-  _echoWaveMaskLayerName: EchoWaveMask
+  m_EditorClassIdentifier: Assembly-CSharp::Managers.PoolManager
