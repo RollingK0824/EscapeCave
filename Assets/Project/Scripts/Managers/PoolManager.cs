@@ -7,7 +7,7 @@ namespace Managers
     /// <summary>
     /// 게임 내 모든 동적 생성 오브젝트의 메모리 풀링을 전담하는 매니저
     /// </summary>
-    public class PoolManager : SingletonBase<PoolManager>
+    public class PoolManager : SceneSingleton<PoolManager>
     {
         private Dictionary<int, IObjectPool<GameObject>> poolDictionary = new Dictionary<int, IObjectPool<GameObject>>();
 
@@ -25,7 +25,7 @@ namespace Managers
 
             int key = prefab.GetInstanceID();
 
-            if(!poolDictionary.ContainsKey(key))
+            if (!poolDictionary.ContainsKey(key))
             {
                 RegisterNewPool(prefab, key);
             }
@@ -46,7 +46,7 @@ namespace Managers
             if (go == null || prefabSource == null) return;
             int key = prefabSource.GetInstanceID();
 
-            if(poolDictionary.ContainsKey(key))
+            if (poolDictionary.ContainsKey(key))
             {
                 poolDictionary[key].Release(go);
             }
@@ -75,10 +75,23 @@ namespace Managers
 
         private void RegisterNewPool(GameObject prefab, int key)
         {
+            GameObject poolRoot = new GameObject($"Pool_Root_{prefab.name}");
+
+            poolRoot.transform.SetParent(this.transform);
+
             IObjectPool<GameObject> newPool = new ObjectPool<GameObject>(
-                createFunc: () => Instantiate(prefab),
+                createFunc: () =>
+                {
+                    GameObject obj = Instantiate(prefab);
+                    obj.transform.SetParent(poolRoot.transform);
+                    return obj;
+                },
                 actionOnGet: (go) => go.SetActive(true),
-                actionOnRelease: (go) => go.SetActive(false),
+                actionOnRelease: (go) =>
+                {
+                    go.SetActive(false);
+                    go.transform.SetParent(poolRoot.transform);
+                },
                 actionOnDestroy: (go) => Destroy(go),
                 collectionCheck: true,
                 defaultCapacity: 10,
@@ -87,11 +100,5 @@ namespace Managers
 
             poolDictionary.Add(key, newPool);
         }
-
-
-
-
-
-
     }
 }
