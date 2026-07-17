@@ -37,8 +37,8 @@ public class PlayerController : MonoBehaviour, IDamageable
 
     [SerializeField] private string _gameOverSceneName = "GameOver";
     // 사망시 카메라 확대용 
-    [SerializeField] private Unity.Cinemachine.CinemachineCamera _cinemachineCamera;
-    [SerializeField] private float _deathZoomOrthoSize = 2f; 
+    [SerializeField] private Camera _mainCamera; // 인스펙터에서 실제 Main Camera를 직접 드래그해서 할당
+    [SerializeField] private float _deathZoomOrthoSize = 2f;
     private void Awake()
     {
         _movement = GetComponent<PlayerMovement>();
@@ -51,10 +51,11 @@ public class PlayerController : MonoBehaviour, IDamageable
         _invincibility = GetComponent<PlayerInvincibility>();
         _itemThrower = GetComponent<PlayerItemThrower>();
         // 죽음연출 카메라용추가
-        if (_cinemachineCamera == null)
+        if (_mainCamera == null)
         {
-            _cinemachineCamera = FindFirstObjectByType<Unity.Cinemachine.CinemachineCamera>();
+            _mainCamera = Camera.main;
         }
+
         // 몬스터 관련 로직 추가
         Managers.MonsterManager.RegisterPlayer(transform);
         if (_jump != null)
@@ -144,7 +145,6 @@ public class PlayerController : MonoBehaviour, IDamageable
     }
     private IEnumerator DieRoutine()
     {
-
         _animator.SetTrigger("Die");
 
         yield return ZoomInRoutine(3f);
@@ -153,18 +153,24 @@ public class PlayerController : MonoBehaviour, IDamageable
     }
     private IEnumerator ZoomInRoutine(float duration)
     {
-        float startSize = _cinemachineCamera.Lens.OrthographicSize;
+        if (_mainCamera == null)
+        {
+            yield break;
+        }
+
+        var brain = _mainCamera.GetComponent<Unity.Cinemachine.CinemachineBrain>();
+        if (brain != null)
+        {
+            brain.enabled = false; // Brain이 매 프레임 vcam Lens 값으로 되돌리는 걸 막음
+        }
+
+        float startSize = _mainCamera.orthographicSize;
         float elapsed = 0f;
 
         while (elapsed < duration)
         {
             elapsed += Time.deltaTime;
-            float t = elapsed / duration;
-
-            var lens = _cinemachineCamera.Lens;
-            lens.OrthographicSize = Mathf.Lerp(startSize, _deathZoomOrthoSize, t);
-            _cinemachineCamera.Lens = lens;
-
+            _mainCamera.orthographicSize = Mathf.Lerp(startSize, _deathZoomOrthoSize, elapsed / duration);
             yield return null;
         }
     }

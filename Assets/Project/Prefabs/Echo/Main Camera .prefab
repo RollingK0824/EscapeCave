@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 442363877509734321}
   - component: {fileID: 4520773423866252150}
   - component: {fileID: 943171352928801885}
-  - component: {fileID: 8923078095956756727}
+  - component: {fileID: 7182704516369521956}
   m_Layer: 0
   m_Name: 'Main Camera '
   m_TagString: MainCamera
@@ -71,11 +71,11 @@ Camera:
   far clip plane: 5000
   field of view: 40
   orthographic: 1
-  orthographic size: 10
+  orthographic size: 5
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 375
+    m_Bits: 1919
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
@@ -139,7 +139,7 @@ MonoBehaviour:
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
   m_Version: 2
---- !u!114 &8923078095956756727
+--- !u!114 &7182704516369521956
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -243,7 +243,7 @@ Camera:
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 640
+    m_Bits: 128
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 8400000, guid: c60227b1610595040a48f39547a83077, type: 2}
   m_TargetDisplay: 0
