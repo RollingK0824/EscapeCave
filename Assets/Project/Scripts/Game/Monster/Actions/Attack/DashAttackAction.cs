@@ -24,6 +24,8 @@ public partial class DashAttackAction : Action
         _dashDirection = Monster.Value.GetChargeDirection(Monster.Value.GetChaseTarget(PlayerTransform.Value));
         _elapsed = 0f;
 
+        Monster.Value.PlayAttack();
+
         return Status.Running;
     }
 
@@ -31,9 +33,7 @@ public partial class DashAttackAction : Action
     {
         _elapsed += Time.deltaTime;
 
-        float distanceRemaining = Monster.Value.GetDistanceToTarget(Monster.Value.GetChaseTarget(PlayerTransform.Value));
-
-        if (!Monster.Value.IsChargeDurationElapsed(_elapsed) && distanceRemaining > Monster.Value.Data.AttackRange)
+        if (!Monster.Value.IsChargeDurationElapsed(_elapsed))
         {
             Monster.Value.MoveAlongDirection(_dashDirection, Monster.Value.Data.ChargeSpeed);
             return Status.Running;
