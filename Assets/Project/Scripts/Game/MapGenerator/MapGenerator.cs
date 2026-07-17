@@ -61,10 +61,50 @@ public class MapGenerator : MonoBehaviour
         _mapDataBuffer = new int[_chunkWidth, initialRule.chunkHeight];
         _clearBuffer = new TileBase[_chunkWidth * initialRule.chunkHeight];
 
-        /* 임시 테스트용 플레이어 위치 변경 로직 */
-        player.position = new Vector3(0, _lastExitY, 0);
+        GenerateStartRoom();
 
         InitializeGlobalMap();
+    }
+
+    private void GenerateStartRoom()
+    {
+        int startRoomLength = 20;
+        int floorY = _lastExitY;
+        int ceilY = floorY + 10;
+        
+        TileBase solidTile = null;
+        if (stageRules.Length > 0 && stageRules[0].themeTiles.Count > 0)
+        {
+            solidTile = stageRules[0].themeTiles[0];
+        }
+
+        for (int x = -startRoomLength; x < 0; x++)
+        {
+            for (int y = 0; y < stageRules[0].chunkHeight; y++)
+            {
+                if (x < -startRoomLength + 3)
+                {
+                    globalTilemap.SetTile(new Vector3Int(x, y, 0), solidTile);
+                }
+                else
+                {
+                    if (y < floorY || y > ceilY)
+                    {
+                        globalTilemap.SetTile(new Vector3Int(x, y, 0), solidTile);
+                    }
+                    else
+                    {
+                        globalTilemap.SetTile(new Vector3Int(x, y, 0), null);
+                    }
+                }
+            }
+        }
+
+        if (player != null)
+        {
+            Vector3Int cellPos = new Vector3Int(-startRoomLength + 5, floorY + 1, 0);
+            player.position = globalTilemap.CellToWorld(cellPos) + new Vector3(0.5f, 0f, 0f);
+        }
     }
 
     private void InitializeGlobalMap()
@@ -73,7 +113,8 @@ public class MapGenerator : MonoBehaviour
         {
             _chunkOffsets[i] = i * _chunkWidth;
             int randomIdx = Random.Range(0, stageRules.Length);
-            BaseMapRuleSO randomRule = stageRules[randomIdx];
+            BaseMapRuleSO currentRule = stageRules[randomIdx];
+            
             float chunkSeed = masterSeed + _chunkGenerationCount++;
 
             ChunkGenParams genParams = new ChunkGenParams
@@ -88,7 +129,7 @@ public class MapGenerator : MonoBehaviour
                 spawnedList = this._spawnedObjectsPerChunk[i]
             };
 
-            _lastExitY = randomRule.GenerateChunk(genParams, out Vector2Int newPlatformEnd);
+            _lastExitY = currentRule.GenerateChunk(genParams, out Vector2Int newPlatformEnd);
 
             _lastPlatformLocal = new Vector2Int(newPlatformEnd.x - _chunkWidth, newPlatformEnd.y);
         }

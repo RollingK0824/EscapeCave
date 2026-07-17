@@ -24,6 +24,10 @@ public class LakeRuleSO : BaseMapRuleSO
     public int minPondDepth = 5;
     public int maxPondDepth = 12;
 
+    [Header("점프 간격 설정")]
+    public int minJumpDistance = 4;
+    public int maxJumpDistance = 8;
+
     protected override int CarveTerrain(int startY)
     {
         for (int x = 0; x < chunkWidth; x++)
@@ -87,17 +91,28 @@ public class LakeRuleSO : BaseMapRuleSO
         Vector2Int lastPlatformEnd = startPlatform;
         if (platformConfigurations == null || platformConfigurations.Count == 0) return lastPlatformEnd;
 
-        int currentX = lastPlatformEnd.x + chunkRandom.Next(3, 7);
+        int currentX = lastPlatformEnd.x + chunkRandom.Next(minJumpDistance, maxJumpDistance + 1);
         if (currentX < 0) currentX = 0;
 
         while (currentX < chunkWidth - 5)
         {
             int platY = baseFloorY + chunkRandom.Next(3, 10);
+            
+            // 높이 보정: 플레이어가 도달 가능하도록 최대 높이 차이 4칸 이내로 강제
+            if (Mathf.Abs(platY - lastPlatformEnd.y) > 4)
+            {
+                int minY = Mathf.Max(baseFloorY + 3, lastPlatformEnd.y - 4);
+                int maxY = Mathf.Min(baseFloorY + 9, lastPlatformEnd.y + 4);
+                if (minY <= maxY)
+                {
+                    platY = chunkRandom.Next(minY, maxY + 1);
+                }
+            }
 
             PlatformSpawnRule rule = platformConfigurations[chunkRandom.Next(0, platformConfigurations.Count)];
             if (chunkRandom.NextDouble() > rule.spawnChance)
             {
-                currentX += chunkRandom.Next(4, 9);
+                currentX += chunkRandom.Next(minJumpDistance, maxJumpDistance + 1);
                 continue;
             }
 
@@ -167,8 +182,12 @@ public class LakeRuleSO : BaseMapRuleSO
                 });
 
                 lastPlatformEnd = new Vector2Int(startX + requiredLength - 1, platY);
+                currentX += requiredLength + chunkRandom.Next(minJumpDistance, maxJumpDistance + 1);
             }
-            currentX += requiredLength + chunkRandom.Next(3, 7);
+            else
+            {
+                currentX += 1;
+            }
         }
 
         return lastPlatformEnd;
