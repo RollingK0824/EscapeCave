@@ -247,6 +247,12 @@ public abstract class BaseMapRuleSO : ScriptableObject
     {
         if (spawnedList == null) return;
 
+        // 플랫폼을 먼저 생성해야 그 위에 스폰되는 오브젝트들이 정상적으로 바닥을 인식할 수 있습니다.
+        foreach (var data in pendingPlatforms)
+        {
+            SpawnPlatform(data);
+        }
+
         int lastGroundSpawnX = -minSpawnGapX;
         int lastCeilingSpawnX = -minSpawnGapX;
         int lastUnderPlatformSpawnX = -minSpawnGapX;
@@ -292,11 +298,6 @@ public abstract class BaseMapRuleSO : ScriptableObject
                     }
                 }
             }
-        }
-
-        foreach (var data in pendingPlatforms)
-        {
-            SpawnPlatform(data);
         }
     }
 
@@ -363,6 +364,33 @@ public abstract class BaseMapRuleSO : ScriptableObject
             var mapObj = instance.GetComponent<MapSpawnedObject>();
             if (mapObj == null) mapObj = instance.AddComponent<MapSpawnedObject>();
             mapObj.poolKey = data.rule.prefab.GetInstanceID();
+
+            // 3. 양끝 투명 콜라이더(LeftLedge, RightLedge) 위치 보정
+            Transform leftLedge = instance.transform.Find("LeftLedge");
+            Transform rightLedge = instance.transform.Find("RightLedge");
+            if (leftLedge != null || rightLedge != null)
+            {
+                bool isScaled = Mathf.Approximately(instance.transform.localScale.x, data.chosenLength);
+                float offsetValue = isScaled ? 0.5f : (data.chosenLength / 2f);
+
+                if (leftLedge != null)
+                {
+                    leftLedge.localPosition = new Vector3(-offsetValue, leftLedge.localPosition.y, 0f);
+                    if (isScaled)
+                    {
+                        // 부모의 Scale.x 확장에 따라 자식의 가로 폭이 비정상적으로 늘어나는 것을 방지 (역수 곱하기)
+                        leftLedge.localScale = new Vector3(1f / data.chosenLength, leftLedge.localScale.y, leftLedge.localScale.z);
+                    }
+                }
+                if (rightLedge != null)
+                {
+                    rightLedge.localPosition = new Vector3(offsetValue, rightLedge.localPosition.y, 0f);
+                    if (isScaled)
+                    {
+                        rightLedge.localScale = new Vector3(1f / data.chosenLength, rightLedge.localScale.y, rightLedge.localScale.z);
+                    }
+                }
+            }
 
             if (data.rule.type == PlatformType.Moving)
             {

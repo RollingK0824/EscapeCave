@@ -197,7 +197,7 @@ MonoBehaviour:
   _data: {fileID: 11400000, guid: 2249ef8af385c2f4bb34133deb0ccc89, type: 2}
   _terrainLayer:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 2048
 --- !u!114 &2368486150124821726
 MonoBehaviour:
   m_ObjectHideFlags: 0
