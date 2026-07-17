@@ -1,9 +1,20 @@
 using UnityEngine;
+using UnityEngine.Tilemaps;
 using System.Collections.Generic;
 
 [CreateAssetMenu(fileName = "LakeRuleSO", menuName = "Scriptable Objects/Map/LakeRuleSO")]
 public class LakeRuleSO : BaseMapRuleSO
 {
+    private struct PondArea
+    {
+        public int xMin;
+        public int xMax;
+        public int yMin;
+        public int yMax;
+    }
+    
+    [System.NonSerialized] private List<PondArea> activePonds = new List<PondArea>();
+
     [Header("호수 웅덩이 설정")]
     public int baseFloorY = 20;
     public int minPonds = 2;
@@ -24,6 +35,9 @@ public class LakeRuleSO : BaseMapRuleSO
             if (x == 15) mainPath.Add(new Vector2Int(x, baseFloorY + 2));
         }
 
+        if (activePonds == null) activePonds = new List<PondArea>();
+        activePonds.Clear();
+
         int pondCount = chunkRandom.Next(minPonds, maxPonds + 1);
         for (int i = 0; i < pondCount; i++)
         {
@@ -31,6 +45,13 @@ public class LakeRuleSO : BaseMapRuleSO
             int pondWidth = chunkRandom.Next(minPondWidth, maxPondWidth + 1);
             int pondDepth = chunkRandom.Next(minPondDepth, maxPondDepth + 1);
             int pondWaterLevel = baseFloorY - 2;
+
+            activePonds.Add(new PondArea {
+                xMin = pondCenter - pondWidth - 3,
+                xMax = pondCenter + pondWidth + 3,
+                yMin = baseFloorY - pondDepth - 3,
+                yMax = pondWaterLevel
+            });
 
             for (int x = pondCenter - pondWidth; x <= pondCenter + pondWidth; x++)
             {
@@ -46,24 +67,11 @@ public class LakeRuleSO : BaseMapRuleSO
                         {
                             if (y >= 0 && y < chunkHeight) mapData[x, y] = 0;
                         }
-                        int startPondX = pondCenter - pondWidth;
                         for (int y = newFloorY; y <= pondWaterLevel; y++)
                         {
                             if (y >= 0 && y < chunkHeight && mapData[x, y] == 0)
                             {
-                                if (y == pondWaterLevel)
-                                {
-                                    // 수면 타일(ID 3)은 5칸 간격으로 띄엄띄엄 배치
-                                    if ((x - startPondX) % 5 == 0)
-                                    {
-                                        mapData[x, y] = 3;
-                                    }
-                                }
-                                else
-                                {
-                                    // 물속은 빈틈 없이 물속 타일(ID 6)로 채움
-                                    mapData[x, y] = 6;
-                                }
+                                mapData[x, y] = 3;
                             }
                         }
                     }
@@ -164,5 +172,58 @@ public class LakeRuleSO : BaseMapRuleSO
         }
 
         return lastPlatformEnd;
+    }
+
+    protected override void RenderToTilemap()
+    {
+        TileBase[] tileArray = new TileBase[chunkWidth * chunkHeight];
+        TileBase[] waterTileArray = new TileBase[chunkWidth * chunkHeight];
+        
+        for (int x = 0; x < chunkWidth; x++)
+        {
+            for (int y = 0; y < chunkHeight; y++)
+            {
+                int tileID = mapData[x, y];
+                int index = x + y * chunkWidth;
+                
+                if (tileID == 2 || tileID == 4 || tileID == 5) tileID = 0;
+                
+                bool isWaterRect = false;
+                if (activePonds != null)
+                {
+                    foreach (var p in activePonds)
+                    {
+                        if (x >= p.xMin && x <= p.xMax && y >= p.yMin && y <= p.yMax)
+                        {
+                            isWaterRect = true;
+                            break;
+                        }
+                    }
+                }
+                
+                if (isWaterRect)
+                {
+                    waterTileArray[index] = (themeTiles.Count >= 3) ? themeTiles[2] : null;
+                }
+                else
+                {
+                    waterTileArray[index] = null;
+                }
+
+                if (tileID == 3)
+                {
+                    tileID = 0;
+                }
+
+                tileArray[index] = (tileID > 0 && tileID <= themeTiles.Count) ? themeTiles[tileID - 1] : null;
+            }
+        }
+        
+        BoundsInt bounds = new BoundsInt(offsetX, 0, 0, chunkWidth, chunkHeight, 1);
+        globalTilemap.SetTilesBlock(bounds, tileArray);
+        if (waterTilemap != null)
+        {
+            waterTilemap.SetTilesBlock(bounds, waterTileArray);
+        }
     }
 }

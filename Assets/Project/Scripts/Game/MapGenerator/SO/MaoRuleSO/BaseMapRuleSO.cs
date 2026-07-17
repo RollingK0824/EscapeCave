@@ -5,6 +5,7 @@ using System.Collections.Generic;
 public struct ChunkGenParams
 {
     public Tilemap globalTilemap;
+    public Tilemap waterTilemap;
     public int[,] mapData;
     public int offsetX;
     public int startY;
@@ -64,12 +65,14 @@ public abstract class BaseMapRuleSO : ScriptableObject
     [Header("오브젝트/몬스터 스폰 설정")]
     public List<PlatformSpawnRule> platformConfigurations; 
     public List<SpawnRule> groundSpawns;   
+    public List<SpawnRule> platformSpawns;   
     public List<SpawnRule> ceilingSpawns;  
     public List<SpawnRule> underPlatformSpawns; 
     [Tooltip("몬스터 간 최소 X축 스폰 간격 (타일 수)")]
     public int minSpawnGapX = 8;
 
     [System.NonSerialized] protected Tilemap globalTilemap;
+    [System.NonSerialized] protected Tilemap waterTilemap;
     [System.NonSerialized] protected int[,] mapData;
     [System.NonSerialized] protected int offsetX;
     [System.NonSerialized] protected float currentSeed;
@@ -90,6 +93,7 @@ public abstract class BaseMapRuleSO : ScriptableObject
     public int GenerateChunk(ChunkGenParams genParams, out Vector2Int endPlatform)
     {
         this.globalTilemap = genParams.globalTilemap;
+        this.waterTilemap = genParams.waterTilemap;
         this.mapData = genParams.mapData;
         this.offsetX = genParams.offsetX;
         this.currentSeed = genParams.seed;
@@ -190,7 +194,7 @@ public abstract class BaseMapRuleSO : ScriptableObject
         }
     }
 
-    private void RenderToTilemap()
+    protected virtual void RenderToTilemap()
     {
         TileBase[] tileArray = new TileBase[chunkWidth * chunkHeight];
         for (int x = 0; x < chunkWidth; x++)
@@ -246,6 +250,7 @@ public abstract class BaseMapRuleSO : ScriptableObject
         int lastGroundSpawnX = -minSpawnGapX;
         int lastCeilingSpawnX = -minSpawnGapX;
         int lastUnderPlatformSpawnX = -minSpawnGapX;
+        int lastPlatformSpawnX = -minSpawnGapX;
 
         for (int x = 0; x < chunkWidth; x++)
         {
@@ -275,6 +280,15 @@ public abstract class BaseMapRuleSO : ScriptableObject
                     if (x - lastUnderPlatformSpawnX >= minSpawnGapX)
                     {
                         if (TrySpawnObject(underPlatformSpawns, x, y - 1)) lastUnderPlatformSpawnX = x;
+                    }
+                }
+
+                // 플랫폼 위 검사
+                if (y < chunkHeight - 1 && (mapData[x, y] == 2 || mapData[x, y] == 4 || mapData[x, y] == 5) && mapData[x, y + 1] == 0)
+                {
+                    if (x - lastPlatformSpawnX >= minSpawnGapX)
+                    {
+                        if (TrySpawnObject(platformSpawns, x, y + 1)) lastPlatformSpawnX = x;
                     }
                 }
             }
