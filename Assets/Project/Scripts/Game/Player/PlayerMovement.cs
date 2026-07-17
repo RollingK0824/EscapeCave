@@ -244,6 +244,9 @@ public void StartFlight(float duration)
     {
         if (((1 << other.gameObject.layer) & _waterLayer) == 0) return;
         if (_isSwimming) return;
+        // 혀끝(_tongueTip) 콜라이더는 자체 Rigidbody2D가 없어 플레이어 Rigidbody2D의
+        // 컴파운드 콜라이더로 취급되므로, 몸통(_collider)이 실제로 물에 닿았을 때만 반응한다.
+        if (_collider != null && !_collider.IsTouching(other)) return;
 
         _isSwimming = true;
         _rb.gravityScale = _swimGravityScale;
@@ -254,6 +257,9 @@ public void StartFlight(float duration)
     {
         if (((1 << other.gameObject.layer) & _waterLayer) == 0) return;
         if (!_isSwimming) return;
+        // 공격 중 혀끝이 물 밖으로 뻗어나가며 컴파운드 콜라이더 일부만 트리거를 벗어나도
+        // 몸통이 아직 물에 닿아 있으면 무시한다 (혀 공격 후 물 상태가 풀리던 버그 원인).
+        if (_collider != null && _collider.IsTouching(other)) return;
 
         _isSwimming = false;
         _rb.gravityScale = _defaultGravityScale;
