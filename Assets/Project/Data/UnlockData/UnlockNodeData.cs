@@ -9,6 +9,9 @@ public class UnlockNodeData : ScriptableObject
 
     public string displayName;
 
+    [TextArea]
+    public string description;
+
     public ItemData requiredItem;
 
     public int cost;
