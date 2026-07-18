@@ -47,6 +47,7 @@ public class PlayerMovement : MonoBehaviour
 
     private bool _isSwimming;
     private float _defaultGravityScale; // Awake에서 한 번만 캐싱되는 원래 중력값
+    private Vector2 _lastSafeFlightPosition; // 비행 중 물에 닿기 직전 위치(차단 시 복귀용)
 
     // Animator 파라미터를 문자열로 넘기면 호출마다 해싱 비용이 들어서, 매 프레임 쓰는 것들은 해시를 캐싱한다.
     private static readonly int _isWalkingHash = Animator.StringToHash("IsWalking");
@@ -91,6 +92,12 @@ public class PlayerMovement : MonoBehaviour
     private void FixedUpdate()
     {
         if (MovementLocked) return;
+
+        // 이번 물리 스텝이 물에 들어가게 되면 이 위치로 되돌린다(BlockWaterEntry 참고).
+        if (_isFlying)
+        {
+            _lastSafeFlightPosition = _rb.position;
+        }
 
         // ── 벽 프리징(wall-stick) 버그 수정 ──────────────────────────────
         // [현상] 공중에서 벽에 몸을 박은 채 이동키를 계속 누르고 있으면,
@@ -243,6 +250,14 @@ public void StartFlight(float duration)
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (((1 << other.gameObject.layer) & _waterLayer) == 0) return;
+
+        // 비행 중에는 물에 들어가지 못하고 벽에 막힌 것처럼 튕겨 나온다.
+        if (_isFlying)
+        {
+            BlockWaterEntry();
+            return;
+        }
+
         if (_isSwimming) return;
         // 혀끝(_tongueTip) 콜라이더는 자체 Rigidbody2D가 없어 플레이어 Rigidbody2D의
         // 컴파운드 콜라이더로 취급되므로, 몸통(_collider)이 실제로 물에 닿았을 때만 반응한다.
@@ -251,6 +266,14 @@ public void StartFlight(float duration)
         _isSwimming = true;
         _rb.gravityScale = _swimGravityScale;
         if (_jump != null) _jump.IsInWater = true;
+    }
+
+    private void OnTriggerStay2D(Collider2D other)
+    {
+        if (!_isFlying) return;
+        if (((1 << other.gameObject.layer) & _waterLayer) == 0) return;
+
+        BlockWaterEntry();
     }
 
     private void OnTriggerExit2D(Collider2D other)
@@ -264,6 +287,13 @@ public void StartFlight(float duration)
         _isSwimming = false;
         _rb.gravityScale = _defaultGravityScale;
         if (_jump != null) _jump.IsInWater = false;
+    }
+
+    /// <summary>비행 중 물 트리거에 닿으면 이번 스텝 직전의 안전한 위치로 되돌리고 속도를 제거해 진입을 막는다.</summary>
+    private void BlockWaterEntry()
+    {
+        _rb.position = _lastSafeFlightPosition;
+        _rb.linearVelocity = Vector2.zero;
     }
     #endregion
 
