@@ -957,10 +957,22 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 852259226681694234, guid: e2f031bbbad321947a8c5b60dfc753a3, type: 3}
+      propertyPath: _dieSound
+      value: 
+      objectReference: {fileID: 11400000, guid: e4ccce6baac3297409c8421d339360a5, type: 2}
+    - target: {fileID: 1022271265769026347, guid: e2f031bbbad321947a8c5b60dfc753a3, type: 3}
+      propertyPath: _attackSound
+      value: 
+      objectReference: {fileID: 11400000, guid: f8d6d76affc8bd94c86403def75b47ee, type: 2}
     - target: {fileID: 3113228121251580108, guid: e2f031bbbad321947a8c5b60dfc753a3, type: 3}
       propertyPath: m_Name
       value: Player
       objectReference: {fileID: 0}
+    - target: {fileID: 3849016493055241487, guid: e2f031bbbad321947a8c5b60dfc753a3, type: 3}
+      propertyPath: _landSound
+      value: 
+      objectReference: {fileID: 11400000, guid: 91e97be764354874ab676f1e4c89149b, type: 2}
     - target: {fileID: 5467278139564407436, guid: e2f031bbbad321947a8c5b60dfc753a3, type: 3}
       propertyPath: m_LocalScale.x
       value: 5
@@ -1009,6 +1021,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7722364611076811132, guid: e2f031bbbad321947a8c5b60dfc753a3, type: 3}
+      propertyPath: _grappleAttachSound
+      value: 
+      objectReference: {fileID: 11400000, guid: f8d6d76affc8bd94c86403def75b47ee, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2260,11 +2276,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6399214927342103491, guid: 8b4595b2a529b5443b75104a9c0c3499, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 22.1
+      value: -6.25
       objectReference: {fileID: 0}
     - target: {fileID: 6399214927342103491, guid: 8b4595b2a529b5443b75104a9c0c3499, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -2.92
+      value: -1.24
       objectReference: {fileID: 0}
     - target: {fileID: 6399214927342103491, guid: 8b4595b2a529b5443b75104a9c0c3499, type: 3}
       propertyPath: m_LocalPosition.z

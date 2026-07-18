@@ -1,6 +1,8 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Managers;
+using Unity.VisualScripting;
 
 /// <summary>
 /// 입력을 수신해서 각 전담 컴포넌트(PlayerMovement, PlayerJump, PlayerTongueAttack,
@@ -39,6 +41,12 @@ public class PlayerController : MonoBehaviour, IDamageable
     // 사망시 카메라 확대용 
     [SerializeField] private Camera _mainCamera; // 인스펙터에서 실제 Main Camera를 직접 드래그해서 할당
     [SerializeField] private float _deathZoomOrthoSize = 2f;
+
+    // 사운드
+    [Header("Sound Effects")]
+    [SerializeField] private SoundDataSO _shieldBlockSound;
+    [SerializeField] private SoundDataSO _dieSound;
+
     private void Awake()
     {
         _movement = GetComponent<PlayerMovement>();
@@ -127,7 +135,12 @@ public class PlayerController : MonoBehaviour, IDamageable
     {
         if (IsDead) return;
         if (_invincibility != null && _invincibility.IsInvincible) return;
-        if (_shield != null && _shield.TryConsumeShield()) return;
+        if (_shield != null && _shield.TryConsumeShield())
+        {
+            // 방어막 사운드 추가
+            SoundManager.Instance.PlaySFX(_shieldBlockSound, transform.position);
+            return;
+        }
 
         Die();
     }
@@ -135,6 +148,9 @@ public class PlayerController : MonoBehaviour, IDamageable
     public void Die()
     {
         if (IsDead) return;
+
+        // 사망 사운드 추가
+        SoundManager.Instance.PlaySFX(_dieSound, transform.position);
 
         IsDead = true;
         _controls?.Disable();

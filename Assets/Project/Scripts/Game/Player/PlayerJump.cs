@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using Managers;
 
 /// <summary>
 /// 마리오 스타일 가변 점프 물리 + 콜라이더 충돌 기반 접지 판정을 전담하는 컴포넌트.
@@ -16,6 +17,10 @@ public class PlayerJump : MonoBehaviour
     [SerializeField, Tooltip("이 값보다 수직에 가까운(위를 향하는) 접촉면만 바닥으로 인정합니다")]
     private float _groundNormalMinY = 0.7f; // 약 45도 이내만 바닥으로 인정 (벽 모서리 오탐 방지)
     [SerializeField] private bool _isGrounded; // 인스펙터 실시간 확인용
+
+    // 사운드
+    [Header("Sound Effects")]
+    [SerializeField] private SoundDataSO _landSound;
 
     // 콜라이더별로 "지금 이 접촉이 바닥으로 인정되는가"를 추적합니다.
     // 벽/바닥이 하나의 콜라이더(예: Composite Collider)로 이어져 있으면 Enter/Exit가
@@ -76,6 +81,9 @@ public class PlayerJump : MonoBehaviour
             _animator.SetBool(_isJumpHash, false);
             float fallDistance = _airbornePeakY - transform.position.y;
             OnLanded?.Invoke(fallDistance);
+
+            // 착지 사운드 추가
+            SoundManager.Instance.PlaySFX(_landSound, transform.position);
         }
 
         _animator.SetBool(_isGroundedHash, _isGrounded);

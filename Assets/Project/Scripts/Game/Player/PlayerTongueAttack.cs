@@ -31,6 +31,10 @@ public class PlayerTongueAttack : MonoBehaviour
     [SerializeField, Tooltip("부채꼴 안에서 벽/갈고리를 탐색할 레이 개수")]
     private int _aimRayCount = 9;
 
+    // 사운드
+    [Header("Sound Effects")]
+    [SerializeField] private SoundDataSO _attackSound;
+
     private bool _isAttacking;
     public bool IsAttacking => _isAttacking;
 
@@ -147,6 +151,10 @@ public class PlayerTongueAttack : MonoBehaviour
         }
 
         _soundEmitter?.Echo();
+
+        // 사운드 추가
+        SoundManager.Instance.PlaySFX(_attackSound, transform.position);
+
         StartCoroutine(TongueRoutine(targetPos));
     }
 
