@@ -547,6 +547,7 @@ MonoBehaviour:
     m_Bits: 64
   _groundNormalMinY: 0.7
   _isGrounded: 0
+  _landSound: {fileID: 11400000, guid: 91e97be764354874ab676f1e4c89149b, type: 2}
 --- !u!114 &3673338680654971195
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -582,6 +583,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerSoundEmitter
   _soundIntensity: 10
   _soundSpeed: 5
+  _croakSound: {fileID: 11400000, guid: 32a414ee1ff99614c809bac030a9cd9e, type: 2}
 --- !u!114 &1022271265769026347
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -608,6 +610,7 @@ MonoBehaviour:
   _grappleRange: 5
   _aimConeAngle: 30
   _aimRayCount: 9
+  _attackSound: {fileID: 11400000, guid: f8d6d76affc8bd94c86403def75b47ee, type: 2}
 --- !u!114 &852259226681694234
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -621,8 +624,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
   _gameOverSceneName: GameOver
-  _cinemachineCamera: {fileID: 0}
+  _mainCamera: {fileID: 0}
   _deathZoomOrthoSize: 2
+  _shieldBlockSound: {fileID: 11400000, guid: e3e949146a848f348a3f48d1324970f8, type: 2}
+  _dieSound: {fileID: 11400000, guid: e4ccce6baac3297409c8421d339360a5, type: 2}
 --- !u!95 &7277321437538652231
 Animator:
   serializedVersion: 7

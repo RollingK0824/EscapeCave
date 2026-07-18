@@ -10,6 +10,10 @@ public class PlayerSoundEmitter : MonoBehaviour, IEchoable
     [SerializeField] private float _soundIntensity;
     [SerializeField] private float _soundSpeed;
 
+    // 사운드 추가
+    [Header("Sound Effects")]
+    [SerializeField] private SoundDataSO _croakSound;
+
     public float SoundIntensity => _soundIntensity;
     public float SoundSpeed => _soundSpeed;
 
@@ -37,6 +41,10 @@ public class PlayerSoundEmitter : MonoBehaviour, IEchoable
         {
             _animator.SetTrigger("Cry");
         }
+
+        // 개굴
+        SoundManager.Instance.PlaySFX(_croakSound, transform.position);
+
         Echo();
     }
 }
