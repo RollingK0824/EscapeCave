@@ -28,17 +28,28 @@ public class LakeRuleSO : BaseMapRuleSO
     public int minJumpDistance = 4;
     public int maxJumpDistance = 8;
 
-    protected override int CarveTerrain(int startY)
+    [Header("물 속 스폰 설정")]
+    public List<SpawnRule> waterSpawns;
+
+    public override int MinJumpDistance => minJumpDistance;
+    public override int MaxJumpDistance => maxJumpDistance;
+    public override int MinPlatformHeight => baseFloorY + 3;
+    public override int MaxPlatformHeight => baseFloorY + 9;
+
+    protected override void InitializeTerrainBackground()
     {
         for (int x = 0; x < chunkWidth; x++)
         {
-            for (int y = baseFloorY; y < chunkHeight; y++)
+            for (int y = 0; y < chunkHeight; y++)
             {
-                mapData[x, y] = 0;
+                if (y < baseFloorY) mapData[x, y] = 1; // Solid ground below water table
+                else mapData[x, y] = 0; // Air above
             }
-            if (x == 15) mainPath.Add(new Vector2Int(x, baseFloorY + 2));
         }
+    }
 
+    protected override void ApplyThemeSpecificTerrain()
+    {
         if (activePonds == null) activePonds = new List<PondArea>();
         activePonds.Clear();
 
@@ -75,122 +86,13 @@ public class LakeRuleSO : BaseMapRuleSO
                         {
                             if (y >= 0 && y < chunkHeight && mapData[x, y] == 0)
                             {
-                                mapData[x, y] = 3;
+                                mapData[x, y] = 3; // Water
                             }
                         }
                     }
                 }
             }
         }
-        
-        return baseFloorY + 2;
-    }
-
-    protected override Vector2Int PlacePlatforms(Vector2Int startPlatform)
-    {
-        Vector2Int lastPlatformEnd = startPlatform;
-        if (platformConfigurations == null || platformConfigurations.Count == 0) return lastPlatformEnd;
-
-        int currentX = lastPlatformEnd.x + chunkRandom.Next(minJumpDistance, maxJumpDistance + 1);
-        if (currentX < 0) currentX = 0;
-
-        while (currentX < chunkWidth - 5)
-        {
-            int platY = baseFloorY + chunkRandom.Next(3, 10);
-            
-            // 높이 보정: 플레이어가 도달 가능하도록 최대 높이 차이 4칸 이내로 강제
-            if (Mathf.Abs(platY - lastPlatformEnd.y) > 4)
-            {
-                int minY = Mathf.Max(baseFloorY + 3, lastPlatformEnd.y - 4);
-                int maxY = Mathf.Min(baseFloorY + 9, lastPlatformEnd.y + 4);
-                if (minY <= maxY)
-                {
-                    platY = chunkRandom.Next(minY, maxY + 1);
-                }
-            }
-
-            PlatformSpawnRule rule = platformConfigurations[chunkRandom.Next(0, platformConfigurations.Count)];
-            if (chunkRandom.NextDouble() > rule.spawnChance)
-            {
-                currentX += chunkRandom.Next(minJumpDistance, maxJumpDistance + 1);
-                continue;
-            }
-
-            // 하이브리드 무작위 길이 결정 (방어코드 적용)
-            int chosenLength = chunkRandom.Next(rule.minLength, rule.maxLength + 1);
-            if (chosenLength < 1) chosenLength = 1;
-
-            int requiredLength = chosenLength;
-            int startX = currentX;
-
-            int checkMinX = startX - 1;
-            int checkMaxX = startX + requiredLength;
-            int checkMinY = platY - 1;
-            int checkMaxY = platY + 1;
-            
-            int markID = 2;
-
-            if (rule.type == PlatformType.Moving)
-            {
-                markID = 4;
-                if (rule.moveDirection == MoveDirection.Horizontal) checkMaxX += rule.moveRange;
-                else checkMaxY += rule.moveRange;
-            }
-            else if (rule.type == PlatformType.Pullable)
-            {
-                markID = 5;
-                checkMaxX += Mathf.CeilToInt(rule.pullLimit);
-            }
-
-            bool isClear = true;
-            for (int x = checkMinX; x <= checkMaxX; x++)
-            {
-                for (int y = checkMinY; y <= checkMaxY; y++)
-                {
-                    if (x >= 0 && x < chunkWidth && y >= 0 && y < chunkHeight)
-                    {
-                        int t = mapData[x, y];
-                        if (t == 1 || t == 2 || t == 4 || t == 5)
-                        {
-                            isClear = false;
-                            break;
-                        }
-                    }
-                }
-                if (!isClear) break;
-            }
-
-            if (isClear)
-            {
-                for (int x = startX; x < checkMaxX; x++)
-                {
-                    for (int y = platY; y <= checkMaxY - 1; y++)
-                    {
-                        if (x >= 0 && x < chunkWidth && y >= 0 && y < chunkHeight)
-                        {
-                            mapData[x, y] = markID;
-                        }
-                    }
-                }
-
-                pendingPlatforms.Add(new PlatformSpawnData
-                {
-                    localX = startX,
-                    localY = platY,
-                    chosenLength = chosenLength,
-                    rule = rule
-                });
-
-                lastPlatformEnd = new Vector2Int(startX + requiredLength - 1, platY);
-                currentX += requiredLength + chunkRandom.Next(minJumpDistance, maxJumpDistance + 1);
-            }
-            else
-            {
-                currentX += 1;
-            }
-        }
-
-        return lastPlatformEnd;
     }
 
     protected override void RenderToTilemap()
@@ -243,6 +145,41 @@ public class LakeRuleSO : BaseMapRuleSO
         if (waterTilemap != null)
         {
             waterTilemap.SetTilesBlock(bounds, waterTileArray);
+        }
+    }
+
+    protected override void SpawnThemeSpecificObjects()
+    {
+        if (waterSpawns == null || waterSpawns.Count == 0) return;
+
+        int lastFishSpawnX = -minSpawnGapX;
+
+        for (int x = 0; x < chunkWidth; x++)
+        {
+            int minWaterY = -1;
+            int maxWaterY = -1;
+
+            // 물(ID = 3) 영역 탐지
+            for (int y = 0; y < chunkHeight; y++)
+            {
+                if (mapData[x, y] == 3)
+                {
+                    if (minWaterY == -1) minWaterY = y;
+                    maxWaterY = y;
+                }
+            }
+
+            if (minWaterY != -1 && maxWaterY >= minWaterY)
+            {
+                if (x - lastFishSpawnX >= minSpawnGapX)
+                {
+                    int randomY = chunkRandom.Next(minWaterY, maxWaterY + 1);
+                    if (TrySpawnObject(waterSpawns, x, randomY))
+                    {
+                        lastFishSpawnX = x;
+                    }
+                }
+            }
         }
     }
 }
