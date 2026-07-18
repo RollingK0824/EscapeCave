@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 namespace Managers
 {
-    public class InventoryManager : SingletonBase<InventoryManager>
+    public class InventoryManager : SceneSingleton<InventoryManager>
     {
         [SerializeField] private ItemData[] slots = new ItemData[3];
         [SerializeField] private Image[] slotIcons = new Image[3];
