@@ -17,6 +17,8 @@ public class WaterDrop : MonoBehaviour, IEchoable
 
     [HideInInspector] public int poolKey;
 
+    public event System.Action OnLanded;
+
     private Rigidbody2D _rb;
 
     public float SoundIntensity => _soundIntensity;
@@ -64,6 +66,7 @@ public class WaterDrop : MonoBehaviour, IEchoable
     private void HandleCollision()
     {
         Echo();
+        OnLanded?.Invoke();
 
         if (Managers.PoolManager.Instance != null)
         {
