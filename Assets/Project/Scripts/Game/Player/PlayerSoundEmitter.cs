@@ -14,10 +14,12 @@ public class PlayerSoundEmitter : MonoBehaviour, IEchoable
     public float SoundSpeed => _soundSpeed;
 
     private Animator _animator;
+    private PlayerMovement _movement;
 
     private void Awake()
     {
         _animator = GetComponent<Animator>();
+        _movement = GetComponent<PlayerMovement>();
     }
 
     public void Echo()
@@ -30,7 +32,11 @@ public class PlayerSoundEmitter : MonoBehaviour, IEchoable
 
     public void Cry()
     {
-        _animator.SetTrigger("Cry");
+        // 비행 중에는 Cry 애니메이션으로 덮어쓰지 않고 Fly 애니메이션을 유지한 채 에코만 발생시킨다.
+        if (_movement == null || !_movement.IsFlying)
+        {
+            _animator.SetTrigger("Cry");
+        }
         Echo();
     }
 }
