@@ -200,6 +200,7 @@ MonoBehaviour:
     m_Bits: 64
   _soundIntensity: 5
   _soundSpeed: 2.5
+  _crySound: {fileID: 11400000, guid: ace7d97d3d5b63c498b7fdfd8e3a210e, type: 2}
 --- !u!114 &255005535738740511
 MonoBehaviour:
   m_ObjectHideFlags: 0
