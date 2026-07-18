@@ -2,6 +2,7 @@ using UnityEngine;
 using Unity.Behavior;
 using System.Collections;
 using Managers;
+using System;
 
 public enum MonsterState
 {
@@ -45,6 +46,9 @@ public class MonsterController : MonoBehaviour, IDamageable, IEchoable
     [Header("에코")]
     [SerializeField] private float _soundIntensity;
     [SerializeField] private float _soundSpeed;
+
+    [Header("Sound Effects")]
+    [SerializeField] private SoundDataSO _crySound;
 
     public float SoundIntensity => _soundIntensity;
     public float SoundSpeed => _soundSpeed;
@@ -491,8 +495,7 @@ public class MonsterController : MonoBehaviour, IDamageable, IEchoable
     public void Echo()
     {
         EchoManager.Instance.TriggerSound(transform.position, SoundIntensity, SoundSpeed);
-        // 함수 자체가 받는게 없다???
-        //울부짖엇따.
-        //오버로드 나중에
+
+        SoundManager.Instance.PlaySFX(_crySound, transform.position);
     }
 }
