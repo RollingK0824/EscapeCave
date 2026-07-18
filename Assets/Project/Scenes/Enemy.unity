@@ -616,6 +616,14 @@ PrefabInstance:
       propertyPath: m_Color.r
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 5850653304229843936, guid: 201af2f982fc51b4a9d8a7721db0272b, type: 3}
+      propertyPath: m_SpriteTilingProperty.oldSize.x
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5850653304229843936, guid: 201af2f982fc51b4a9d8a7721db0272b, type: 3}
+      propertyPath: m_SpriteTilingProperty.oldSize.y
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 6845527231419012449, guid: 201af2f982fc51b4a9d8a7721db0272b, type: 3}
       propertyPath: m_Name
       value: Bear
@@ -955,11 +963,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5467278139564407436, guid: e2f031bbbad321947a8c5b60dfc753a3, type: 3}
       propertyPath: m_LocalScale.x
-      value: 4.99
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 5467278139564407436, guid: e2f031bbbad321947a8c5b60dfc753a3, type: 3}
       propertyPath: m_LocalScale.y
-      value: 6.73
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 5467278139564407436, guid: e2f031bbbad321947a8c5b60dfc753a3, type: 3}
       propertyPath: m_LocalPosition.x
@@ -2140,6 +2148,14 @@ PrefabInstance:
     - target: {fileID: 789620343866838776, guid: 622cfcb5d74f97e448370b2829285dc2, type: 3}
       propertyPath: m_Name
       value: Mouse
+      objectReference: {fileID: 0}
+    - target: {fileID: 5388289645423614394, guid: 622cfcb5d74f97e448370b2829285dc2, type: 3}
+      propertyPath: _soundSpeed
+      value: 2.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 5388289645423614394, guid: 622cfcb5d74f97e448370b2829285dc2, type: 3}
+      propertyPath: _soundIntensity
+      value: 5
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
