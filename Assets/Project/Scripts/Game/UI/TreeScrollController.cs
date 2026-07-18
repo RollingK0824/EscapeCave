@@ -32,7 +32,7 @@ public class TreeScrollController : MonoBehaviour
     // 언락된 노드들 중 트리에서 가장 깊은(=가장 마지막으로 도달한) 지점을 찾는다.
     private UnlockNodeData FindDeepestUnlockedNode(UnlockNodeData node, HashSet<UnlockNodeData> visited)
     {
-        if (node == null || !UnlockManager.Instance.IsUnlocked(node)) return null;
+        if (node == null || !UIManager.Instance.IsUnlocked(node)) return null;
 
         // Final처럼 부모가 2개(A, B)인 노드는 DFS 도중 두 번 걸릴 수 있어서, 방문 기록으로 중복을 막는다.
         if (!visited.Add(node)) return node;

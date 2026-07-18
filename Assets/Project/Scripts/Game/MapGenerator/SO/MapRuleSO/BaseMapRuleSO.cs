@@ -90,6 +90,15 @@ public abstract class BaseMapRuleSO : ScriptableObject
     }
     protected List<PlatformSpawnData> pendingPlatforms = new List<PlatformSpawnData>();
 
+    // Virtual properties for platform constraints (can be overridden by subclasses)
+    public virtual int MinJumpDistance => 4;
+    public virtual int MaxJumpDistance => 8;
+    public virtual int MinPlatformHeight => 5;
+    public virtual int MaxPlatformHeight => chunkHeight - 5;
+
+    protected abstract void InitializeTerrainBackground();
+    protected abstract void ApplyThemeSpecificTerrain();
+
     public int GenerateChunk(ChunkGenParams genParams, out Vector2Int endPlatform)
     {
         this.globalTilemap = genParams.globalTilemap;
@@ -104,19 +113,226 @@ public abstract class BaseMapRuleSO : ScriptableObject
         mainPath.Clear();
         pendingPlatforms.Clear();
 
-        InitializeMap();
-        int exitY = CarveTerrain(genParams.startY);
+        // 1. Generate path and platforms first
+        endPlatform = GeneratePathAndPlatforms(genParams.startPlatform);
 
-        SmoothBoundaries(genParams.startY, exitY);
-        
+        // 2. Initialize background terrain
+        InitializeTerrainBackground();
+
+        // 3. Carve clearance around the path
+        CarveClearanceAroundPath();
+
+        // 4. Apply theme-specific terrain details
+        ApplyThemeSpecificTerrain();
+
+        // 5. Connect boundaries and write platforms to mapData
+        WritePlatformsToMapData();
+        SmoothBoundaries(genParams.startY, endPlatform.y);
         ForceTransitionTunnel(genParams.startY);
-        endPlatform = PlacePlatforms(genParams.startPlatform);
 
+        // 6. Draw to tilemap and spawn objects
         RenderToTilemap();
-        
         SpawnObjects();
 
-        return exitY;
+        return endPlatform.y;
+    }
+
+    protected virtual Vector2Int GeneratePathAndPlatforms(Vector2Int startPlatform)
+    {
+        Vector2Int lastPlatformEnd = startPlatform;
+        int currentX = Mathf.Max(0, lastPlatformEnd.x);
+        int currentY = lastPlatformEnd.y;
+
+        int minY = MinPlatformHeight;
+        int maxY = MaxPlatformHeight;
+        currentY = Mathf.Clamp(currentY, minY, maxY);
+
+        // 첫 번째 플랫폼 추가 (이전 청크의 끝 플랫폼이 유효하지 않은 경우 보정)
+        if (pendingPlatforms.Count == 0 && currentX <= 0)
+        {
+            if (platformConfigurations != null && platformConfigurations.Count > 0)
+            {
+                PlatformSpawnRule rule = platformConfigurations[0];
+                int chosenLength = chunkRandom.Next(rule.minLength, rule.maxLength + 1);
+                if (chosenLength < 1) chosenLength = 1;
+                pendingPlatforms.Add(new PlatformSpawnData
+                {
+                    localX = 0,
+                    localY = currentY,
+                    chosenLength = chosenLength,
+                    rule = rule
+                });
+                currentX = chosenLength - 1;
+            }
+        }
+
+        while (currentX < chunkWidth - 15)
+        {
+            int jumpX = chunkRandom.Next(MinJumpDistance, MaxJumpDistance + 1);
+            int jumpY = chunkRandom.Next(-3, 4); // Y 고도차 -3 ~ +3
+            int nextY = currentY + jumpY;
+            nextY = Mathf.Clamp(nextY, minY, maxY);
+
+            if (platformConfigurations == null || platformConfigurations.Count == 0)
+            {
+                currentX += jumpX;
+                currentY = nextY;
+                continue;
+            }
+
+            PlatformSpawnRule rule = platformConfigurations[chunkRandom.Next(0, platformConfigurations.Count)];
+            if (chunkRandom.NextDouble() > rule.spawnChance)
+            {
+                rule = platformConfigurations[0]; // fallback
+            }
+
+            int chosenLength = chunkRandom.Next(rule.minLength, rule.maxLength + 1);
+            if (chosenLength < 1) chosenLength = 1;
+
+            int nextStartX = currentX + jumpX;
+
+            pendingPlatforms.Add(new PlatformSpawnData
+            {
+                localX = nextStartX,
+                localY = nextY,
+                chosenLength = chosenLength,
+                rule = rule
+            });
+
+            currentX = nextStartX + chosenLength - 1;
+            currentY = nextY;
+
+            mainPath.Add(new Vector2Int(nextStartX + chosenLength / 2, nextY));
+        }
+
+        if (pendingPlatforms.Count > 0)
+        {
+            var lastPlat = pendingPlatforms[pendingPlatforms.Count - 1];
+            return new Vector2Int(lastPlat.localX + lastPlat.chosenLength - 1, lastPlat.localY);
+        }
+        return new Vector2Int(chunkWidth - 1, currentY);
+    }
+
+    protected virtual void CarveClearanceAroundPath()
+    {
+        int headroom = 4;
+        foreach (var platform in pendingPlatforms)
+        {
+            int startX = platform.localX;
+            int endX = platform.localX + platform.chosenLength;
+
+            if (platform.rule.type == PlatformType.Moving)
+            {
+                if (platform.rule.moveDirection == MoveDirection.Horizontal)
+                {
+                    endX += platform.rule.moveRange;
+                }
+            }
+            else if (platform.rule.type == PlatformType.Pullable)
+            {
+                endX += Mathf.CeilToInt(platform.rule.pullLimit);
+            }
+
+            for (int x = startX; x < endX; x++)
+            {
+                for (int y = platform.localY + 1; y <= platform.localY + headroom; y++)
+                {
+                    if (x >= 0 && x < chunkWidth && y >= 0 && y < chunkHeight)
+                    {
+                        mapData[x, y] = 0;
+                    }
+                }
+            }
+        }
+
+        for (int i = 0; i < pendingPlatforms.Count - 1; i++)
+        {
+            var p1 = pendingPlatforms[i];
+            var p2 = pendingPlatforms[i + 1];
+
+            int p1EndX = p1.localX + p1.chosenLength - 1;
+            if (p1.rule.type == PlatformType.Moving && p1.rule.moveDirection == MoveDirection.Horizontal)
+            {
+                p1EndX += p1.rule.moveRange;
+            }
+            else if (p1.rule.type == PlatformType.Pullable)
+            {
+                p1EndX += Mathf.CeilToInt(p1.rule.pullLimit);
+            }
+
+            Vector2Int startPt = new Vector2Int(p1EndX, p1.localY + 1);
+            Vector2Int endPt = new Vector2Int(p2.localX, p2.localY + 1);
+
+            CarveCapsule(startPt, endPt, 3);
+        }
+    }
+
+    protected void CarveCapsule(Vector2Int pA, Vector2Int pB, int radius)
+    {
+        int minX = Mathf.Min(pA.x, pB.x) - radius;
+        int maxX = Mathf.Max(pA.x, pB.x) + radius;
+        int minY = Mathf.Min(pA.y, pB.y) - radius;
+        int maxY = Mathf.Max(pA.y, pB.y) + radius;
+
+        Vector2 a = pA;
+        Vector2 b = pB;
+        Vector2 ab = b - a;
+        float l2 = ab.sqrMagnitude;
+
+        for (int x = minX; x <= maxX; x++)
+        {
+            for (int y = minY; y <= maxY; y++)
+            {
+                if (x >= 0 && x < chunkWidth && y >= 0 && y < chunkHeight)
+                {
+                    Vector2 p = new Vector2(x, y);
+                    float t = 0;
+                    if (l2 > 0)
+                    {
+                        t = Mathf.Clamp01(Vector2.Dot(p - a, ab) / l2);
+                    }
+                    Vector2 projection = a + t * ab;
+                    if (Vector2.Distance(p, projection) <= (float)radius)
+                    {
+                        mapData[x, y] = 0;
+                    }
+                }
+            }
+        }
+    }
+
+    protected void WritePlatformsToMapData()
+    {
+        foreach (var data in pendingPlatforms)
+        {
+            int markID = 2;
+            int requiredLength = data.chosenLength;
+            int checkMaxX = data.localX + requiredLength;
+            int checkMaxY = data.localY + 1;
+
+            if (data.rule.type == PlatformType.Moving)
+            {
+                markID = 4;
+                if (data.rule.moveDirection == MoveDirection.Horizontal) checkMaxX += data.rule.moveRange;
+                else checkMaxY += data.rule.moveRange;
+            }
+            else if (data.rule.type == PlatformType.Pullable)
+            {
+                markID = 5;
+                checkMaxX += Mathf.CeilToInt(data.rule.pullLimit);
+            }
+
+            for (int x = data.localX; x < checkMaxX; x++)
+            {
+                for (int y = data.localY; y < checkMaxY; y++)
+                {
+                    if (x >= 0 && x < chunkWidth && y >= 0 && y < chunkHeight)
+                    {
+                        mapData[x, y] = markID;
+                    }
+                }
+            }
+        }
     }
 
     protected virtual void InitializeMap()
@@ -299,6 +515,11 @@ public abstract class BaseMapRuleSO : ScriptableObject
                 }
             }
         }
+        SpawnThemeSpecificObjects();
+    }
+
+    protected virtual void SpawnThemeSpecificObjects()
+    {
     }
 
     protected bool TrySpawnObject(List<SpawnRule> rules, int localX, int localY)
@@ -409,6 +630,4 @@ public abstract class BaseMapRuleSO : ScriptableObject
         }
     }
 
-    protected abstract int CarveTerrain(int startY);
-    protected abstract Vector2Int PlacePlatforms(Vector2Int startPlatform);
 }
