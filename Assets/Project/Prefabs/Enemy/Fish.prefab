@@ -198,6 +198,8 @@ MonoBehaviour:
   _terrainLayer:
     serializedVersion: 2
     m_Bits: 64
+  _soundIntensity: 5
+  _soundSpeed: 2.5
 --- !u!114 &255005535738740511
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -1,6 +1,7 @@
 using UnityEngine;
 using Unity.Behavior;
 using System.Collections;
+using Managers;
 
 public enum MonsterState
 {
@@ -12,7 +13,7 @@ public enum MonsterState
     DEAD
 }
 
-public class MonsterController : MonoBehaviour, IDamageable
+public class MonsterController : MonoBehaviour, IDamageable, IEchoable
 {
     [Header("데이터")]
     [SerializeField] private MonsterData _data;
@@ -39,6 +40,15 @@ public class MonsterController : MonoBehaviour, IDamageable
     private static readonly int DieHash = Animator.StringToHash("Die");
     private static readonly int IsStunnedHash = Animator.StringToHash("IsStunned");
     private static readonly int AttackHash = Animator.StringToHash("Attack");
+
+
+    [Header("에코")]
+    [SerializeField] private float _soundIntensity;
+    [SerializeField] private float _soundSpeed;
+
+    public float SoundIntensity => _soundIntensity;
+    public float SoundSpeed => _soundSpeed;
+
 
     public void SetState(MonsterState state)
     {
@@ -436,6 +446,7 @@ public class MonsterController : MonoBehaviour, IDamageable
 
     public bool IsTouchingPlayer => _isTouchingPlayer;
 
+
     private void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision.collider.TryGetComponent<PlayerController>(out _))
@@ -475,5 +486,13 @@ public class MonsterController : MonoBehaviour, IDamageable
     public void OnDestroy()
     {
         Managers.MonsterManager.UnregisterMonster(this);
+    }
+
+    public void Echo()
+    {
+        EchoManager.Instance.TriggerSound(transform.position, SoundIntensity, SoundSpeed);
+        // 함수 자체가 받는게 없다???
+        //울부짖엇따.
+        //오버로드 나중에
     }
 }
