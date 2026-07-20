@@ -6,7 +6,7 @@ using UnityEngine;
 /// 바닥/플랫폼 등에 닿으면 에코 파동을 발생시키고 오브젝트 풀로 반납됩니다.
 /// </summary>
 [RequireComponent(typeof(Rigidbody2D))]
-public class WaterDrop : MonoBehaviour, IEchoable
+public class TutorialWaterDrop : MonoBehaviour, IEchoable
 {
     [Header("에코 사운드 설정")]
     [SerializeField] private float _soundIntensity = 10f;

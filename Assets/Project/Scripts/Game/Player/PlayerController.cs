@@ -4,6 +4,15 @@ using UnityEngine.SceneManagement;
 using Managers;
 using Unity.VisualScripting;
 
+public enum PlayerAbility
+{
+    None,
+    Move,
+    Jump,
+    Attack,
+    Cry
+}
+
 /// <summary>
 /// 입력을 수신해서 각 전담 컴포넌트(PlayerMovement, PlayerJump, PlayerTongueAttack,
 /// PlayerGrappleHook, PlayerSoundEmitter)에 명령만 전달하는 오케스트레이터.
@@ -29,6 +38,11 @@ public class PlayerController : MonoBehaviour, IDamageable
     private PlayerControls _controls;
     private bool _attackHeld;
 
+    private bool _canMove = true;
+    private bool _canJump = true;
+    private bool _canAttack = true;
+    private bool _canCry = true;
+
     // 쉴드/무적 아이템 효과 (없어도 동작하도록 선택적으로 참조).
     private PlayerShield _shield;
     private PlayerInvincibility _invincibility;
@@ -36,6 +50,8 @@ public class PlayerController : MonoBehaviour, IDamageable
 
     public bool IsDead { get; private set; }
     public event System.Action OnDeath;
+
+    private Vector3? _respawnPoint;
 
     [SerializeField] private string _gameOverSceneName = "GameOver";
     // 사망시 카메라 확대용 
@@ -84,15 +100,15 @@ public class PlayerController : MonoBehaviour, IDamageable
         {
             _controls = new PlayerControls();
 
-            _controls.Player.Move.performed += ctx => _movement.SetMoveInput(ctx.ReadValue<Vector2>());
+            _controls.Player.Move.performed += ctx => { if (_canMove) _movement.SetMoveInput(ctx.ReadValue<Vector2>()); };
             _controls.Player.Move.canceled += ctx => _movement.SetMoveInput(Vector2.zero);
 
-            _controls.Player.Jump.performed += ctx => _jump.StartJump();
+            _controls.Player.Jump.performed += ctx => { if (_canJump) _jump.StartJump(); };
             _controls.Player.Jump.canceled += ctx => _jump.CancelJump();
 
-            _controls.Player.Attack.started += ctx => { _attackHeld = true; HandleAttackInput(); };
+            _controls.Player.Attack.started += ctx => { if (!_canAttack) return; _attackHeld = true; HandleAttackInput(); };
             _controls.Player.Attack.canceled += ctx => _attackHeld = false;
-            _controls.Player.Cry.performed += ctx => _soundEmitter.Cry();
+            _controls.Player.Cry.performed += ctx => { if (_canCry) _soundEmitter.Cry(); };
 
             _controls.Player.Reel.started += ctx => _grappleHook.StartAutoReel();
 
@@ -118,6 +134,61 @@ public class PlayerController : MonoBehaviour, IDamageable
         if (_grappleHook.IsHooking && !_attackHeld)
         {
             _grappleHook.Release();
+        }
+    }
+
+    public void SetRespawnPoint(Vector3 point)
+    {
+        _respawnPoint = point;
+    }
+
+    public void SetAbilityEnabled(PlayerAbility ability, bool isEnabled)
+    {
+        switch (ability)
+        {
+            case PlayerAbility.Move:
+                _canMove = isEnabled;
+                break;
+            case PlayerAbility.Jump:
+                _canJump = isEnabled;
+                break;
+            case PlayerAbility.Attack:
+                _canAttack = isEnabled;
+                break;
+            case PlayerAbility.Cry:
+                _canCry = isEnabled;
+                break;
+        }
+    }
+
+    public void FreezeMomentarily(float duration)
+    {
+        StartCoroutine(FreezeRoutine(duration));
+    }
+
+    private IEnumerator FreezeRoutine(float duration)
+    {
+        bool prevMove = _canMove;
+        bool prevJump = _canJump;
+        bool prevAttack = _canAttack;
+        bool prevCry = _canCry;
+
+        _canMove = false;
+        _canJump = false;
+        _canAttack = false;
+        _canCry = false;
+        _movement.SetMoveInput(Vector2.zero);
+
+        yield return new WaitForSeconds(duration);
+
+        _canMove = prevMove;
+        _canJump = prevJump;
+        _canAttack = prevAttack;
+        _canCry = prevCry;
+
+        if (_canMove)
+        {
+            _movement.SetMoveInput(_controls.Player.Move.ReadValue<Vector2>());
         }
     }
 
@@ -165,7 +236,34 @@ public class PlayerController : MonoBehaviour, IDamageable
 
         yield return ZoomInRoutine(3f);
 
-        SceneManager.LoadScene(_gameOverSceneName);
+        if (_respawnPoint.HasValue)
+        {
+            Respawn(_respawnPoint.Value);
+        }
+        else
+        {
+            SceneManager.LoadScene(_gameOverSceneName);
+        }
+    }
+
+    private void Respawn(Vector3 position)
+    {
+        transform.position = position;
+        IsDead = false;
+
+        _animator.Rebind();
+        _animator.Update(0f);
+
+        if (_mainCamera != null)
+        {
+            var brain = _mainCamera.GetComponent<Unity.Cinemachine.CinemachineBrain>();
+            if (brain != null)
+            {
+                brain.enabled = true;
+            }
+        }
+
+        _controls?.Enable();
     }
     private IEnumerator ZoomInRoutine(float duration)
     {
