@@ -9,6 +9,7 @@ public class TutorialTrigger : MonoBehaviour
     {
         if (!collision.CompareTag("Player")) return;
 
+        _tutorialManager.SetCheckpoint(transform.position);
         _tutorialManager.AdvanceStep();
         gameObject.SetActive(false);
     }

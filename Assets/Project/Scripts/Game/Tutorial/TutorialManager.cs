@@ -8,12 +8,20 @@ public class TutorialManager : MonoBehaviour
     {
         [TextArea]
         public string message;
+        public PlayerAbility unlockAbility;
     }
 
     [SerializeField] private TutorialStep[] _steps;
     [SerializeField] private TMP_Text _promptText;
+    [SerializeField] private PlayerController _playerController;
+    [SerializeField] private float _freezeDuration = 0.5f;
 
     private int _currentStep = -1;
+
+    public void SetCheckpoint(Vector3 position)
+    {
+        _playerController.SetRespawnPoint(position);
+    }
 
     public void AdvanceStep()
     {
@@ -24,6 +32,9 @@ public class TutorialManager : MonoBehaviour
             _promptText.gameObject.SetActive(false);
             return;
         }
+
+        _playerController.SetAbilityEnabled(_steps[_currentStep].unlockAbility, true);
+        _playerController.FreezeMomentarily(_freezeDuration);
 
         bool hasMessage = !string.IsNullOrEmpty(_steps[_currentStep].message);
         _promptText.gameObject.SetActive(hasMessage);

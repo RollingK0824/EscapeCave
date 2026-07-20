@@ -3,12 +3,16 @@ using UnityEngine;
 public class TutorialIntro : MonoBehaviour
 {
     [SerializeField] private PlayerController _playerController;
-    [SerializeField] private WaterDrop _introWaterDrop;
+    [SerializeField] private TutorialWaterDrop _introWaterDrop;
     [SerializeField] private TutorialManager _tutorialManager;
 
     private void Awake()
     {
-        _playerController.enabled = false;
+        _playerController.SetAbilityEnabled(PlayerAbility.Move, false);
+        _playerController.SetAbilityEnabled(PlayerAbility.Jump, false);
+        _playerController.SetAbilityEnabled(PlayerAbility.Attack, false);
+        _playerController.SetAbilityEnabled(PlayerAbility.Cry, false);
+        _playerController.SetRespawnPoint(_playerController.transform.position);
     }
 
     private void OnEnable()
@@ -23,7 +27,6 @@ public class TutorialIntro : MonoBehaviour
 
     private void HandleWaterDropLanded()
     {
-        _playerController.enabled = true;
         _tutorialManager.AdvanceStep();
     }
 }
