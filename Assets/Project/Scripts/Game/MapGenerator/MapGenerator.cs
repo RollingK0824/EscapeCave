@@ -20,6 +20,9 @@ public class MapGenerator : MonoBehaviour
     [Tooltip("플레이어와 이 X축 거리(타일) 이상 멀어지면 몬스터/오브젝트 비활성화")]
     public float cullingDistance = 45f;
 
+    [SerializeField]
+    private DeadZoneController deadZoneController;
+
     private int[] _chunkOffsets = new int[3];
     private int _currentChunkIdx = 0;
     private int _lastExitY;
@@ -64,6 +67,8 @@ public class MapGenerator : MonoBehaviour
         GenerateStartRoom();
 
         InitializeGlobalMap();
+
+        deadZoneController.SetPlayer(player);
     }
 
     private void GenerateStartRoom()
