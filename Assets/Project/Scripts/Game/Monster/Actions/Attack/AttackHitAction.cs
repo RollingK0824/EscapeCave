@@ -20,6 +20,11 @@ public partial class AttackHitAction : Action
 
         Transform target = Monster.Value.GetChaseTarget(PlayerTransform.Value);
 
+        if (target == PlayerTransform.Value && !Monster.Value.IsTouchingPlayer)
+        {
+            return Status.Failure;
+        }
+
         if (target.TryGetComponent<IDamageable>(out var damageable))
         {
             damageable.TakeDamage(Monster.Value.Data.AttackDamage);
