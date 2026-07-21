@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 947296930590824761}
   - component: {fileID: 5850653304229843936}
   - component: {fileID: 3645108328765232249}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Bear
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -164,6 +164,7 @@ MonoBehaviour:
     m_Bits: 0
   _soundIntensity: 200
   _soundSpeed: 30
+  _crySound: {fileID: 0}
 --- !u!114 &947296930590824761
 MonoBehaviour:
   m_ObjectHideFlags: 0
