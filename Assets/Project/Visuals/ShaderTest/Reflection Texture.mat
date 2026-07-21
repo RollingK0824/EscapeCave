@@ -45,18 +45,27 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _DistortionStrength: 0.01
+    - _DistortionStrength: 0.003
     - _EdgeThickness: 0.06
     - _EnableExternalAlpha: 0
+    - _ReflectionFadeDistance: 10
     - _ReflectionOpacity: 0.5
-    - _SurfaceWorldY: -0.4576769
-    - _WaveFrequency: 8
+    - _RefractionStrength: 0.005
+    - _RippleAmplitude: 0.03
+    - _RippleDamping: 1
+    - _RippleFrequency: 3
+    - _RippleOriginX: -0.54075706
+    - _RippleSpeed: 4
+    - _RippleStartTime: 17.239994
+    - _SurfaceWorldY: 0.58673
+    - _WaveFrequency: 5
     - _WaveSpeed: 1.5
     - _ZWrite: 0
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EdgeColor: {r: 1, g: 1, b: 1, a: 1}
     - _RendererColor: {r: 1, g: 1, b: 1, a: 1}
+    - _UnderwaterTint: {r: 0.7122642, g: 0.9266556, b: 1, a: 0.6039216}
     - _WaterColor: {r: 0.049999982, g: 0.24999997, b: 0.34999996, a: 0.65}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
