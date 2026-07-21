@@ -1,0 +1,572 @@
+fileFormatVersion: 2
+guid: 788cee69f7326dd4a96a6357ce461ff7
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 173754203923266717
+    second: enviorement_emmision_0
+  - first:
+      213: -5127138002005482478
+    second: enviorement_emmision_1
+  - first:
+      213: 2759866194243576372
+    second: enviorement_emmision_2
+  - first:
+      213: -2998835088156497513
+    second: enviorement_emmision_3
+  - first:
+      213: 4604023971102089010
+    second: enviorement_emmision_4
+  - first:
+      213: 2209987609500452986
+    second: enviorement_emmision_5
+  - first:
+      213: -2109840626685940677
+    second: enviorement_emmision_6
+  - first:
+      213: -1731023569670577621
+    second: enviorement_emmision_7
+  - first:
+      213: 3496549206018332547
+    second: enviorement_emmision_8
+  - first:
+      213: 7083977706497233256
+    second: enviorement_emmision_9
+  - first:
+      213: 3438451897217084150
+    second: enviorement_emmision_10
+  - first:
+      213: -3709228033333129941
+    second: enviorement_emmision_11
+  - first:
+      213: -2138075673308162998
+    second: enviorement_emmision_12
+  - first:
+      213: 1983923622272281368
+    second: enviorement_emmision_13
+  - first:
+      213: -988731949459602910
+    second: enviorement_emmision_14
+  - first:
+      213: -5013837170112390020
+    second: enviorement_emmision_15
+  - first:
+      213: 738953029277913053
+    second: enviorement_emmision_16
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: enviorement_emmision_0
+      rect:
+        serializedVersion: 2
+        x: 21
+        y: 274
+        width: 11
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d9cb313278c496200800000000000000
+      internalID: 173754203923266717
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enviorement_emmision_1
+      rect:
+        serializedVersion: 2
+        x: 38
+        y: 275
+        width: 12
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 214ae04e62fb8d8b0800000000000000
+      internalID: -5127138002005482478
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enviorement_emmision_2
+      rect:
+        serializedVersion: 2
+        x: 22
+        y: 257
+        width: 11
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4326f776ea30d4620800000000000000
+      internalID: 2759866194243576372
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enviorement_emmision_3
+      rect:
+        serializedVersion: 2
+        x: 38
+        y: 258
+        width: 12
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7996476306ff166d0800000000000000
+      internalID: -2998835088156497513
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enviorement_emmision_4
+      rect:
+        serializedVersion: 2
+        x: 17
+        y: 214
+        width: 81
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 23f5ce69867c4ef30800000000000000
+      internalID: 4604023971102089010
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enviorement_emmision_5
+      rect:
+        serializedVersion: 2
+        x: 113
+        y: 198
+        width: 47
+        height: 49
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a780a4695047bae10800000000000000
+      internalID: 2209987609500452986
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enviorement_emmision_6
+      rect:
+        serializedVersion: 2
+        x: 17
+        y: 162
+        width: 70
+        height: 49
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b3c62b1e02758b2e0800000000000000
+      internalID: -2109840626685940677
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enviorement_emmision_7
+      rect:
+        serializedVersion: 2
+        x: 104
+        y: 163
+        width: 29
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b22e4f71c3b2af7e0800000000000000
+      internalID: -1731023569670577621
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enviorement_emmision_8
+      rect:
+        serializedVersion: 2
+        x: 22
+        y: 107
+        width: 34
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 38795643afc368030800000000000000
+      internalID: 3496549206018332547
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enviorement_emmision_9
+      rect:
+        serializedVersion: 2
+        x: 178
+        y: 117
+        width: 24
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 861dd8801385f4260800000000000000
+      internalID: 7083977706497233256
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enviorement_emmision_10
+      rect:
+        serializedVersion: 2
+        x: 189
+        y: 26
+        width: 7
+        height: 92
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6fa64e668c5d7bf20800000000000000
+      internalID: 3438451897217084150
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enviorement_emmision_11
+      rect:
+        serializedVersion: 2
+        x: 38
+        y: 26
+        width: 7
+        height: 81
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b2d024a81cc268cc0800000000000000
+      internalID: -3709228033333129941
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enviorement_emmision_12
+      rect:
+        serializedVersion: 2
+        x: 70
+        y: 26
+        width: 28
+        height: 64
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a44109dc0870452e0800000000000000
+      internalID: -2138075673308162998
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enviorement_emmision_13
+      rect:
+        serializedVersion: 2
+        x: 112
+        y: 26
+        width: 24
+        height: 69
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 81bab0fe500588b10800000000000000
+      internalID: 1983923622272281368
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enviorement_emmision_14
+      rect:
+        serializedVersion: 2
+        x: 150
+        y: 25
+        width: 20
+        height: 36
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 222816ec7815742f0800000000000000
+      internalID: -988731949459602910
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enviorement_emmision_15
+      rect:
+        serializedVersion: 2
+        x: 207
+        y: 52
+        width: 15
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c7c1dc188a54b6ab0800000000000000
+      internalID: -5013837170112390020
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enviorement_emmision_16
+      rect:
+        serializedVersion: 2
+        x: 210
+        y: 27
+        width: 12
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ddf0fcf6dd9414a00800000000000000
+      internalID: 738953029277913053
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      enviorement_emmision_0: 173754203923266717
+      enviorement_emmision_1: -5127138002005482478
+      enviorement_emmision_10: 3438451897217084150
+      enviorement_emmision_11: -3709228033333129941
+      enviorement_emmision_12: -2138075673308162998
+      enviorement_emmision_13: 1983923622272281368
+      enviorement_emmision_14: -988731949459602910
+      enviorement_emmision_15: -5013837170112390020
+      enviorement_emmision_16: 738953029277913053
+      enviorement_emmision_2: 2759866194243576372
+      enviorement_emmision_3: -2998835088156497513
+      enviorement_emmision_4: 4604023971102089010
+      enviorement_emmision_5: 2209987609500452986
+      enviorement_emmision_6: -2109840626685940677
+      enviorement_emmision_7: -1731023569670577621
+      enviorement_emmision_8: 3496549206018332547
+      enviorement_emmision_9: 7083977706497233256
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
