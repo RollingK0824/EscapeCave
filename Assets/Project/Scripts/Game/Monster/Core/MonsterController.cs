@@ -69,6 +69,8 @@ public class MonsterController : MonoBehaviour, IDamageable, IEchoable
     private void Awake()
     {
         Rb = GetComponent<Rigidbody2D>();
+        Rb.gravityScale = Data.UseGravity ? Data.GravityScale : 0f;
+
         SpriteRenderer = GetComponentInChildren<SpriteRenderer>();
 
         Animator = GetComponent<Animator>();
@@ -92,18 +94,22 @@ public class MonsterController : MonoBehaviour, IDamageable, IEchoable
         _btAgent.SetVariableValue("PlayerTransform", Managers.MonsterManager.PlayerTransform);
     }
 
-    public void Move(Vector2 direction, float speed)
+    private void SetVelocity(Vector2 direction, float speed, bool affectVertical)
     {
         if (_isHitReactiveActive)
         {
             return;
         }
 
-        Rb.linearVelocity = new Vector2(direction.x * speed, Rb.linearVelocity.y);
-        FlipSprite(direction);
+        Rb.linearVelocity = affectVertical ? direction * speed : new Vector2(direction.x * speed, direction.y);
 
+        FlipSprite(direction);
         SetMoving(true);
     }
+
+    public void Move(Vector2 direction, float speed) => SetVelocity(direction, speed, false);
+
+    public void MoveFreely(Vector2 direction, float speed) => SetVelocity(direction, speed, true);
 
     public void FlipSprite(Vector2 direction)
     {
@@ -183,39 +189,23 @@ public class MonsterController : MonoBehaviour, IDamageable, IEchoable
         return diff.sqrMagnitude > 0f ? diff.normalized : Vector2.zero;
     }
 
-    public void MoveFreely(Vector2 direction, float speed)
-    {
-        if (_isHitReactiveActive)
-        {
-            return;
-        }
+    private bool CanMove => !Data.IsAquatic || IsInWater;
 
-        Rb.linearVelocity = direction * speed;
-        FlipSprite(direction);
-
-        SetMoving(true);
-    }
+    private bool CanMoveFreely => Data.MovesFreely && CanMove;
 
     public void MoveTowardTarget(Transform target, float speed)
     {
-        if (Data.FliesFreely)
-        {
-            MoveFreely(GetDirectionToTargetFull(target), speed);
-        }
-        else
-        {
-            Move(GetDirectionToTarget(target), speed);
-        }
+        MoveAlongDirection(GetChargeDirection(target), speed);
     }
 
     public Vector2 GetChargeDirection(Transform target)
     {
-        return Data.FliesFreely ? GetDirectionToTargetFull(target) : GetDirectionToTarget(target);
+        return CanMoveFreely ? GetDirectionToTargetFull(target) : GetDirectionToTarget(target);
     }    
 
     public void MoveAlongDirection(Vector2 direction, float speed)
     {
-        if (Data.FliesFreely)
+        if (CanMoveFreely)
         {
             MoveFreely(direction, speed);
         }
@@ -224,6 +214,19 @@ public class MonsterController : MonoBehaviour, IDamageable, IEchoable
             Move(direction, speed);
         }
     }
+
+    public bool IsInWater { get; private set; }
+
+    public void SetInWater(bool isInWater)
+    {
+        IsInWater = isInWater;
+    }
+
+    public void SetGravityScale(float gravityScale)
+    {
+        Rb.gravityScale = gravityScale;
+    }
+
 
     private static readonly RaycastHit2D[] _wallCastBuffer = new RaycastHit2D[1];
 

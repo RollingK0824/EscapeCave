@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public enum MonsterType
 {
@@ -67,7 +68,12 @@ public class MonsterData : ScriptableObject
     [Header("물리")]
     public float GravityScale = 1f;
     public bool UseGravity = true;
-    public bool FliesFreely = false;
+    public bool MovesFreely = false;
+
+    [Header("부력")]
+    public bool IsAquatic = false;
+    public float WaterGravityScale = 0.05f;
+    public float MaxRiseSpeed = 2f;
 
     [Header("추격 난이도")]
     public float SpeedRampRate = 0f;
