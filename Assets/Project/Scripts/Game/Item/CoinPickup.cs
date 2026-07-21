@@ -13,7 +13,7 @@ public class CoinPickup : MonoBehaviour, IGrabbable
 
     public void OnCollected()
     {
-        DataManager.Instance.AddGold(_goldAmount);
+        DataManager.Instance.AddCurrentGold(_goldAmount);
         Destroy(gameObject);
     }
 }
