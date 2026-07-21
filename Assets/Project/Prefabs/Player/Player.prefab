@@ -375,7 +375,7 @@ GameObject:
   - component: {fileID: 3489711254049015830}
   m_Layer: 3
   m_Name: Player
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -745,9 +745,9 @@ CapsuleCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0.0041130288, y: -0.05}
-  m_Size: {x: 0.24088031, y: 0.1}
-  m_Direction: 0
+  m_Offset: {x: 0.0030007667, y: -0.08002596}
+  m_Size: {x: 0.2664591, y: 0.18082939}
+  m_Direction: 1
 --- !u!114 &6992206497245587596
 MonoBehaviour:
   m_ObjectHideFlags: 0
