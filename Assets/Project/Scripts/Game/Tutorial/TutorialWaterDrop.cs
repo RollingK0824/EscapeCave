@@ -15,6 +15,9 @@ public class TutorialWaterDrop : MonoBehaviour, IEchoable
     [Header("충돌 대상 레이어 (바닥 및 플랫폼)")]
     [SerializeField] private LayerMask _collisionLayers;
 
+    [SerializeField, Tooltip("바닥에 튕길 때 재생할 물방울 튀김 이펙트 프리팹 (PooledParticleEffect 필요, PlayerTongueAttack의 splash 이펙트 재활용 가능)")]
+    private GameObject _splashEffectPrefab;
+
     [HideInInspector] public int poolKey;
 
     public event System.Action OnLanded;
@@ -67,6 +70,7 @@ public class TutorialWaterDrop : MonoBehaviour, IEchoable
     {
         Echo();
         OnLanded?.Invoke();
+        SpawnSplashEffect();
 
         if (Managers.PoolManager.Instance != null)
         {
@@ -75,6 +79,29 @@ public class TutorialWaterDrop : MonoBehaviour, IEchoable
         else
         {
             Destroy(gameObject);
+        }
+    }
+
+    private void SpawnSplashEffect()
+    {
+        if (_splashEffectPrefab == null || Managers.PoolManager.Instance == null)
+        {
+            return;
+        }
+
+        GameObject fx = Managers.PoolManager.Instance.Pop(_splashEffectPrefab, transform.position, Quaternion.identity);
+        if (fx == null)
+        {
+            return;
+        }
+
+        if (fx.TryGetComponent<PooledParticleEffect>(out var pooledEffect))
+        {
+            pooledEffect.Play(_splashEffectPrefab);
+        }
+        else
+        {
+            Debug.LogWarning($"{nameof(TutorialWaterDrop)}: {_splashEffectPrefab.name}에 PooledParticleEffect 컴포넌트가 없어서 자동으로 반납되지 않습니다.", _splashEffectPrefab);
         }
     }
 }
