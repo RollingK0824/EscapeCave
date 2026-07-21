@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Managers;
 
 public class TitleMenu : MonoBehaviour
 {
@@ -14,6 +15,10 @@ public class TitleMenu : MonoBehaviour
 
     public void OnClickStart()
     {
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.StartNewSession();
+        }
         SceneManager.LoadScene(gameSceneName);
     }
 

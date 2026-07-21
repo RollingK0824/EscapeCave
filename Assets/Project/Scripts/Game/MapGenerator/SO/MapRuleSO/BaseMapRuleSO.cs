@@ -19,6 +19,21 @@ public struct SpawnRule
 {
     public GameObject prefab;
     [Range(0f, 1f)] public float spawnChance;
+
+    [Header("해금 조건 (null일 경우 항상 스폰 가능)")]
+    public UnlockNodeData requiredUnlockNode;
+
+    public bool IsUnlocked()
+    {
+        if (requiredUnlockNode == null) return true;
+
+        if (Managers.DataManager.Instance != null)
+        {
+            return Managers.DataManager.Instance.IsUnlocked(requiredUnlockNode);
+        }
+
+        return true;
+    }
 }
 
 [System.Serializable]
@@ -70,6 +85,14 @@ public abstract class BaseMapRuleSO : ScriptableObject
     public List<SpawnRule> underPlatformSpawns; 
     [Tooltip("몬스터 간 최소 X축 스폰 간격 (타일 수)")]
     public int minSpawnGapX = 8;
+
+    [Header("일반 오브젝트/상자/골드 스폰 설정 (해금 조건 지원)")]
+    public List<SpawnRule> groundObjectSpawns;
+    public List<SpawnRule> platformObjectSpawns;
+    public List<SpawnRule> ceilingObjectSpawns;
+    public List<SpawnRule> underPlatformObjectSpawns;
+    [Tooltip("오브젝트 간 최소 X축 스폰 간격 (타일 수)")]
+    public int minObjectSpawnGapX = 4;
 
     [System.NonSerialized] protected Tilemap globalTilemap;
     [System.NonSerialized] protected Tilemap waterTilemap;
@@ -474,6 +497,11 @@ public abstract class BaseMapRuleSO : ScriptableObject
         int lastUnderPlatformSpawnX = -minSpawnGapX;
         int lastPlatformSpawnX = -minSpawnGapX;
 
+        int lastGroundObjX = -minObjectSpawnGapX;
+        int lastCeilingObjX = -minObjectSpawnGapX;
+        int lastUnderPlatformObjX = -minObjectSpawnGapX;
+        int lastPlatformObjX = -minObjectSpawnGapX;
+
         for (int x = 0; x < chunkWidth; x++)
         {
             for (int y = 0; y < chunkHeight; y++)
@@ -485,6 +513,10 @@ public abstract class BaseMapRuleSO : ScriptableObject
                     {
                         if (TrySpawnObject(groundSpawns, x, y + 1)) lastGroundSpawnX = x;
                     }
+                    if (x - lastGroundObjX >= minObjectSpawnGapX)
+                    {
+                        if (TrySpawnObject(groundObjectSpawns, x, y + 1)) lastGroundObjX = x;
+                    }
                 }
 
                 // 천장 검사
@@ -493,6 +525,10 @@ public abstract class BaseMapRuleSO : ScriptableObject
                     if (x - lastCeilingSpawnX >= minSpawnGapX)
                     {
                         if (TrySpawnObject(ceilingSpawns, x, y - 1)) lastCeilingSpawnX = x;
+                    }
+                    if (x - lastCeilingObjX >= minObjectSpawnGapX)
+                    {
+                        if (TrySpawnObject(ceilingObjectSpawns, x, y - 1)) lastCeilingObjX = x;
                     }
                 }
 
@@ -503,6 +539,10 @@ public abstract class BaseMapRuleSO : ScriptableObject
                     {
                         if (TrySpawnObject(underPlatformSpawns, x, y - 1)) lastUnderPlatformSpawnX = x;
                     }
+                    if (x - lastUnderPlatformObjX >= minObjectSpawnGapX)
+                    {
+                        if (TrySpawnObject(underPlatformObjectSpawns, x, y - 1)) lastUnderPlatformObjX = x;
+                    }
                 }
 
                 // 플랫폼 위 검사
@@ -511,6 +551,10 @@ public abstract class BaseMapRuleSO : ScriptableObject
                     if (x - lastPlatformSpawnX >= minSpawnGapX)
                     {
                         if (TrySpawnObject(platformSpawns, x, y + 1)) lastPlatformSpawnX = x;
+                    }
+                    if (x - lastPlatformObjX >= minObjectSpawnGapX)
+                    {
+                        if (TrySpawnObject(platformObjectSpawns, x, y + 1)) lastPlatformObjX = x;
                     }
                 }
             }
@@ -526,8 +570,19 @@ public abstract class BaseMapRuleSO : ScriptableObject
     {
         if (rules == null || rules.Count == 0) return false;
 
-        int randomIdx = chunkRandom.Next(0, rules.Count);
-        SpawnRule rule = rules[randomIdx];
+        List<SpawnRule> validRules = new List<SpawnRule>();
+        for (int i = 0; i < rules.Count; i++)
+        {
+            if (rules[i].IsUnlocked())
+            {
+                validRules.Add(rules[i]);
+            }
+        }
+
+        if (validRules.Count == 0) return false;
+
+        int randomIdx = chunkRandom.Next(0, validRules.Count);
+        SpawnRule rule = validRules[randomIdx];
 
         if ((float)chunkRandom.NextDouble() > rule.spawnChance) return false;
 
@@ -608,7 +663,7 @@ public abstract class BaseMapRuleSO : ScriptableObject
                     rightLedge.localPosition = new Vector3(offsetValue, rightLedge.localPosition.y, 0f);
                     if (isScaled)
                     {
-                        rightLedge.localScale = new Vector3(1f / data.chosenLength, rightLedge.localScale.y, rightLedge.localScale.z);
+                        rightLedge.localScale = new Vector3(1f / data.chosenLength, rightLedge.localScale.z, rightLedge.localScale.z);
                     }
                 }
             }

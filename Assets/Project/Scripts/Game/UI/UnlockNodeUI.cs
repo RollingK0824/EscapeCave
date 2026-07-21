@@ -77,7 +77,7 @@ public class UnlockNodeUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
 
         if (!UIManager.Instance.IsUnlocked(_nodeData) && !UIManager.Instance.HasEnoughGold(_nodeData.cost))
         {
-            _confirmPopup.Show($"NOT ENOUGH GOLD (HAVE {UIManager.Instance.CurrentGold} / NEED {_nodeData.cost})", () => { });
+            _confirmPopup.Show($"NOT ENOUGH GOLD (HAVE {UIManager.Instance.TotalGold} / NEED {_nodeData.cost})", () => { });
         }
     }
     private void RefreshVisual()
