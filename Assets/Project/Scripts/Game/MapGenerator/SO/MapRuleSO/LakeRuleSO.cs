@@ -28,9 +28,6 @@ public class LakeRuleSO : BaseMapRuleSO
     public int minJumpDistance = 4;
     public int maxJumpDistance = 8;
 
-    [Header("물 속 스폰 설정")]
-    public List<SpawnRule> waterSpawns;
-
     public override int MinJumpDistance => minJumpDistance;
     public override int MaxJumpDistance => maxJumpDistance;
     public override int MinPlatformHeight => baseFloorY + 3;
@@ -150,8 +147,6 @@ public class LakeRuleSO : BaseMapRuleSO
 
     protected override void SpawnThemeSpecificObjects()
     {
-        if (waterSpawns == null || waterSpawns.Count == 0) return;
-
         int lastFishSpawnX = -minSpawnGapX;
 
         for (int x = 0; x < chunkWidth; x++)
@@ -174,7 +169,8 @@ public class LakeRuleSO : BaseMapRuleSO
                 if (x - lastFishSpawnX >= minSpawnGapX)
                 {
                     int randomY = chunkRandom.Next(minWaterY, maxWaterY + 1);
-                    if (TrySpawnObject(waterSpawns, x, randomY))
+                    if (TrySpawnObjectByFilter(SpawnLocation.Water, SpawnCategory.Monster, x, randomY, minSpawnGapX) ||
+                        TrySpawnObjectByFilter(SpawnLocation.Water, SpawnCategory.Object, x, randomY, minObjectSpawnGapX))
                     {
                         lastFishSpawnX = x;
                     }
