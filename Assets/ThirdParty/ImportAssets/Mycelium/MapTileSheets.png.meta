@@ -1,25 +1,28 @@
 fileFormatVersion: 2
-guid: fe46acc01ca6a794697bb1e4488b6c8d
+guid: c745cd4b7bf884140a156f60f7c28948
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -3878557786174838139
-    second: ground_0
+      213: 3670180856876584026
+    second: MapTileSheets_0
   - first:
-      213: -4419227343285247731
-    second: ground_1
+      213: 491838616335410778
+    second: MapTileSheets_1
   - first:
-      213: -1977380741081267030
-    second: ground_2
+      213: 6452484220695792086
+    second: MapTileSheets_2
   - first:
-      213: 2270332835960527861
-    second: ground_3
+      213: -6024568171925039516
+    second: MapTileSheets_3
   - first:
-      213: 5602472716659199906
-    second: ground_4
+      213: 5216196648574183565
+    second: MapTileSheets_4
   - first:
-      213: -5561606140109812095
-    second: ground_5
+      213: 3467219115501258643
+    second: MapTileSheets_5
+  - first:
+      213: -3835238479132608455
+    second: MapTileSheets_6
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -128,7 +131,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: ground_0
+      name: MapTileSheets_0
       rect:
         serializedVersion: 2
         x: 0
@@ -143,14 +146,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 58a29323e389c2ac0800000000000000
-      internalID: -3878557786174838139
+      spriteID: a5c419b3b0a1fe230800000000000000
+      internalID: 3670180856876584026
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: ground_1
+      name: MapTileSheets_1
       rect:
         serializedVersion: 2
         x: 32
@@ -159,20 +162,20 @@ TextureImporter:
         height: 24
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
-      border: {x: 6, y: 1, z: 4, w: 0}
+      border: {x: 6, y: 0, z: 4, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: d012ac53520cba2c0800000000000000
-      internalID: -4419227343285247731
+      spriteID: a56ed7d9d9c53d600800000000000000
+      internalID: 491838616335410778
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: ground_2
+      name: MapTileSheets_2
       rect:
         serializedVersion: 2
         x: 64
@@ -187,14 +190,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: aa4072e41beee84e0800000000000000
-      internalID: -1977380741081267030
+      spriteID: 6d9c2654634db8950800000000000000
+      internalID: 6452484220695792086
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: ground_3
+      name: MapTileSheets_3
       rect:
         serializedVersion: 2
         x: 0
@@ -209,14 +212,36 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 5fb15518fa7d18f10800000000000000
-      internalID: 2270332835960527861
+      spriteID: 466984bca2f646ca0800000000000000
+      internalID: -6024568171925039516
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: ground_4
+      name: MapTileSheets_4
+      rect:
+        serializedVersion: 2
+        x: 69
+        y: 14
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d88e8dc1737a36840800000000000000
+      internalID: 5216196648574183565
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MapTileSheets_5
       rect:
         serializedVersion: 2
         x: 0
@@ -231,14 +256,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 2af0a4ca04bffbd40800000000000000
-      internalID: 5602472716659199906
+      spriteID: 39785e95a690e1030800000000000000
+      internalID: 3467219115501258643
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: ground_5
+      name: MapTileSheets_6
       rect:
         serializedVersion: 2
         x: 0
@@ -253,8 +278,74 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 18e8f16aea431d2b0800000000000000
-      internalID: -5561606140109812095
+      spriteID: 93834665cee76cac0800000000000000
+      internalID: -3835238479132608455
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MapTileSheets_7
+      rect:
+        serializedVersion: 2
+        x: 33
+        y: 16
+        width: 21
+        height: 3
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 856e0cb6262dc4e47af8965b23ae914d
+      internalID: 414873795
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MapTileSheets_8
+      rect:
+        serializedVersion: 2
+        x: 33
+        y: 8
+        width: 23
+        height: 3
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 37147675026b05143b9cd314d4457aea
+      internalID: 1726545557
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MapTileSheets_9
+      rect:
+        serializedVersion: 2
+        x: 33
+        y: 0
+        width: 23
+        height: 2
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7bfc0c2fd3229b048b2aa8e6fe2a5807
+      internalID: -1775550239
       vertices: []
       indices: 
       edges: []
@@ -263,7 +354,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 4abb4f43764dbbc419ba94f1681b9023
+    spriteID: 6be6ee55b976b8244ac8a98942e47502
     internalID: 0
     vertices: []
     indices: 
@@ -273,14 +364,18 @@ TextureImporter:
     spriteCustomMetadata:
       entries:
       - key: SpriteEditor.SliceSettings
-        value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":24.0,"y":24.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":0,"keepEmptyRects":false,"isAlternate":false}'
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":64.0,"y":64.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":0,"keepEmptyRects":false,"isAlternate":false}'
     nameFileIdTable:
-      ground_0: -3878557786174838139
-      ground_1: -4419227343285247731
-      ground_2: -1977380741081267030
-      ground_3: 2270332835960527861
-      ground_4: 5602472716659199906
-      ground_5: -5561606140109812095
+      MapTileSheets_0: 3670180856876584026
+      MapTileSheets_1: 491838616335410778
+      MapTileSheets_2: 6452484220695792086
+      MapTileSheets_3: -6024568171925039516
+      MapTileSheets_4: 5216196648574183565
+      MapTileSheets_5: 3467219115501258643
+      MapTileSheets_6: -3835238479132608455
+      MapTileSheets_7: 414873795
+      MapTileSheets_8: 1726545557
+      MapTileSheets_9: -1775550239
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
