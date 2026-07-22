@@ -5,13 +5,16 @@ using Managers;
 public class TitleMenu : MonoBehaviour
 {
     [Header("게임 씬 이름 (Build Settings에 등록된 이름과 정확히 일치해야 함)")]
-    [SerializeField] private string gameSceneName;
+    [SerializeField] private string _gameSceneName;
 
     [Header("해금 트리 씬 이름 (Build Settings에 등록된 이름과 정확히 일치해야 함)")]
-    [SerializeField] private string unlockTreeSceneName;
+    [SerializeField] private string _unlockTreeSceneName;
+
+    [Header("Score Board 씬 이름 (Build Settings에 등록된 이름과 정확히 일치해야 함)")]
+    [SerializeField] private string _scoreBoardScene;
 
     [Header("옵션 패널")]
-    [SerializeField] private GameObject optionsPanel;
+    [SerializeField] private GameObject _optionsPanel;
 
     public void OnClickStart()
     {
@@ -19,22 +22,27 @@ public class TitleMenu : MonoBehaviour
         {
             UIManager.Instance.StartNewSession();
         }
-        SceneManager.LoadScene(gameSceneName);
+        SceneManager.LoadScene(_gameSceneName);
     }
 
     public void OnClickUnlockTree()
     {
-        SceneManager.LoadScene(unlockTreeSceneName);
+        SceneManager.LoadScene(_unlockTreeSceneName);
+    }
+
+    public void OnClickScoreBoard()
+    {
+        SceneManager.LoadScene(_scoreBoardScene);
     }
 
     public void OnClickOptions()
     {
-        optionsPanel.SetActive(true);
+        _optionsPanel.SetActive(true);
     }
 
     public void OnClickCloseOptions()
     {
-        optionsPanel.SetActive(false);
+        _optionsPanel.SetActive(false);
     }
 
     public void OnClickQuit()
