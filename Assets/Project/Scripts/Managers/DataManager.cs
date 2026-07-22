@@ -1,9 +1,16 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace Managers
 {
+    [Serializable]
+    public class HighScoreData
+    {
+        public List<float> records = new List<float>();
+    }
+
     public class DataManager : SingletonBase<DataManager>
     {
         protected override void Awake()
@@ -12,31 +19,46 @@ namespace Managers
 
             LoadGold();
             LoadGameRecord();
+
+            SceneManager.sceneLoaded += OnSceneLoaded;
         }
 
-        #region Gold
+        private void OnDestroy()
+        {
+            SceneManager.sceneLoaded -= OnSceneLoaded;
+        }
+
+        [SerializeField] private string _gameSceneName = "ProtoType";
+
+        private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+        {
+            // 씬이 로드될 때 이전 세션 데이터가 남아있지 않도록 시작
+            StartNewSession();
+        }
+
+        #region Total Gold
 
         private const string GOLD_KEY = "Data_Gold";
         private const int DEFAULT_GOLD = 5;
 
-        [SerializeField] private int _currentGold;
-        public int CurrentGold => _currentGold;
+        [SerializeField] private int _totalGold;
+        public int TotalGold => _totalGold;
 
-        public event Action<int> OnGoldChanged;
+        public event Action<int> OnTotalGoldChanged;
 
-        public void AddGold(int amount)
+        public void AddTotalGold(int amount)
         {
             if (amount <= 0) return;
 
-            _currentGold += amount;
+            _totalGold += amount;
             SaveGold();
-            OnGoldChanged?.Invoke(_currentGold);
-            Debug.Log($"골드 {amount} 획득, 현재 골드: {_currentGold}");
+            OnTotalGoldChanged?.Invoke(_totalGold);
+            Debug.Log($"총 골드 {amount} 획득, 현재 보유 골드: {_totalGold}");
         }
 
         public bool HasEnoughGold(int amount)
         {
-            return _currentGold >= amount;
+            return _totalGold >= amount;
         }
 
         public bool TrySpendGold(int amount)
@@ -45,26 +67,85 @@ namespace Managers
 
             if (!HasEnoughGold(amount))
             {
-                Debug.Log($"골드 부족: 필요 {amount}, 보유 {_currentGold}");
+                Debug.Log($"골드 부족: 필요 {amount}, 보유 {_totalGold}");
                 return false;
             }
 
-            _currentGold -= amount;
+            _totalGold -= amount;
             SaveGold();
-            OnGoldChanged?.Invoke(_currentGold);
-            Debug.Log($"골드 {amount} 소비, 현재 골드: {_currentGold}");
+            OnTotalGoldChanged?.Invoke(_totalGold);
+            Debug.Log($"골드 {amount} 소비, 현재 보유 골드: {_totalGold}");
             return true;
         }
 
         private void LoadGold()
         {
-            _currentGold = PlayerPrefs.GetInt(GOLD_KEY, DEFAULT_GOLD);
+            _totalGold = PlayerPrefs.GetInt(GOLD_KEY, DEFAULT_GOLD);
         }
 
         private void SaveGold()
         {
-            PlayerPrefs.SetInt(GOLD_KEY, _currentGold);
+            PlayerPrefs.SetInt(GOLD_KEY, _totalGold);
             PlayerPrefs.Save();
+        }
+
+        #endregion
+
+        #region In-Game Session Data (Transient)
+
+        [SerializeField] private int _currentGold;
+        public int CurrentGold => _currentGold;
+
+        [SerializeField] private float _currentScore;
+        public float CurrentScore => _currentScore;
+
+        public event Action<int> OnCurrentGoldChanged;
+        public event Action<float> OnCurrentScoreChanged;
+
+        /// <summary> 게임 시작/씬 진입 시 런타임 세션 데이터(획득 골드, 진행 점수/거리) 초기화 </summary>
+        public void StartNewSession()
+        {
+            _currentGold = 0;
+            _currentScore = 0f;
+
+            OnCurrentGoldChanged?.Invoke(_currentGold);
+            OnCurrentScoreChanged?.Invoke(_currentScore);
+        }
+
+        /// <summary> 인게임 게임플레이 중 골드 획득 </summary>
+        public void AddCurrentGold(int amount)
+        {
+            if (amount <= 0) return;
+
+            _currentGold += amount;
+            OnCurrentGoldChanged?.Invoke(_currentGold);
+        }
+
+        /// <summary> 인게임 게임플레이 중 진행 점수/거리(M) 갱신 </summary>
+        public void UpdateCurrentScore(float score)
+        {
+            if (score <= _currentScore) return;
+
+            _currentScore = score;
+            OnCurrentScoreChanged?.Invoke(_currentScore);
+        }
+
+        /// <summary> 게임 종료/정산 시 획득 골드를 총 골드에 반영하고 Top 10 기록 갱신 및 세션 초기화 </summary>
+        public void EndSession()
+        {
+            if (_currentGold > 0)
+            {
+                AddTotalGold(_currentGold);
+            }
+
+            TryAddScore(_currentScore);
+
+            // 정산 후 세션 데이터 초기화 (Retry 시 이전 데이터가 남지 않도록)
+            _currentGold = 0;
+            _currentScore = 0f;
+
+            OnCurrentGoldChanged?.Invoke(_currentGold);
+            OnCurrentScoreChanged?.Invoke(_currentScore);
         }
 
         #endregion
@@ -123,30 +204,71 @@ namespace Managers
 
         #endregion
 
-        #region Game Record
+        #region Game Record & Top 10 Leaderboard
 
-        private const string BEST_DEPTH_KEY = "Data_BestDepth";
+        private const string TOP10_RECORDS_KEY = "Data_Top10Records";
+        private const int MAX_RECORD_COUNT = 10;
 
-        private float _bestDepth;
-        public float BestDepth => _bestDepth;
+        private List<float> _topScores = new List<float>();
+        public IReadOnlyList<float> TopScores => _topScores.AsReadOnly();
 
-        public event Action<float> OnBestDepthChanged;
+        // 1위 최고 기록
+        public float BestScore => _topScores.Count > 0 ? _topScores[0] : 0f;
 
-        public bool TryUpdateBestDepth(float depth)
+        public event Action<IReadOnlyList<float>> OnTopScoresChanged;
+        public event Action<float> OnBestScoreChanged;
+
+        public bool TryAddScore(float score)
         {
-            if (depth <= _bestDepth) return false;
+            if (score <= 0f) return false;
 
-            _bestDepth = depth;
-            PlayerPrefs.SetFloat(BEST_DEPTH_KEY, _bestDepth);
-            PlayerPrefs.Save();
+            float previousBest = BestScore;
 
-            OnBestDepthChanged?.Invoke(_bestDepth);
+            // 10개가 채워져 있고, 최하위 기록보다 낮거나 같으면 갱신 안 함
+            if (_topScores.Count >= MAX_RECORD_COUNT && score <= _topScores[_topScores.Count - 1])
+            {
+                return false;
+            }
+
+            _topScores.Add(score);
+            _topScores.Sort((a, b) => b.CompareTo(a)); // 내림차순 정렬
+
+            if (_topScores.Count > MAX_RECORD_COUNT)
+            {
+                _topScores.RemoveRange(MAX_RECORD_COUNT, _topScores.Count - MAX_RECORD_COUNT);
+            }
+
+            SaveTopRecords();
+            OnTopScoresChanged?.Invoke(_topScores.AsReadOnly());
+
+            if (BestScore > previousBest)
+            {
+                OnBestScoreChanged?.Invoke(BestScore);
+            }
+
             return true;
         }
 
         private void LoadGameRecord()
         {
-            _bestDepth = PlayerPrefs.GetFloat(BEST_DEPTH_KEY, 0f);
+            string json = PlayerPrefs.GetString(TOP10_RECORDS_KEY, string.Empty);
+            if (!string.IsNullOrEmpty(json))
+            {
+                HighScoreData data = JsonUtility.FromJson<HighScoreData>(json);
+                _topScores = data.records ?? new List<float>();
+            }
+            else
+            {
+                _topScores = new List<float>();
+            }
+        }
+
+        private void SaveTopRecords()
+        {
+            HighScoreData data = new HighScoreData { records = _topScores };
+            string json = JsonUtility.ToJson(data);
+            PlayerPrefs.SetString(TOP10_RECORDS_KEY, json);
+            PlayerPrefs.Save();
         }
 
         #endregion
