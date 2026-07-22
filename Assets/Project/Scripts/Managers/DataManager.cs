@@ -140,6 +140,13 @@ namespace Managers
 
             TryAddScore(_currentScore);
 
+            // Supabase 온라인 DB에도 기록 등록
+            if (_currentScore > 0f && SupabaseManager.Instance != null)
+            {
+                string userNickname = PlayerPrefs.GetString("Data_UserNickname", string.Empty);
+                SupabaseManager.Instance.PostScore(userNickname, _currentScore);
+            }
+
             // 정산 후 세션 데이터 초기화 (Retry 시 이전 데이터가 남지 않도록)
             _currentGold = 0;
             _currentScore = 0f;

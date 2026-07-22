@@ -46,5 +46,13 @@ namespace Managers
         public bool CanUnlock(UnlockNodeData node) => DataManager.Instance.CanUnlock(node);
         public bool TryUnlock(UnlockNodeData node) => DataManager.Instance.TryUnlock(node);
         public bool HasEnoughGold(int amount) => DataManager.Instance.HasEnoughGold(amount);
+
+        public void FetchOnlineLeaderboard(Action<List<ScoreEntry>> onSuccess, Action<string> onError = null)
+        {
+            if (SupabaseManager.Instance != null)
+            {
+                SupabaseManager.Instance.FetchTop10(onSuccess, onError);
+            }
+        }
     }
 }
