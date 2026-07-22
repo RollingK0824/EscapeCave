@@ -266,6 +266,9 @@ public void StartFlight(float duration)
         _isSwimming = true;
         _rb.gravityScale = _swimGravityScale;
         if (_jump != null) _jump.IsInWater = true;
+
+        var waterEffects = other.GetComponent<WaterSurfaceEffects>();
+        if (waterEffects != null) waterEffects.TriggerRipple(transform.position.x);
     }
 
     private void OnTriggerStay2D(Collider2D other)
