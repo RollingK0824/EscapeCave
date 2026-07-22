@@ -85,7 +85,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -99,7 +99,7 @@ TextureImporter:
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 100
+  spritePixelsToUnits: 8
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -123,7 +123,7 @@ TextureImporter:
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 1
+    textureCompression: 0
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -164,12 +164,12 @@ TextureImporter:
       name: enviorement_emmision_0
       rect:
         serializedVersion: 2
-        x: 21
+        x: 20
         y: 274
-        width: 11
-        height: 12
+        width: 12
+        height: 13
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -186,12 +186,12 @@ TextureImporter:
       name: enviorement_emmision_1
       rect:
         serializedVersion: 2
-        x: 38
-        y: 275
-        width: 12
-        height: 9
+        x: 37
+        y: 274
+        width: 13
+        height: 12
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -208,12 +208,12 @@ TextureImporter:
       name: enviorement_emmision_2
       rect:
         serializedVersion: 2
-        x: 22
+        x: 21
         y: 257
-        width: 11
-        height: 12
+        width: 12
+        height: 13
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -230,12 +230,12 @@ TextureImporter:
       name: enviorement_emmision_3
       rect:
         serializedVersion: 2
-        x: 38
-        y: 258
-        width: 12
-        height: 9
+        x: 37
+        y: 257
+        width: 13
+        height: 12
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -252,12 +252,12 @@ TextureImporter:
       name: enviorement_emmision_4
       rect:
         serializedVersion: 2
-        x: 17
-        y: 214
-        width: 81
-        height: 21
+        x: 18
+        y: 215
+        width: 79
+        height: 19
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -274,12 +274,12 @@ TextureImporter:
       name: enviorement_emmision_5
       rect:
         serializedVersion: 2
-        x: 113
-        y: 198
-        width: 47
-        height: 49
+        x: 114
+        y: 199
+        width: 45
+        height: 47
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -296,12 +296,12 @@ TextureImporter:
       name: enviorement_emmision_6
       rect:
         serializedVersion: 2
-        x: 17
-        y: 162
-        width: 70
-        height: 49
+        x: 18
+        y: 163
+        width: 68
+        height: 47
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -318,12 +318,12 @@ TextureImporter:
       name: enviorement_emmision_7
       rect:
         serializedVersion: 2
-        x: 104
-        y: 163
-        width: 29
-        height: 26
+        x: 105
+        y: 164
+        width: 27
+        height: 24
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -340,12 +340,12 @@ TextureImporter:
       name: enviorement_emmision_8
       rect:
         serializedVersion: 2
-        x: 22
-        y: 107
-        width: 34
-        height: 20
+        x: 17
+        y: 27
+        width: 44
+        height: 106
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -363,11 +363,11 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 178
-        y: 117
-        width: 24
-        height: 20
+        y: 27
+        width: 29
+        height: 117
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -381,59 +381,15 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: enviorement_emmision_10
-      rect:
-        serializedVersion: 2
-        x: 189
-        y: 26
-        width: 7
-        height: 92
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 6fa64e668c5d7bf20800000000000000
-      internalID: 3438451897217084150
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: enviorement_emmision_11
-      rect:
-        serializedVersion: 2
-        x: 38
-        y: 26
-        width: 7
-        height: 81
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: b2d024a81cc268cc0800000000000000
-      internalID: -3709228033333129941
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
       name: enviorement_emmision_12
       rect:
         serializedVersion: 2
-        x: 70
-        y: 26
-        width: 28
-        height: 64
+        x: 66
+        y: 27
+        width: 36
+        height: 69
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -450,12 +406,12 @@ TextureImporter:
       name: enviorement_emmision_13
       rect:
         serializedVersion: 2
-        x: 112
-        y: 26
-        width: 24
-        height: 69
+        x: 111
+        y: 27
+        width: 30
+        height: 76
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -472,12 +428,12 @@ TextureImporter:
       name: enviorement_emmision_14
       rect:
         serializedVersion: 2
-        x: 150
-        y: 25
-        width: 20
-        height: 36
+        x: 146
+        y: 26
+        width: 25
+        height: 43
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -494,12 +450,12 @@ TextureImporter:
       name: enviorement_emmision_15
       rect:
         serializedVersion: 2
-        x: 207
-        y: 52
-        width: 15
-        height: 19
+        x: 208
+        y: 53
+        width: 17
+        height: 21
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -516,12 +472,12 @@ TextureImporter:
       name: enviorement_emmision_16
       rect:
         serializedVersion: 2
-        x: 210
-        y: 27
-        width: 12
-        height: 16
+        x: 209
+        y: 28
+        width: 15
+        height: 18
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -538,7 +494,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 580a6d50d022b484cb12ad57fd752dc0
     internalID: 0
     vertices: []
     indices: 

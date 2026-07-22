@@ -1,13 +1,13 @@
 fileFormatVersion: 2
-guid: a0f39194cb46c3449ae0a1918669c9d3
+guid: 3e359120912a8cc4bb703091f29c4827
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 7215646468808524866
-    second: ground_emission_0
+      213: 2358377677850764274
+    second: MapTileSheets_emission_0
   - first:
-      213: -7128007057523816819
-    second: ground_emission_1
+      213: 4575627731652502257
+    second: MapTileSheets_emission_1
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -116,13 +116,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: ground_emission_0
+      name: MapTileSheets_emission_0
       rect:
         serializedVersion: 2
         x: 0
-        y: 0
-        width: 57
-        height: 47
+        y: 16
+        width: 24
+        height: 4
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -131,20 +131,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 2444226bb30232460800000000000000
-      internalID: 7215646468808524866
+      spriteID: 2f36186b004aab020800000000000000
+      internalID: 2358377677850764274
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: ground_emission_1
+      name: MapTileSheets_emission_1
       rect:
         serializedVersion: 2
         x: 0
-        y: 0
-        width: 9
-        height: 5
+        y: 8
+        width: 24
+        height: 7
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -153,8 +153,96 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: d86c0d3d85b341d90800000000000000
-      internalID: -7128007057523816819
+      spriteID: 1f2e291ed25ef7f30800000000000000
+      internalID: 4575627731652502257
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MapTileSheets_emission_2
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 24
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8426e07819e7aeb4ba605be9e8a898df
+      internalID: 779848440
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MapTileSheets_emission_3
+      rect:
+        serializedVersion: 2
+        x: 33
+        y: 8
+        width: 23
+        height: 3
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 822aff3badad4c548b1e264937080aff
+      internalID: 1046585753
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MapTileSheets_emission_4
+      rect:
+        serializedVersion: 2
+        x: 33
+        y: 0
+        width: 23
+        height: 2
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3918c3f2ec35d40408ceec3556464b2c
+      internalID: 824335940
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MapTileSheets_emission_5
+      rect:
+        serializedVersion: 2
+        x: 69
+        y: 14
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 19503b127b2bbf047b885a138b280616
+      internalID: -26164247
       vertices: []
       indices: 
       edges: []
@@ -163,7 +251,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 28d95c2e17716e142962a15a45332a06
     internalID: 0
     vertices: []
     indices: 
@@ -173,8 +261,12 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      ground_emission_0: 7215646468808524866
-      ground_emission_1: -7128007057523816819
+      MapTileSheets_emission_0: 2358377677850764274
+      MapTileSheets_emission_1: 4575627731652502257
+      MapTileSheets_emission_2: 779848440
+      MapTileSheets_emission_3: 1046585753
+      MapTileSheets_emission_4: 824335940
+      MapTileSheets_emission_5: -26164247
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
