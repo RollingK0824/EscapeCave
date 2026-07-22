@@ -14,11 +14,38 @@ public struct ChunkGenParams
     public List<GameObject> spawnedList;
 }
 
+[System.Flags]
+public enum SpawnLocation
+{
+    None = 0,
+    Ground = 1 << 0,          // 1: 지면 (바닥)
+    Platform = 1 << 1,        // 2: 플랫폼 위
+    Ceiling = 1 << 2,         // 4: 천장
+    UnderPlatform = 1 << 3,   // 8: 플랫폼 아래
+    Water = 1 << 4            // 16: 물속
+}
+
+[System.Serializable]
+public enum SpawnCategory
+{
+    Monster,
+    Object,
+    Trap
+}
+
 [System.Serializable]
 public struct SpawnRule
 {
     public GameObject prefab;
+    public SpawnCategory category;
+
+    [Tooltip("스폰 허용 위치 (비트 플래그 다중 선택 가능)")]
+    public SpawnLocation validLocations;
+
     [Range(0f, 1f)] public float spawnChance;
+
+    [Tooltip("오브젝트 간 최소 X축 스폰 간격 (0일 경우 카테고리 기본값 사용)")]
+    public int minSpawnGapOverride;
 
     [Header("해금 조건 (null일 경우 항상 스폰 가능)")]
     public UnlockNodeData requiredUnlockNode;
@@ -33,6 +60,11 @@ public struct SpawnRule
         }
 
         return true;
+    }
+
+    public bool CanSpawnAt(SpawnLocation location)
+    {
+        return (validLocations & location) != 0;
     }
 }
 
@@ -79,18 +111,13 @@ public abstract class BaseMapRuleSO : ScriptableObject
 
     [Header("오브젝트/몬스터 스폰 설정")]
     public List<PlatformSpawnRule> platformConfigurations; 
-    public List<SpawnRule> groundSpawns;   
-    public List<SpawnRule> platformSpawns;   
-    public List<SpawnRule> ceilingSpawns;  
-    public List<SpawnRule> underPlatformSpawns; 
+
+    [Header("통합 스폰 규칙 설정 (해금 조건 및 비트플래그 지원)")]
+    public List<SpawnRule> spawnRules = new List<SpawnRule>();
+
     [Tooltip("몬스터 간 최소 X축 스폰 간격 (타일 수)")]
     public int minSpawnGapX = 8;
 
-    [Header("일반 오브젝트/상자/골드 스폰 설정 (해금 조건 지원)")]
-    public List<SpawnRule> groundObjectSpawns;
-    public List<SpawnRule> platformObjectSpawns;
-    public List<SpawnRule> ceilingObjectSpawns;
-    public List<SpawnRule> underPlatformObjectSpawns;
     [Tooltip("오브젝트 간 최소 X축 스폰 간격 (타일 수)")]
     public int minObjectSpawnGapX = 4;
 
@@ -101,6 +128,7 @@ public abstract class BaseMapRuleSO : ScriptableObject
     [System.NonSerialized] protected float currentSeed;
     [System.NonSerialized] protected List<GameObject> spawnedList;
     [System.NonSerialized] protected System.Random chunkRandom;
+    protected HashSet<Vector2Int> occupiedTilePositions = new HashSet<Vector2Int>();
 
     protected List<Vector2Int> mainPath = new List<Vector2Int>();
     
@@ -486,75 +514,95 @@ public abstract class BaseMapRuleSO : ScriptableObject
     {
         if (spawnedList == null) return;
 
+        occupiedTilePositions.Clear();
+
         // 플랫폼을 먼저 생성해야 그 위에 스폰되는 오브젝트들이 정상적으로 바닥을 인식할 수 있습니다.
         foreach (var data in pendingPlatforms)
         {
             SpawnPlatform(data);
         }
 
-        int lastGroundSpawnX = -minSpawnGapX;
-        int lastCeilingSpawnX = -minSpawnGapX;
-        int lastUnderPlatformSpawnX = -minSpawnGapX;
-        int lastPlatformSpawnX = -minSpawnGapX;
+        if (spawnRules == null || spawnRules.Count == 0)
+        {
+            SpawnThemeSpecificObjects();
+            return;
+        }
+
+        int lastGroundMonsterX = -minSpawnGapX;
+        int lastPlatformMonsterX = -minSpawnGapX;
+        int lastCeilingMonsterX = -minSpawnGapX;
+        int lastUnderPlatformMonsterX = -minSpawnGapX;
 
         int lastGroundObjX = -minObjectSpawnGapX;
+        int lastPlatformObjX = -minObjectSpawnGapX;
         int lastCeilingObjX = -minObjectSpawnGapX;
         int lastUnderPlatformObjX = -minObjectSpawnGapX;
-        int lastPlatformObjX = -minObjectSpawnGapX;
 
         for (int x = 0; x < chunkWidth; x++)
         {
             for (int y = 0; y < chunkHeight; y++)
             {
-                // 바닥 검사
+                // 바닥 검사 (Ground)
                 if (y < chunkHeight - 1 && mapData[x, y] == 1 && mapData[x, y + 1] == 0)
                 {
-                    if (x - lastGroundSpawnX >= minSpawnGapX)
+                    int targetY = y + 1;
+                    if (x - lastGroundMonsterX >= minSpawnGapX)
                     {
-                        if (TrySpawnObject(groundSpawns, x, y + 1)) lastGroundSpawnX = x;
+                        if (TrySpawnObjectByFilter(SpawnLocation.Ground, SpawnCategory.Monster, x, targetY, minSpawnGapX))
+                            lastGroundMonsterX = x;
                     }
                     if (x - lastGroundObjX >= minObjectSpawnGapX)
                     {
-                        if (TrySpawnObject(groundObjectSpawns, x, y + 1)) lastGroundObjX = x;
+                        if (TrySpawnObjectByFilter(SpawnLocation.Ground, SpawnCategory.Object, x, targetY, minObjectSpawnGapX))
+                            lastGroundObjX = x;
                     }
                 }
 
-                // 천장 검사
+                // 천장 검사 (Ceiling)
                 if (y > 0 && mapData[x, y] == 1 && mapData[x, y - 1] == 0)
                 {
-                    if (x - lastCeilingSpawnX >= minSpawnGapX)
+                    int targetY = y - 1;
+                    if (x - lastCeilingMonsterX >= minSpawnGapX)
                     {
-                        if (TrySpawnObject(ceilingSpawns, x, y - 1)) lastCeilingSpawnX = x;
+                        if (TrySpawnObjectByFilter(SpawnLocation.Ceiling, SpawnCategory.Monster, x, targetY, minSpawnGapX))
+                            lastCeilingMonsterX = x;
                     }
                     if (x - lastCeilingObjX >= minObjectSpawnGapX)
                     {
-                        if (TrySpawnObject(ceilingObjectSpawns, x, y - 1)) lastCeilingObjX = x;
+                        if (TrySpawnObjectByFilter(SpawnLocation.Ceiling, SpawnCategory.Object, x, targetY, minObjectSpawnGapX))
+                            lastCeilingObjX = x;
                     }
                 }
 
-                // 플랫폼 밑 검사
+                // 플랫폼 밑 검사 (UnderPlatform)
                 if (y > 0 && (mapData[x, y] == 2 || mapData[x, y] == 4 || mapData[x, y] == 5) && mapData[x, y - 1] == 0)
                 {
-                    if (x - lastUnderPlatformSpawnX >= minSpawnGapX)
+                    int targetY = y - 1;
+                    if (x - lastUnderPlatformMonsterX >= minSpawnGapX)
                     {
-                        if (TrySpawnObject(underPlatformSpawns, x, y - 1)) lastUnderPlatformSpawnX = x;
+                        if (TrySpawnObjectByFilter(SpawnLocation.UnderPlatform, SpawnCategory.Monster, x, targetY, minSpawnGapX))
+                            lastUnderPlatformMonsterX = x;
                     }
                     if (x - lastUnderPlatformObjX >= minObjectSpawnGapX)
                     {
-                        if (TrySpawnObject(underPlatformObjectSpawns, x, y - 1)) lastUnderPlatformObjX = x;
+                        if (TrySpawnObjectByFilter(SpawnLocation.UnderPlatform, SpawnCategory.Object, x, targetY, minObjectSpawnGapX))
+                            lastUnderPlatformObjX = x;
                     }
                 }
 
-                // 플랫폼 위 검사
+                // 플랫폼 위 검사 (Platform)
                 if (y < chunkHeight - 1 && (mapData[x, y] == 2 || mapData[x, y] == 4 || mapData[x, y] == 5) && mapData[x, y + 1] == 0)
                 {
-                    if (x - lastPlatformSpawnX >= minSpawnGapX)
+                    int targetY = y + 1;
+                    if (x - lastPlatformMonsterX >= minSpawnGapX)
                     {
-                        if (TrySpawnObject(platformSpawns, x, y + 1)) lastPlatformSpawnX = x;
+                        if (TrySpawnObjectByFilter(SpawnLocation.Platform, SpawnCategory.Monster, x, targetY, minSpawnGapX))
+                            lastPlatformMonsterX = x;
                     }
                     if (x - lastPlatformObjX >= minObjectSpawnGapX)
                     {
-                        if (TrySpawnObject(platformObjectSpawns, x, y + 1)) lastPlatformObjX = x;
+                        if (TrySpawnObjectByFilter(SpawnLocation.Platform, SpawnCategory.Object, x, targetY, minObjectSpawnGapX))
+                            lastPlatformObjX = x;
                     }
                 }
             }
@@ -566,9 +614,56 @@ public abstract class BaseMapRuleSO : ScriptableObject
     {
     }
 
+    protected bool TrySpawnObjectByFilter(SpawnLocation location, SpawnCategory category, int localX, int localY, int defaultGap)
+    {
+        if (spawnRules == null || spawnRules.Count == 0) return false;
+
+        // 이미 해당 타일 좌표에 오브젝트/몬스터가 스폰되었는지 확인하여 중복 스폰(Tile Overlap) 방지
+        Vector2Int tilePosKey = new Vector2Int(localX, localY);
+        if (occupiedTilePositions.Contains(tilePosKey)) return false;
+
+        List<SpawnRule> validRules = new List<SpawnRule>();
+        for (int i = 0; i < spawnRules.Count; i++)
+        {
+            var rule = spawnRules[i];
+            if (rule.category == category && rule.CanSpawnAt(location) && rule.IsUnlocked())
+            {
+                validRules.Add(rule);
+            }
+        }
+
+        if (validRules.Count == 0) return false;
+
+        int randomIdx = chunkRandom.Next(0, validRules.Count);
+        SpawnRule selectedRule = validRules[randomIdx];
+
+        int requiredGap = selectedRule.minSpawnGapOverride > 0 ? selectedRule.minSpawnGapOverride : defaultGap;
+        if ((float)chunkRandom.NextDouble() > selectedRule.spawnChance) return false;
+
+        Vector3Int cellPos = new Vector3Int(offsetX + localX, localY, 0);
+        Vector3 worldPos = globalTilemap.CellToWorld(cellPos) + new Vector3(0.5f, 0.5f, 0);
+
+        GameObject instance = Managers.PoolManager.Instance.Pop(selectedRule.prefab, worldPos, Quaternion.identity);
+        if (instance != null)
+        {
+            var mapObj = instance.GetComponent<MapSpawnedObject>();
+            if (mapObj == null) mapObj = instance.AddComponent<MapSpawnedObject>();
+            mapObj.poolKey = selectedRule.prefab.GetInstanceID();
+
+            spawnedList.Add(instance);
+            occupiedTilePositions.Add(tilePosKey);
+            return true;
+        }
+
+        return false;
+    }
+
     protected bool TrySpawnObject(List<SpawnRule> rules, int localX, int localY)
     {
         if (rules == null || rules.Count == 0) return false;
+
+        Vector2Int tilePosKey = new Vector2Int(localX, localY);
+        if (occupiedTilePositions.Contains(tilePosKey)) return false;
 
         List<SpawnRule> validRules = new List<SpawnRule>();
         for (int i = 0; i < rules.Count; i++)
@@ -597,6 +692,7 @@ public abstract class BaseMapRuleSO : ScriptableObject
             mapObj.poolKey = rule.prefab.GetInstanceID();
 
             spawnedList.Add(instance);
+            occupiedTilePositions.Add(tilePosKey);
             return true;
         }
 
