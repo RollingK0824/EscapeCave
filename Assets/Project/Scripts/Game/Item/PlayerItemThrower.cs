@@ -12,10 +12,13 @@ public class PlayerItemThrower : MonoBehaviour
     [SerializeField] private Transform _throwOrigin;
 
     [Header("포물선 미리보기")]
-    [SerializeField] private int _trajectoryPointCount = 24;
+    [SerializeField] private int _trajectoryPointCount = 60;
     [SerializeField] private float _trajectoryTimeStep = 0.08f;
+    [SerializeField] private float _dashesPerUnit = 3f;
+    [SerializeField] private LayerMask _groundLayer;
 
     private LineRenderer _trajectoryLine;
+    private Texture2D _dashTexture;
     private ItemData _pendingItem;
     private System.Action _onThrown;
     private float _projectileGravityScale = 1f;
@@ -30,6 +33,19 @@ public class PlayerItemThrower : MonoBehaviour
             _throwOrigin = transform;
         }
         _trajectoryLine.enabled = false;
+        _trajectoryLine.textureMode = LineTextureMode.Tile;
+
+        _dashTexture = new Texture2D(2, 1, TextureFormat.RGBA32, false)
+        {
+            filterMode = FilterMode.Point,
+            wrapMode = TextureWrapMode.Repeat
+        };
+        _dashTexture.SetPixels(new[] { Color.white, new Color(1f, 1f, 1f, 0f) });
+        _dashTexture.Apply();
+
+        Material dashMaterial = new Material(Shader.Find("Sprites/Default"));
+        dashMaterial.mainTexture = _dashTexture;
+        _trajectoryLine.material = dashMaterial;
     }
 
     /// <summary>
@@ -107,12 +123,35 @@ public class PlayerItemThrower : MonoBehaviour
         Vector2 gravity = Physics2D.gravity * _projectileGravityScale;
 
         _trajectoryLine.positionCount = _trajectoryPointCount;
-        for (int i = 0; i < _trajectoryPointCount; i++)
+        _trajectoryLine.SetPosition(0, origin);
+        Vector2 previousPoint = origin;
+        float totalLength = 0f;
+        int pointCount = 1;
+
+        for (int i = 1; i < _trajectoryPointCount; i++)
         {
             float t = i * _trajectoryTimeStep;
             Vector2 point = origin + velocity * t + 0.5f * gravity * t * t;
-            _trajectoryLine.SetPosition(i, point);
+
+            RaycastHit2D hit = Physics2D.Linecast(previousPoint, point, _groundLayer);
+            if (hit.collider != null)
+            {
+                point = hit.point;
+            }
+
+            _trajectoryLine.SetPosition(pointCount, point);
+            totalLength += Vector2.Distance(previousPoint, point);
+            pointCount++;
+            previousPoint = point;
+
+            if (hit.collider != null)
+            {
+                break;
+            }
         }
+
+        _trajectoryLine.positionCount = pointCount;
+        _trajectoryLine.material.mainTextureScale = new Vector2(totalLength * _dashesPerUnit, 1f);
     }
 
     private void Throw(Vector2 velocity)
