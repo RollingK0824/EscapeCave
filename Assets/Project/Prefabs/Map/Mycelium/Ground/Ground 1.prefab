@@ -136,7 +136,7 @@ BoxCollider2D:
     adaptiveTilingThreshold: 0.5
     drawMode: 2
     adaptiveTiling: 0
-  m_AutoTiling: 1
+  m_AutoTiling: 0
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
 --- !u!114 &1158745431071357319
@@ -151,3 +151,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dc3b624ca39ed2d41b700963ffd66c6e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MovingPlatform
+  detectionMarginY: 0.6
+  riderLayerMask:
+    serializedVersion: 2
+    m_Bits: 4361

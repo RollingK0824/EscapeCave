@@ -3694,18 +3694,6 @@ PrefabInstance:
       propertyPath: deadZoneController
       value: 
       objectReference: {fileID: 1808580684699890724}
-    - target: {fileID: 4061083408376256958, guid: d5e810f06289aeb41bedb1ce818a773c, type: 3}
-      propertyPath: stageRules.Array.size
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 4061083408376256958, guid: d5e810f06289aeb41bedb1ce818a773c, type: 3}
-      propertyPath: 'stageRules.Array.data[1]'
-      value: 
-      objectReference: {fileID: 11400000, guid: f3808136a0023e742b2d62a252a61f79, type: 2}
-    - target: {fileID: 4061083408376256958, guid: d5e810f06289aeb41bedb1ce818a773c, type: 3}
-      propertyPath: 'stageRules.Array.data[2]'
-      value: 
-      objectReference: {fileID: 11400000, guid: 3a1c7985ec7de784e930419c2b332370, type: 2}
     - target: {fileID: 5262161352336327013, guid: d5e810f06289aeb41bedb1ce818a773c, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0

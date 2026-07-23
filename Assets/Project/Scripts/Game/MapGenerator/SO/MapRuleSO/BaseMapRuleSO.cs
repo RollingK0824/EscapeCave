@@ -164,24 +164,18 @@ public abstract class BaseMapRuleSO : ScriptableObject
         mainPath.Clear();
         pendingPlatforms.Clear();
 
-        // 1. Generate path and platforms first
         endPlatform = GeneratePathAndPlatforms(genParams.startPlatform);
 
-        // 2. Initialize background terrain
         InitializeTerrainBackground();
 
-        // 3. Carve clearance around the path
         CarveClearanceAroundPath();
 
-        // 4. Apply theme-specific terrain details
         ApplyThemeSpecificTerrain();
 
-        // 5. Connect boundaries and write platforms to mapData
         WritePlatformsToMapData();
         SmoothBoundaries(genParams.startY, endPlatform.y);
         ForceTransitionTunnel(genParams.startY);
 
-        // 6. Draw to tilemap and spawn objects
         RenderToTilemap();
         SpawnObjects();
 
@@ -516,7 +510,6 @@ public abstract class BaseMapRuleSO : ScriptableObject
 
         occupiedTilePositions.Clear();
 
-        // 플랫폼을 먼저 생성해야 그 위에 스폰되는 오브젝트들이 정상적으로 바닥을 인식할 수 있습니다.
         foreach (var data in pendingPlatforms)
         {
             SpawnPlatform(data);
@@ -704,13 +697,11 @@ public abstract class BaseMapRuleSO : ScriptableObject
         if (data.rule.prefab == null) return;
 
         Vector3Int cellPos = new Vector3Int(offsetX + data.localX, data.localY, 0);
-        // 중심 맞추기 (결정된 플랫폼 타일 폭 절반만큼 이동)
         Vector3 worldPos = globalTilemap.CellToWorld(cellPos) + new Vector3(0.5f + (data.chosenLength - 1) * 0.5f, 0.5f, 0);
 
         GameObject instance = Managers.PoolManager.Instance.Pop(data.rule.prefab, worldPos, Quaternion.identity);
         if (instance != null)
         {
-            // 1. SpriteRenderer 리사이징 (9-Slice 대응)
             var spriteRenderer = instance.GetComponentInChildren<SpriteRenderer>();
             if (spriteRenderer != null)
             {
@@ -726,7 +717,6 @@ public abstract class BaseMapRuleSO : ScriptableObject
                 }
             }
 
-            // 2. BoxCollider2D 물리 영역 리사이징
             var boxCollider = instance.GetComponentInChildren<BoxCollider2D>();
             if (boxCollider != null)
             {
@@ -737,7 +727,6 @@ public abstract class BaseMapRuleSO : ScriptableObject
             if (mapObj == null) mapObj = instance.AddComponent<MapSpawnedObject>();
             mapObj.poolKey = data.rule.prefab.GetInstanceID();
 
-            // 3. 양끝 투명 콜라이더(LeftLedge, RightLedge) 위치 보정
             Transform leftLedge = instance.transform.Find("LeftLedge");
             Transform rightLedge = instance.transform.Find("RightLedge");
             if (leftLedge != null || rightLedge != null)
@@ -750,7 +739,6 @@ public abstract class BaseMapRuleSO : ScriptableObject
                     leftLedge.localPosition = new Vector3(-offsetValue, leftLedge.localPosition.y, 0f);
                     if (isScaled)
                     {
-                        // 부모의 Scale.x 확장에 따라 자식의 가로 폭이 비정상적으로 늘어나는 것을 방지 (역수 곱하기)
                         leftLedge.localScale = new Vector3(1f / data.chosenLength, leftLedge.localScale.y, leftLedge.localScale.z);
                     }
                 }
