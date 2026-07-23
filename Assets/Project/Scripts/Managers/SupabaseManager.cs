@@ -29,6 +29,12 @@ namespace Managers
         public float score;
     }
 
+    [Serializable]
+    public class NicknameUpdatePayload
+    {
+        public string nickname;
+    }
+
     public class SupabaseManager : SingletonBase<SupabaseManager>
     {
         [Header("Supabase API Settings")]
@@ -180,6 +186,45 @@ namespace Managers
                 else
                 {
                     Debug.LogError($"[Supabase] Post Score Error: {req.error} (Requested URL: '{url}')");
+                    onError?.Invoke(req.error);
+                }
+            }
+        }
+
+        /// <summary> 기존에 등록된 랭킹 데이터의 닉네임을 일괄 변경 </summary>
+        public void UpdateNickname(string newNickname, Action onSuccess = null, Action<string> onError = null)
+        {
+            StartCoroutine(CoUpdateNickname(newNickname, onSuccess, onError));
+        }
+
+        private IEnumerator CoUpdateNickname(string newNickname, Action onSuccess, Action<string> onError)
+        {
+            string baseUrl = GetCleanUrl();
+            string url = $"{baseUrl}/rest/v1/leaderboards?user_id=eq.{_deviceId}";
+
+            NicknameUpdatePayload payload = new NicknameUpdatePayload { nickname = newNickname };
+            string jsonBody = JsonUtility.ToJson(payload);
+            byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(jsonBody);
+
+            using (UnityWebRequest req = new UnityWebRequest(url, "PATCH"))
+            {
+                req.uploadHandler = new UploadHandlerRaw(bodyRaw);
+                req.downloadHandler = new DownloadHandlerBuffer();
+                req.SetRequestHeader("Content-Type", "application/json");
+                req.SetRequestHeader("apikey", _supabaseAnonKey.Trim());
+                req.SetRequestHeader("Authorization", $"Bearer {_supabaseAnonKey.Trim()}");
+                req.SetRequestHeader("Prefer", "return=minimal");
+
+                yield return req.SendWebRequest();
+
+                if (req.result == UnityWebRequest.Result.Success || req.responseCode == 200 || req.responseCode == 204)
+                {
+                    Debug.Log($"[Supabase] 닉네임 업데이트 성공! ({newNickname})");
+                    onSuccess?.Invoke();
+                }
+                else
+                {
+                    Debug.LogError($"[Supabase] Update Nickname Error: {req.error} (StatusCode: {req.responseCode}, URL: '{url}')");
                     onError?.Invoke(req.error);
                 }
             }
