@@ -212,6 +212,35 @@ namespace Managers
                     Debug.LogError("[SoundManager] 팝업된 오브젝트에 SoundPlayer 컴포넌트가 존재하지 않습니다.");
                 }
             }
+
+            // SoundDataSO의 enableEcho 옵션에 따른 EchoManager 자동 연동
+            TriggerEchoFromSoundData(data, position);
+        }
+
+        private void TriggerEchoFromSoundData(SoundDataSO data, Vector3? position)
+        {
+            if (data == null || !data.enableEcho || !position.HasValue) return;
+            if (EchoManager.Instance == null) return;
+
+            float intensity;
+            float speed;
+            float fadeSpeed;
+
+            if (data.useAutoEchoParams)
+            {
+                // 최소 범위 8m 보장 + Volume 기반 최대 20m까지 확장
+                intensity = (data.volume * 12f) + 8f;
+                speed = (data.pitch * 10f) + 10f;
+                fadeSpeed = 1.2f;
+            }
+            else
+            {
+                intensity = data.customIntensity;
+                speed = data.customSpeed;
+                fadeSpeed = data.customFadeSpeed;
+            }
+
+            EchoManager.Instance.TriggerSound(position.Value, intensity, speed, fadeSpeed);
         }
     }
 }
