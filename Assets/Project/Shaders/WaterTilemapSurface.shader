@@ -23,6 +23,18 @@ Shader "Custom/WaterTilemapSurface"
         _DistortionStrength("Ripple Distortion Strength", Range(0, 0.05)) = 0.006
         _WaveFrequency("Ripple Frequency", Range(0, 30)) = 8
         _WaveSpeed("Ripple Speed", Range(0, 10)) = 1.5
+        _SurfaceBobAmplitude("Surface Bob Amplitude (World Units)", Range(0, 0.1)) = 0.03
+        _SurfaceBobBand("Surface Bob Band (World Units)", Range(0.1, 5)) = 1
+        _SurfaceLineColor("Surface Line Color", Color) = (0.8, 0.95, 1, 1)
+        _SurfaceLineWidth("Surface Line Width (World Units)", Range(0.01, 1)) = 0.15
+        _SurfaceLineStrength("Surface Line Strength", Range(0, 2)) = 0.5
+
+        _RippleOriginX("Impact Ripple Origin X", Float) = 0
+        _RippleStartTime("Impact Ripple Start Time", Float) = -100
+        _RippleAmplitude("Impact Ripple Amplitude", Range(0, 0.1)) = 0.03
+        _RippleSpeed("Impact Ripple Wave Speed", Range(0, 10)) = 4
+        _RippleFrequency("Impact Ripple Wave Frequency", Range(0, 10)) = 3
+        _RippleDamping("Impact Ripple Damping", Range(0, 5)) = 1
         _WaterEffectStrength("Water Effect Strength", Range(0, 1)) = 0.85
         _MinSurfaceAlpha("Min Water Opacity", Range(0, 1)) = 0.92
 
@@ -119,6 +131,17 @@ Shader "Custom/WaterTilemapSurface"
                 half _DistortionStrength;
                 half _WaveFrequency;
                 half _WaveSpeed;
+                half _SurfaceBobAmplitude;
+                half _SurfaceBobBand;
+                half4 _SurfaceLineColor;
+                half _SurfaceLineWidth;
+                half _SurfaceLineStrength;
+                float _RippleOriginX;
+                float _RippleStartTime;
+                half _RippleAmplitude;
+                half _RippleSpeed;
+                half _RippleFrequency;
+                half _RippleDamping;
                 half _WaterEffectStrength;
                 half _MinSurfaceAlpha;
                 half4 _FlowDirection;
@@ -133,6 +156,21 @@ Shader "Custom/WaterTilemapSurface"
                 half _GlintStrength;
             CBUFFER_END
 
+            // 입수/충돌 지점(_RippleOriginX)에서 시간(_RippleStartTime)에 맞춰 옆으로 퍼져나가며
+            // 감쇠하는 충격파. 거리(rippleDist)와 경과 시간(rippleElapsed) 둘 다에 감쇠(exp)를 걸어서
+            // 멀리 퍼질수록, 시간이 지날수록 잦아든다. WaterSurface.shader의 같은 공식을 재사용.
+            half ImpactRippleWave(float worldX)
+            {
+                float rippleDist = abs(worldX - _RippleOriginX);
+                float rippleElapsed = (_Time.y - _RippleStartTime) * _RippleSpeed - rippleDist;
+                half wave = 0;
+                if (rippleElapsed > 0)
+                {
+                    wave = _RippleAmplitude * exp(-_RippleDamping * rippleDist) * exp(-_RippleDamping * rippleElapsed) * sin(rippleElapsed * _RippleFrequency);
+                }
+                return wave;
+            }
+
             Varyings WaterLitVertex(Attributes input)
             {
                 UNITY_SKINNED_VERTEX_COMPUTE(input);
@@ -144,8 +182,21 @@ Shader "Custom/WaterTilemapSurface"
                 SetUpSpriteInstanceProperties();
                 input.positionOS = UnityFlipSprite(input.positionOS, unity_SpriteProps.xy);
 
-                o.positionCS = TransformObjectToHClip(input.positionOS);
-                o.positionWS = TransformObjectToWorld(input.positionOS);
+                float3 positionWS = TransformObjectToWorld(input.positionOS);
+
+                // 수면 상단 정점만 살짝 위아래로 들썩여 "찰랑임"을 표현한다.
+                // uv.y는 타일 "한 칸" 안에서의 상하 위치일 뿐이라 이것만 가중치로 쓰면 물 중간에 있는
+                // 타일들의 위쪽 경계까지 다 같이 움직여서, 위아래로 이웃한 타일 사이가 벌어져 틈이 보인다.
+                // 그래서 _SurfaceWorldY(실제 수면 높이) 근방 _SurfaceBobBand 폭 안에 있는 타일에만
+                // 들썩임을 제한해, 맨 위 수면 줄만 움직이고 그 아래 타일들은 서로 안 벌어지게 고정한다.
+                float depthBelowSurface = _SurfaceWorldY - positionWS.y;
+                half surfaceMask = 1.0 - saturate(depthBelowSurface / _SurfaceBobBand);
+                float bobPhase = positionWS.x * _WaveFrequency + _Time.y * _WaveSpeed;
+                half impactWave = ImpactRippleWave(positionWS.x);
+                positionWS.y += (sin(bobPhase) * _SurfaceBobAmplitude + impactWave) * input.uv.y * surfaceMask;
+
+                o.positionCS = TransformWorldToHClip(positionWS);
+                o.positionWS = positionWS;
                 o.uv = input.uv;
                 o.lightingUV = half2(ComputeScreenPos(o.positionCS / o.positionCS.w).xy);
                 o.color = input.color * _Color * unity_SpriteColor;
@@ -163,7 +214,9 @@ Shader "Custom/WaterTilemapSurface"
                 // 서로 다른 주파수/속도의 파동 두 개를 합쳐 제자리 출렁임이 아니라 유기적으로 흐르는 느낌을 만든다.
                 float wave1 = sin(input.positionWS.x * _WaveFrequency + _Time.y * _WaveSpeed) * _DistortionStrength;
                 float wave2 = sin((input.positionWS.x * 2.3 + input.positionWS.y * 1.7) * _WaveFrequency * 0.5 - _Time.y * _WaveSpeed * 1.3) * _DistortionStrength * 0.5;
-                float ripple = wave1 + wave2;
+                // 입수 지점에서 옆으로 퍼져나가는 충격파(ImpactRippleWave)도 같은 ripple 값에 더해서,
+                // 반사/굴절 왜곡과 수면 라인(surfaceLineDistance)이 정점 bob과 같이 한 번에 출렁이게 한다.
+                float ripple = wave1 + wave2 + ImpactRippleWave(input.positionWS.x);
 
                 // flowOffset은 "물에 비친 상"이 아니라 노이즈 텍스처를 읽는 좌표를 패닝하는 데만 쓴다.
                 // (반사/굴절 샘플 좌표에 그대로 더하면 비친 오브젝트 자체가 한 방향으로 흘러가버려서 안 됨 — 흘러야 하는 건 물 표면 무늬지, 비친 장면이 아니다.)
@@ -246,6 +299,14 @@ Shader "Custom/WaterTilemapSurface"
                 // 파동 위상 + 노이즈에 맞춰 밝기를 살짝 흔들어 표면에 반짝이는 결(shimmer)을 더한다.
                 half shimmer = 1.0 + (wave2 + (n1 * n2 - 0.25)) * _ShimmerStrength * 5.0;
                 waterLayer *= shimmer;
+
+                // 수면 경계에 얇은 하이라이트 라인을 얹어 "물"임을 확실히 읽히게 한다.
+                // ripple(정점 bob과 같은 위상)만큼 라인 기준선을 같이 흔들어서, 실제로 출렁이는
+                // 수면 실루엣에 라인이 붙어 다니는 것처럼 보이게 한다. 물 밖(양수)/속(음수) 어느 쪽이든
+                // _SurfaceLineWidth 폭 안이면 라인이 걸리도록 부호 없는 거리로 계산한다.
+                float surfaceLineDistance = (_SurfaceWorldY - input.positionWS.y) - ripple;
+                half surfaceLine = (1.0 - smoothstep(0.0, _SurfaceLineWidth, abs(surfaceLineDistance))) * _SurfaceLineStrength;
+                waterLayer = lerp(waterLayer, _SurfaceLineColor.rgb, saturate(surfaceLine));
 
                 half3 albedo = lerp(tileColor.rgb, waterLayer, _WaterEffectStrength);
 

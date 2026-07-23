@@ -151,7 +151,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d46155e28228ee044800c99ef5180a22, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TitleMenu
-  _gameSceneName: ProtoType
+  _gameSceneName: Tutorial
   _unlockTreeSceneName: UnlockTree
   _scoreBoardScene: ScoreBoardScene
   _optionsPanel: {fileID: 545015896}
