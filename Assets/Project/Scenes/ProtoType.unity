@@ -5927,6 +5927,7 @@ GameObject:
   - component: {fileID: 7087316411194645041}
   - component: {fileID: 9095636757710722914}
   - component: {fileID: 3019570300685305858}
+  - component: {fileID: 9095636757710722915}
   m_Layer: 5
   m_Name: VolumeSlider
   m_TagString: Untagged
@@ -6410,6 +6411,18 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &9095636757710722915
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7759383831936911239}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a52220864a2160458998b7011016c41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BGMVolumeSlider
 --- !u!222 &9128416290430291460
 CanvasRenderer:
   m_ObjectHideFlags: 0

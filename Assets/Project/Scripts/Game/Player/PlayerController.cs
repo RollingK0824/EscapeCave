@@ -179,7 +179,7 @@ public class PlayerController : MonoBehaviour, IDamageable
         _canCry = false;
         _movement.SetMoveInput(Vector2.zero);
 
-        yield return new WaitForSeconds(duration);
+        yield return new WaitForSecondsRealtime(duration);
 
         _canMove = prevMove;
         _canJump = prevJump;
