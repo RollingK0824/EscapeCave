@@ -10,6 +10,7 @@ namespace Managers
         [Header("BGM Settings")]
         [SerializeField] private AudioSource[] _bgmSources;
         [SerializeField] private float _crossfadeDuration = 1.0f;
+        [SerializeField, Range(0f, 1f)] private float _bgmVolume = 0.5f;
 
         [Header("SFX Pooling")]
         [SerializeField] private GameObject _soundPlayerPrefab;
@@ -21,10 +22,17 @@ namespace Managers
         private int _activeBgmIndex = 0;
         private Coroutine _crossfadeCoroutine;
         private GameObject _fallbackPrefab;
+        private float _currentThemeScale = 1f;
+
+        private const string BGM_VOLUME_KEY = "BGMVolume";
+
+        public float BGMVolume => _bgmVolume;
 
         protected override void Awake()
         {
             base.Awake();
+
+            _bgmVolume = PlayerPrefs.GetFloat(BGM_VOLUME_KEY, _bgmVolume);
 
             InitializeBGMSources();
             InitializeFallbackSFXPrefab();
@@ -85,13 +93,13 @@ namespace Managers
                 return;
             }
 
-            PlayBGM(themeData.themeBgm);
+            PlayBGM(themeData.themeBgm, themeData.volumeScale);
         }
 
         /// <summary>
         /// BGM 오디오 클립 재생 (크로스페이드 적용)
         /// </summary>
-        public void PlayBGM(AudioClip clip)
+        public void PlayBGM(AudioClip clip, float volumeScale = 1f)
         {
             if (clip == null)
             {
@@ -114,11 +122,32 @@ namespace Managers
                 return;
             }
 
+            _currentThemeScale = Mathf.Clamp01(volumeScale);
+
             nextSource.clip = clip;
             nextSource.Play();
 
             _crossfadeCoroutine = StartCoroutine(CoCrossfade(currentSource, nextSource));
             _activeBgmIndex = nextBgmIndex;
+        }
+
+        /// <summary>
+        /// BGM 마스터 볼륨 설정 (0~1). 옵션 볼륨 슬라이더에서 호출한다.
+        /// </summary>
+        public void SetBGMVolume(float volume)
+        {
+            _bgmVolume = Mathf.Clamp01(volume);
+            PlayerPrefs.SetFloat(BGM_VOLUME_KEY, _bgmVolume);
+
+            // 크로스페이드 중이 아니면 현재 재생 중인 BGM에 즉시 반영
+            if (_crossfadeCoroutine == null && _bgmSources != null)
+            {
+                AudioSource active = _bgmSources[_activeBgmIndex];
+                if (active != null)
+                {
+                    active.volume = _bgmVolume * _currentThemeScale;
+                }
+            }
         }
 
         /// <summary>
@@ -146,7 +175,6 @@ namespace Managers
         {
             float timer = 0f;
             float startFadeOutVol = fadeOutSource.volume;
-            float targetFadeInVol = 1.0f; // 옵션 설정 등 볼륨 마스터 값을 확장해 연동 가능
 
             fadeInSource.volume = 0f;
 
@@ -156,14 +184,16 @@ namespace Managers
                 float percent = timer / _crossfadeDuration;
 
                 fadeOutSource.volume = Mathf.Lerp(startFadeOutVol, 0f, percent);
-                fadeInSource.volume = Mathf.Lerp(0f, targetFadeInVol, percent);
+                fadeInSource.volume = Mathf.Lerp(0f, _bgmVolume * _currentThemeScale, percent);
 
                 yield return null;
             }
 
             fadeOutSource.Stop();
             fadeOutSource.clip = null;
-            fadeInSource.volume = targetFadeInVol;
+            fadeInSource.volume = _bgmVolume * _currentThemeScale;
+
+            _crossfadeCoroutine = null;
 
             // 더 이상 사용되지 않는 배경음 에셋을 정리하기 위해 호출
             Resources.UnloadUnusedAssets();

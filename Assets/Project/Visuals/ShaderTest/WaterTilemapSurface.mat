@@ -70,15 +70,15 @@ Material:
     - _RippleAmplitude: 0.07
     - _RippleDamping: 0.2
     - _RippleFrequency: 2.5
-    - _RippleOriginX: 32.277973
+    - _RippleOriginX: 23.137484
     - _RippleSpeed: 3
-    - _RippleStartTime: 89.839966
+    - _RippleStartTime: 10.399997
     - _ShimmerStrength: 0.04
     - _SurfaceBobAmplitude: 0.03
     - _SurfaceBobBand: 1
     - _SurfaceLineStrength: 0.11
     - _SurfaceLineWidth: 0.01
-    - _SurfaceWorldY: -3.99
+    - _SurfaceWorldY: -4.31
     - _WaterEffectStrength: 0.85
     - _WaveFrequency: 2.5
     - _WaveSpeed: 0.7
