@@ -40,7 +40,7 @@ namespace Managers
         public void StartNewSession() => DataManager.Instance.StartNewSession();
         public void AddCurrentGold(int amount) => DataManager.Instance.AddCurrentGold(amount);
         public void UpdateCurrentScore(float score) => DataManager.Instance.UpdateCurrentScore(score);
-        public void EndSession() => DataManager.Instance.EndSession();
+        public int EndSession() => DataManager.Instance.EndSession();
 
         public bool IsUnlocked(UnlockNodeData node) => DataManager.Instance.IsUnlocked(node);
         public bool CanUnlock(UnlockNodeData node) => DataManager.Instance.CanUnlock(node);

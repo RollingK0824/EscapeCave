@@ -131,14 +131,14 @@ namespace Managers
         }
 
         /// <summary> 게임 종료/정산 시 획득 골드를 총 골드에 반영하고 Top 10 기록 갱신 및 세션 초기화 </summary>
-        public void EndSession()
+        public int EndSession()
         {
             if (_currentGold > 0)
             {
                 AddTotalGold(_currentGold);
             }
 
-            TryAddScore(_currentScore);
+            int rank = TryAddScore(_currentScore);
 
             // Supabase 온라인 DB에도 기록 등록
             if (_currentScore > 0f && SupabaseManager.Instance != null)
@@ -153,6 +153,8 @@ namespace Managers
 
             OnCurrentGoldChanged?.Invoke(_currentGold);
             OnCurrentScoreChanged?.Invoke(_currentScore);
+
+            return rank;
         }
 
         #endregion
@@ -225,16 +227,16 @@ namespace Managers
         public event Action<IReadOnlyList<float>> OnTopScoresChanged;
         public event Action<float> OnBestScoreChanged;
 
-        public bool TryAddScore(float score)
+        public int TryAddScore(float score)
         {
-            if (score <= 0f) return false;
+            if (score <= 0f) return -1;
 
             float previousBest = BestScore;
 
             // 10개가 채워져 있고, 최하위 기록보다 낮거나 같으면 갱신 안 함
             if (_topScores.Count >= MAX_RECORD_COUNT && score <= _topScores[_topScores.Count - 1])
             {
-                return false;
+                return -1;
             }
 
             _topScores.Add(score);
@@ -245,6 +247,8 @@ namespace Managers
                 _topScores.RemoveRange(MAX_RECORD_COUNT, _topScores.Count - MAX_RECORD_COUNT);
             }
 
+            int rank = _topScores.IndexOf(score) + 1;
+
             SaveTopRecords();
             OnTopScoresChanged?.Invoke(_topScores.AsReadOnly());
 
@@ -253,7 +257,7 @@ namespace Managers
                 OnBestScoreChanged?.Invoke(BestScore);
             }
 
-            return true;
+            return rank;
         }
 
         private void LoadGameRecord()
