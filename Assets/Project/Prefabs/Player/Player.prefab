@@ -566,6 +566,7 @@ MonoBehaviour:
   _waterLayer:
     serializedVersion: 2
     m_Bits: 16
+  _waterEntrySplashPrefab: {fileID: 4085252551923712736, guid: adf226840c49cb1419f5d521339e09d2, type: 3}
   _maxStepHeight: 0.5
   _stepCheckDistance: 0.4
   _stepClimbSpeed: 15
@@ -761,8 +762,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerItemThrower
   _throwOrigin: {fileID: 0}
-  _trajectoryPointCount: 24
+  _trajectoryPointCount: 60
   _trajectoryTimeStep: 0.08
+  _dashesPerUnit: 3
+  _groundLayer:
+    serializedVersion: 2
+    m_Bits: 64
 --- !u!120 &7354258661761447304
 LineRenderer:
   serializedVersion: 3
@@ -835,8 +840,8 @@ LineRenderer:
       m_RotationOrder: 4
     colorGradient:
       serializedVersion: 2
-      key0: {r: 1, g: 0, b: 0, a: 1}
-      key1: {r: 1, g: 0, b: 0, a: 1}
+      key0: {r: 1, g: 1, b: 1, a: 1}
+      key1: {r: 1, g: 1, b: 1, a: 1}
       key2: {r: 0, g: 0, b: 0, a: 0}
       key3: {r: 0, g: 0, b: 0, a: 0}
       key4: {r: 0, g: 0, b: 0, a: 0}

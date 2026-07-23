@@ -1,4 +1,5 @@
 using System.Collections;
+using Managers;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -21,6 +22,8 @@ public class PlayerMovement : MonoBehaviour
     private float _swimGravityScale = 0.3f;
     [SerializeField, Tooltip("이 레이어에 속한 트리거 콜라이더에 닿으면 물속 상태로 전환됩니다.")]
     private LayerMask _waterLayer;
+    [SerializeField, Tooltip("입수하는 순간 옆으로 튀기는 파티클 이펙트 프리팹 (PooledParticleEffect 필요). 비워두면 재생하지 않습니다.")]
+    private GameObject _waterEntrySplashPrefab;
 
     [Header("Step Climb")]
     [SerializeField, Tooltip("이 높이 이하의 수직 단차는 자동으로 타고 오릅니다.")]
@@ -269,6 +272,26 @@ public void StartFlight(float duration)
 
         var waterEffects = other.GetComponent<WaterSurfaceEffects>();
         if (waterEffects != null) waterEffects.TriggerRipple(transform.position.x);
+
+        SpawnWaterEntrySplash(transform.position);
+    }
+
+    /// <summary>PlayerTongueAttack.SpawnSplashEffect와 동일한 Pop → PooledParticleEffect.Play 패턴.</summary>
+    private void SpawnWaterEntrySplash(Vector3 position)
+    {
+        if (_waterEntrySplashPrefab == null || PoolManager.Instance == null) return;
+
+        GameObject fx = PoolManager.Instance.Pop(_waterEntrySplashPrefab, position, Quaternion.identity);
+        if (fx == null) return;
+
+        if (fx.TryGetComponent<PooledParticleEffect>(out var pooledEffect))
+        {
+            pooledEffect.Play(_waterEntrySplashPrefab);
+        }
+        else
+        {
+            Debug.LogWarning($"{nameof(PlayerMovement)}: {_waterEntrySplashPrefab.name}에 PooledParticleEffect 컴포넌트가 없어서 자동으로 반납되지 않습니다.", _waterEntrySplashPrefab);
+        }
     }
 
     private void OnTriggerStay2D(Collider2D other)
