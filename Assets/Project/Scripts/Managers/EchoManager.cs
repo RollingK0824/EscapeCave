@@ -39,6 +39,12 @@ namespace Managers
         
         public void TriggerSound(Vector3 worldPosition, float intensity, float speed, float fadeSpeed = -1f)
         {
+            if (Game.Echo.TitleRippleEmitter.ActiveEmitter != null)
+            {
+                Game.Echo.TitleRippleEmitter.ActiveEmitter.EmitRipple(worldPosition);
+                return;
+            }
+
             if (_wavePrefab == null || PoolManager.Instance == null) return;
 
             GameObject waveObj = PoolManager.Instance.Pop(_wavePrefab,worldPosition,Quaternion.identity);
