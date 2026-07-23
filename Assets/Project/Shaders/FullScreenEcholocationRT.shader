@@ -9,13 +9,9 @@ Shader "Hidden/Custom/FullScreenEcholocationRT"
     }
 
     HLSLINCLUDE
-    // URP 필수 헤더
-    // Core.hlsl : UNITY_MATRIX_MVP 등 기본 행렬, 플랫폼 추상화 매크로 제공
-    // Blit.hlsl : Vert 함수 + Varying 구조체 + _BlitTexture 제공
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
     #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
 
-    // CBUFFER 블록
     CBUFFER_START(UnityPerMaterial)
         float4 _BaseColor;
         float4 _WaveColor;
@@ -27,14 +23,12 @@ Shader "Hidden/Custom/FullScreenEcholocationRT"
 
     half4 frag (Varyings input) : SV_Target
     {
-        // 화면 원본 색상
         half4 screenColor = SAMPLE_TEXTURE2D_X(
             _BlitTexture,
             sampler_LinearClamp,
             input.texcoord
         );
 
-        // 마스크 읽기
         half4 maskColor = SAMPLE_TEXTURE2D(
             _MaskTex,
             sampler_MaskTex,
@@ -42,7 +36,6 @@ Shader "Hidden/Custom/FullScreenEcholocationRT"
         );
 
         float waveIntensity = maskColor.r;
-
         float edge = saturate(fwidth(waveIntensity) * 8.0);
 
         half3 revealedColor = screenColor.rgb + _WaveColor.rgb * _WaveHighlightIntensity * edge;
@@ -51,7 +44,7 @@ Shader "Hidden/Custom/FullScreenEcholocationRT"
             _BaseColor.rgb,
             revealedColor,
             waveIntensity
-            );
+        );
 
         return half4(finalRGB, screenColor.a);
     }
@@ -64,11 +57,7 @@ Shader "Hidden/Custom/FullScreenEcholocationRT"
         Pass
         {
             Name "EcholocationRTPass"
-            
-            ZWrite Off  // ZWrite Off : Depth Buffer에 쓰기 비활성화 (깊이 테스트는 수행하지만 깊이 값은 기록하지 않음)
-            ZTest Always// ZTest Always : 항상 통과 (깊이 테스트를 무시하고 항상 렌더링)
-            Blend Off   // Blend Off : 블렌딩 비활성화 (기본적으로 덮어쓰기)
-            Cull Off    // Cull Off : 폴리곤 방향 무시 (풀스크린 삼각형은 방향이 없음)
+            ZWrite Off ZTest Always Blend Off Cull Off
 
             HLSLPROGRAM
             #pragma vertex Vert 

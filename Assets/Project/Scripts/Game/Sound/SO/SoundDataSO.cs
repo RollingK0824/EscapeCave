@@ -18,6 +18,13 @@ public class SoundDataSO : ScriptableObject
     [Header("Loading Option")]
     public bool isGlobalPreload = false; // 게임 시작 시 필수 로딩 여부
 
+    [Header("Echo Settings")]
+    public bool enableEcho = false; // 사운드 재생 시 에코 시각 파동 자동 트리거 여부
+    public bool useAutoEchoParams = true; // Pitch/Volume 기반 파라미터 자동 계산 여부
+    public float customIntensity = 14f;
+    public float customSpeed = 20f;
+    public float customFadeSpeed = 1.2f;
+
     public AudioClip GetClip()
     {
         if (audioClips == null || audioClips.Length == 0) return null;

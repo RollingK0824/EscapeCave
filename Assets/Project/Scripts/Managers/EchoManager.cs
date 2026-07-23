@@ -37,7 +37,7 @@ namespace Managers
             }
         }
         
-        public void TriggerSound(Vector3 worldPosition, float intensity, float speed)
+        public void TriggerSound(Vector3 worldPosition, float intensity, float speed, float fadeSpeed = -1f)
         {
             if (_wavePrefab == null || PoolManager.Instance == null) return;
 
@@ -48,7 +48,7 @@ namespace Managers
             EchoWaveObject waveComp = waveObj.GetComponent<EchoWaveObject>();
             if(waveComp != null)
             {
-                waveComp.SetupWave(intensity, speed, _wavePrefab);
+                waveComp.SetupWave(intensity, speed, _wavePrefab, fadeSpeed);
             }
         }
         
