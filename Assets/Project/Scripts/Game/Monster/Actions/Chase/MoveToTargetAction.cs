@@ -19,6 +19,7 @@ public partial class MoveToTargetAction : Action
             return Status.Failure;
         }
 
+        Monster.Value.MarkChased();
         return Status.Running;
     }
 

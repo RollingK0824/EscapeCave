@@ -32,6 +32,7 @@ public class MonsterController : MonoBehaviour, IDamageable, IEchoable
     private bool _isInAttackRangeSticky;
     private Transform _soundSource;
     private float _bombLureExpiry = -1f;
+    private bool _hasChased;
 
     private MonsterState _currentState = MonsterState.IDLE;
     
@@ -41,6 +42,7 @@ public class MonsterController : MonoBehaviour, IDamageable, IEchoable
     private static readonly int DieHash = Animator.StringToHash("Die");
     private static readonly int IsStunnedHash = Animator.StringToHash("IsStunned");
     private static readonly int AttackHash = Animator.StringToHash("Attack");
+    private static readonly int HasChasedHash = Animator.StringToHash("HasChased");
 
 
     [Header("에코")]
@@ -159,6 +161,17 @@ public class MonsterController : MonoBehaviour, IDamageable, IEchoable
         Rb.linearVelocity = new Vector2(0f, Rb.linearVelocity.y);
 
         SetMoving(false);
+    }
+
+    public void MarkChased()
+    {
+        if(_hasChased)
+        {
+            return;
+        }
+
+        _hasChased = true;
+        Animator.SetBool(HasChasedHash, true);
     }
 
     public Vector2 GetDirectionToTarget(Transform playerTransform)
