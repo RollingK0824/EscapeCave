@@ -1,0 +1,58 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &6683864405612140745
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2944318927942424973}
+  - component: {fileID: 5746103444375088717}
+  m_Layer: 0
+  m_Name: 'AchievementPopup '
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2944318927942424973
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6683864405612140745}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 63.74751, y: -5.38397, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5746103444375088717
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6683864405612140745}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f769452cdd8250043af64cd5b47c2f24, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AchievementPopup
+  _backgroundSprite: {fileID: 7776888778958561937, guid: 85f85c9979a1d7147bf27da685b4e4a9, type: 3}
+  _defaultIcon: {fileID: -1724822148711148119, guid: 3e5fa23445b7f5d40960d8a799aa1feb, type: 3}
+  _font: {fileID: 11400000, guid: 24e80d8f605070e4591fd7ce00cf5b50, type: 2}
+  _panelSize: {x: 420, y: 118}
+  _screenMargin: {x: 28, y: 28}
+  _padding: 14
+  _iconSize: 90
+  _displayDuration: 5
+  _slideDuration: 0.35
+  _gapBetweenPopups: 0.2
+  _defaultTitle: ACHIEVEMENT UNLOCKED
+  _achievementSfx: {fileID: 11400000, guid: 2ba2276c2da94e76ae116402499913bc, type: 2}
