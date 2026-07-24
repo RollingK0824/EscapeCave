@@ -75,10 +75,27 @@ public class UnlockNodeUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
             return;
         }
 
-        if (!UIManager.Instance.IsUnlocked(_nodeData) && !UIManager.Instance.HasEnoughGold(_nodeData.cost))
+        if (UIManager.Instance.IsUnlocked(_nodeData)) return;
+
+        if (!HasMetPrerequisites())
+        {
+            _confirmPopup.Show("PREREQUISITES NOT MET", () => { });
+            return;
+        }
+
+        if (!UIManager.Instance.HasEnoughGold(_nodeData.cost))
         {
             _confirmPopup.Show($"NOT ENOUGH GOLD (HAVE {UIManager.Instance.TotalGold} / NEED {_nodeData.cost})", () => { });
         }
+    }
+    private bool HasMetPrerequisites()
+    {
+        foreach (UnlockNodeData prereq in _nodeData.prerequisites)
+        {
+            if (!UIManager.Instance.IsUnlocked(prereq)) return false;
+        }
+
+        return true;
     }
     private void RefreshVisual()
     {

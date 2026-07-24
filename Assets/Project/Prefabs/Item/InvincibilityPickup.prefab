@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 4727054829095017306}
   - component: {fileID: 2638511803543241275}
   - component: {fileID: 1059188267089149594}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: InvincibilityPickup
   m_TagString: Untagged
   m_Icon: {fileID: 0}
