@@ -208,6 +208,10 @@ public abstract class BaseMapRuleSO : ScriptableObject
                     rule = rule
                 });
                 currentX = chosenLength - 1;
+                if (rule.type == PlatformType.Moving && rule.moveDirection == MoveDirection.Horizontal)
+                {
+                    currentX += rule.moveRange;
+                }
             }
         }
 
@@ -245,6 +249,11 @@ public abstract class BaseMapRuleSO : ScriptableObject
             });
 
             currentX = nextStartX + chosenLength - 1;
+            if (rule.type == PlatformType.Moving && rule.moveDirection == MoveDirection.Horizontal)
+            {
+                currentX += rule.moveRange;
+            }
+
             currentY = nextY;
 
             mainPath.Add(new Vector2Int(nextStartX + chosenLength / 2, nextY));
@@ -253,7 +262,12 @@ public abstract class BaseMapRuleSO : ScriptableObject
         if (pendingPlatforms.Count > 0)
         {
             var lastPlat = pendingPlatforms[pendingPlatforms.Count - 1];
-            return new Vector2Int(lastPlat.localX + lastPlat.chosenLength - 1, lastPlat.localY);
+            int lastX = lastPlat.localX + lastPlat.chosenLength - 1;
+            if (lastPlat.rule.type == PlatformType.Moving && lastPlat.rule.moveDirection == MoveDirection.Horizontal)
+            {
+                lastX += lastPlat.rule.moveRange;
+            }
+            return new Vector2Int(lastX, lastPlat.localY);
         }
         return new Vector2Int(chunkWidth - 1, currentY);
     }
@@ -272,10 +286,6 @@ public abstract class BaseMapRuleSO : ScriptableObject
                 {
                     endX += platform.rule.moveRange;
                 }
-            }
-            else if (platform.rule.type == PlatformType.Pullable)
-            {
-                endX += Mathf.CeilToInt(platform.rule.pullLimit);
             }
 
             for (int x = startX; x < endX; x++)
@@ -299,10 +309,6 @@ public abstract class BaseMapRuleSO : ScriptableObject
             if (p1.rule.type == PlatformType.Moving && p1.rule.moveDirection == MoveDirection.Horizontal)
             {
                 p1EndX += p1.rule.moveRange;
-            }
-            else if (p1.rule.type == PlatformType.Pullable)
-            {
-                p1EndX += Mathf.CeilToInt(p1.rule.pullLimit);
             }
 
             Vector2Int startPt = new Vector2Int(p1EndX, p1.localY + 1);
@@ -358,13 +364,6 @@ public abstract class BaseMapRuleSO : ScriptableObject
             if (data.rule.type == PlatformType.Moving)
             {
                 markID = 4;
-                if (data.rule.moveDirection == MoveDirection.Horizontal) checkMaxX += data.rule.moveRange;
-                else checkMaxY += data.rule.moveRange;
-            }
-            else if (data.rule.type == PlatformType.Pullable)
-            {
-                markID = 5;
-                checkMaxX += Mathf.CeilToInt(data.rule.pullLimit);
             }
 
             for (int x = data.localX; x < checkMaxX; x++)
