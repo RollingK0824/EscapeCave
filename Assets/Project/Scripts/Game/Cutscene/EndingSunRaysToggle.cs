@@ -31,5 +31,11 @@ public class EndingSunRaysToggle : MonoBehaviour
         {
             _sunGodRaysFeature.SetActive(false);
         }
+
+        // 엔딩 씬을 벗어날 때 EchoManager가 다시 사용할 수 있도록 마스크 피처를 원래대로 켜둔다
+        if (_echolocationMaskFeature != null)
+        {
+            _echolocationMaskFeature.SetActive(true);
+        }
     }
 }

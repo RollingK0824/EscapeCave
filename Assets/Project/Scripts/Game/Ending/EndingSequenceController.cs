@@ -1,6 +1,10 @@
 using System.Collections;
+using Audio;
+using Managers;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 using UnityEngine.Video;
 
 /// <summary>
@@ -29,9 +33,21 @@ public class EndingSequenceController : MonoBehaviour
     [SerializeField] private Vector2 _creditsEndPos;
     [SerializeField] private float _creditsScrollDuration = 10f;
 
+    [Header("Phase 4: Achievement")]
+    [SerializeField] private string _achievementName = "ESCAPE";
+    [SerializeField] private string _achievementDescription = "The End of the Journey";
+    [SerializeField] private Sprite _achievementIcon;
+
+    [Header("Phase 5: Touch To Continue")]
+    [SerializeField] private CanvasGroup _touchToContinueGroup;
+    [SerializeField, Range(0f, 1f)] private float _touchTextMinAlpha = 0.6f;
+    [SerializeField, Range(0f, 1f)] private float _touchTextMaxAlpha = 1f;
+    [SerializeField] private float _touchTextFadeDuration = 1f;
+    [SerializeField] private float _touchTextPulseDuration = 1f;
+
     [Header("Return")]
     [SerializeField] private string _returnSceneName = "UnlockTree";
-    [SerializeField] private float _holdBeforeReturn = 2f;
+    [SerializeField] private StageThemeData _returnBgmTheme;
 
     private void Awake()
     {
@@ -45,6 +61,14 @@ public class EndingSequenceController : MonoBehaviour
         if (_creditsRoot != null)
         {
             _creditsRoot.anchoredPosition = _creditsStartPos;
+        }
+
+        // 크레딧이 끝나기 전까지는 숨겨둠
+        if (_touchToContinueGroup != null)
+        {
+            _touchToContinueGroup.alpha = 0f;
+            _touchToContinueGroup.blocksRaycasts = false;
+            _touchToContinueGroup.gameObject.SetActive(false);
         }
 
         // 페이드가 끝난 뒤 바로 재생할 수 있도록 흰 화면이 떠 있는 동안 미리 로딩만 해둠
@@ -113,11 +137,205 @@ public class EndingSequenceController : MonoBehaviour
         // 3) 크레딧 스크롤
         yield return CreditsRoutine();
 
-        yield return new WaitForSeconds(_holdBeforeReturn);
+        // 4) 크레딧이 끝나면 엔딩 업적 알림 표시
+        NotifyEndingAchievement();
+
+        // 5) 화면을 터치/클릭할 때까지 대기 (자동으로 넘어가지 않음)
+        yield return WaitForTouchToContinueRoutine();
+
+        Debug.Log("[EndingSequenceController] 터치 감지됨. 언락씬으로 복귀를 시작합니다.");
 
         yield return FadeRoutine(0f, 1f);
 
-        SceneManager.LoadScene(_returnSceneName);
+        // 씬 전환이 일어나면 이 오브젝트(Ending 씬 소속) 자체가 파괴되면서 여기서 실행 중인
+        // 코루틴도 함께 끊긴다. 그래서 나머지(씬 로드 대기 -> BGM 복원 -> 페이드 인 -> 자기 파괴)는
+        // DontDestroyOnLoad로 살아남는 오버레이 오브젝트 스스로가 처리하도록 넘긴다.
+        BeginReturnToPreviousScene();
+    }
+
+    private void NotifyEndingAchievement()
+    {
+        AchievementPopup.Notify(_achievementName, _achievementIcon, _achievementDescription);
+    }
+
+    private IEnumerator WaitForTouchToContinueRoutine()
+    {
+        Coroutine pulseCoroutine = null;
+
+        if (_touchToContinueGroup != null)
+        {
+            _touchToContinueGroup.gameObject.SetActive(true);
+            _touchToContinueGroup.blocksRaycasts = false;
+            pulseCoroutine = StartCoroutine(PulseCanvasGroupAlphaRoutine(_touchToContinueGroup));
+        }
+
+        // 크레딧을 넘기려던 마지막 입력이 그대로 넘어와 즉시 스킵되지 않도록 한 프레임 대기
+        yield return null;
+
+        while (!IsScreenTouched())
+        {
+            yield return null;
+        }
+
+        if (pulseCoroutine != null)
+        {
+            StopCoroutine(pulseCoroutine);
+        }
+
+        if (_touchToContinueGroup != null)
+        {
+            yield return FadeCanvasGroupAlphaRoutine(_touchToContinueGroup, _touchToContinueGroup.alpha, 0f, _touchTextFadeDuration);
+            _touchToContinueGroup.gameObject.SetActive(false);
+        }
+    }
+
+    /// <summary>
+    /// "Touch the Screen" 문구를 최소~최대 알파 사이로 계속 오가게 만들어 깜빡이듯 보이게 한다.
+    /// 클릭이 감지되면 바깥의 WaitForTouchToContinueRoutine에서 이 코루틴을 멈춘다.
+    /// </summary>
+    private IEnumerator PulseCanvasGroupAlphaRoutine(CanvasGroup group)
+    {
+        yield return FadeCanvasGroupAlphaRoutine(group, 0f, _touchTextMinAlpha, _touchTextFadeDuration);
+
+        float elapsed = 0f;
+        while (true)
+        {
+            elapsed += Time.deltaTime;
+            float pingPong = Mathf.PingPong(elapsed / Mathf.Max(0.01f, _touchTextPulseDuration), 1f);
+            group.alpha = Mathf.Lerp(_touchTextMinAlpha, _touchTextMaxAlpha, pingPong);
+            yield return null;
+        }
+    }
+
+    private static bool IsScreenTouched()
+    {
+        if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
+        {
+            return true;
+        }
+
+        if (Touchscreen.current != null && Touchscreen.current.primaryTouch.press.wasPressedThisFrame)
+        {
+            return true;
+        }
+
+        // 새 Input System 디바이스가 인식되지 않는 환경을 대비한 구식 Input 폴백
+        if (Input.GetMouseButtonDown(0))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private static IEnumerator FadeCanvasGroupAlphaRoutine(CanvasGroup group, float from, float to, float duration)
+    {
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            group.alpha = Mathf.Lerp(from, to, elapsed / duration);
+            yield return null;
+        }
+
+        group.alpha = to;
+    }
+
+    /// <summary>
+    /// 화면을 하얗게 덮은 오버레이를 만들고, 씬 로드 -> BGM 복원 -> 페이드 인 -> 자기 파괴까지
+    /// 전부 그 오버레이 스스로(DontDestroyOnLoad) 처리하도록 맡긴다. Ending 씬 소속인
+    /// EndingSequenceController는 씬 전환과 함께 파괴되므로 여기서 코루틴을 계속 들고 있을 수 없다.
+    /// </summary>
+    private void BeginReturnToPreviousScene()
+    {
+        CanvasGroup overlay = CreatePersistentWhiteOverlay();
+        SceneReturnOverlay runner = overlay.gameObject.AddComponent<SceneReturnOverlay>();
+        runner.Run(_returnSceneName, _returnBgmTheme, _fadeDuration);
+    }
+
+    /// <summary>
+    /// 씬 전환용 흰색 오버레이에 붙어 씬 로드 대기 -> BGM 테마 복원 -> 페이드 인 -> 자기 파괴를
+    /// 스스로 처리하는 컴포넌트. 오버레이 오브젝트가 DontDestroyOnLoad라 씬이 바뀌어도 살아남는다.
+    /// </summary>
+    private sealed class SceneReturnOverlay : MonoBehaviour
+    {
+        public void Run(string sceneName, StageThemeData bgmTheme, float fadeDuration)
+        {
+            StartCoroutine(RunRoutine(sceneName, bgmTheme, fadeDuration));
+        }
+
+        private IEnumerator RunRoutine(string sceneName, StageThemeData bgmTheme, float fadeDuration)
+        {
+            Debug.Log($"[EndingSequenceController] '{sceneName}' 씬 로드 시작");
+
+            AsyncOperation loadOp = SceneManager.LoadSceneAsync(sceneName);
+            if (loadOp == null)
+            {
+                Debug.LogError($"[EndingSequenceController] '{sceneName}' 씬을 로드하지 못했습니다. Build Settings의 Scenes In Build 목록에 씬이 추가되어 있는지 확인하세요.");
+                yield break;
+            }
+
+            while (!loadOp.isDone)
+            {
+                yield return null;
+            }
+
+            Debug.Log($"[EndingSequenceController] '{sceneName}' 씬 로드 완료");
+
+            if (bgmTheme != null && SoundManager.Instance != null)
+            {
+                SoundManager.Instance.ChangeThemeBGM(bgmTheme);
+            }
+
+            CanvasGroup group = GetComponent<CanvasGroup>();
+            float elapsed = 0f;
+            while (elapsed < fadeDuration)
+            {
+                elapsed += Time.deltaTime;
+                group.alpha = Mathf.Lerp(1f, 0f, elapsed / fadeDuration);
+                yield return null;
+            }
+
+            group.alpha = 0f;
+            group.blocksRaycasts = false;
+
+            Destroy(gameObject);
+        }
+    }
+
+    private CanvasGroup CreatePersistentWhiteOverlay()
+    {
+        GameObject overlayObj = new GameObject("EndingReturnFadeOverlay");
+        overlayObj.transform.SetParent(null);
+        DontDestroyOnLoad(overlayObj);
+
+        Canvas canvas = overlayObj.AddComponent<Canvas>();
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        canvas.sortingOrder = short.MaxValue;
+        overlayObj.AddComponent<GraphicRaycaster>();
+
+        CanvasScaler scaler = overlayObj.AddComponent<CanvasScaler>();
+        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution = new Vector2(1920f, 1080f);
+        scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
+        scaler.matchWidthOrHeight = 0.5f;
+
+        GameObject imageObj = new GameObject("WhiteImage", typeof(RectTransform));
+        imageObj.transform.SetParent(overlayObj.transform, false);
+        RectTransform imageRect = (RectTransform)imageObj.transform;
+        imageRect.anchorMin = Vector2.zero;
+        imageRect.anchorMax = Vector2.one;
+        imageRect.offsetMin = Vector2.zero;
+        imageRect.offsetMax = Vector2.zero;
+
+        Image image = imageObj.AddComponent<Image>();
+        image.color = Color.white;
+
+        CanvasGroup group = overlayObj.AddComponent<CanvasGroup>();
+        group.alpha = 1f;
+        group.blocksRaycasts = true;
+
+        return group;
     }
 
     private IEnumerator WaitUntilVideoPrepared()
