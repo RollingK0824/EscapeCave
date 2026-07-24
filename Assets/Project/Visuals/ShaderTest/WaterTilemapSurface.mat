@@ -67,8 +67,18 @@ Material:
     - _ReflectionFadeDistance: 4
     - _ReflectionOpacity: 0.7
     - _RefractionAmount: 0.35
+    - _RippleAmplitude: 0.03
+    - _RippleDamping: 1
+    - _RippleFrequency: 3
+    - _RippleOriginX: 23.808401
+    - _RippleSpeed: 4
+    - _RippleStartTime: 7.419997
     - _ShimmerStrength: 0.04
-    - _SurfaceWorldY: 19.1
+    - _SurfaceBobAmplitude: 0.03
+    - _SurfaceBobBand: 1
+    - _SurfaceLineStrength: 0.236
+    - _SurfaceLineWidth: 0.068
+    - _SurfaceWorldY: -4.25
     - _WaterEffectStrength: 0.85
     - _WaveFrequency: 2.5
     - _WaveSpeed: 0.7
@@ -78,6 +88,7 @@ Material:
     - _FlowDirection: {r: 1, g: 0.2, b: 0, a: 0}
     - _ReflectionTint: {r: 0.5, g: 0.6, b: 0.7, a: 1}
     - _RendererColor: {r: 1, g: 1, b: 1, a: 1}
+    - _SurfaceLineColor: {r: 0.8, g: 0.95, b: 1, a: 1}
     - _WaterColor: {r: 0.06, g: 0.2, b: 0.3, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

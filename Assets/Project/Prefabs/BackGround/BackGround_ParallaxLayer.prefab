@@ -137,7 +137,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d40cdd410a6157c418ae710acd12108f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ParallaxLayer
-  parallaxFactorX: 0.75
+  parallaxFactorX: 1
   parallaxFactorY: 1
   targetCamera: {fileID: 0}
   autoScaleToHeight: 1
@@ -221,8 +221,8 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
-  m_SortingLayerID: -437232757
-  m_SortingLayer: -1
+  m_SortingLayerID: -192829401
+  m_SortingLayer: 1
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Sprite: {fileID: 21300000, guid: 96ab8394d4ef87f43be3ef367633e256, type: 3}
@@ -911,8 +911,8 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
-  m_SortingLayerID: -437232757
-  m_SortingLayer: -1
+  m_SortingLayerID: -192829401
+  m_SortingLayer: 1
   m_SortingOrder: 1
   m_MaskInteraction: 0
   m_Sprite: {fileID: 21300000, guid: e4333a106ea711b48802bdae0cbb43bc, type: 3}
@@ -1328,8 +1328,8 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
-  m_SortingLayerID: -437232757
-  m_SortingLayer: -1
+  m_SortingLayerID: -192829401
+  m_SortingLayer: 1
   m_SortingOrder: 1
   m_MaskInteraction: 0
   m_Sprite: {fileID: 21300000, guid: e4333a106ea711b48802bdae0cbb43bc, type: 3}
@@ -1616,8 +1616,8 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
-  m_SortingLayerID: -437232757
-  m_SortingLayer: -1
+  m_SortingLayerID: -192829401
+  m_SortingLayer: 1
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Sprite: {fileID: 21300000, guid: 96ab8394d4ef87f43be3ef367633e256, type: 3}
@@ -1676,7 +1676,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d40cdd410a6157c418ae710acd12108f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ParallaxLayer
-  parallaxFactorX: 0.9
+  parallaxFactorX: 1
   parallaxFactorY: 1
   targetCamera: {fileID: 0}
   autoScaleToHeight: 1
