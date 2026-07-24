@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 911454421616253256}
   - component: {fileID: 631935007836916341}
   - component: {fileID: 2471617411035185384}
+  - component: {fileID: 662030394830582277}
   - component: {fileID: 947296930590824761}
   - component: {fileID: 5850653304229843936}
   - component: {fileID: 3645108328765232249}
@@ -33,8 +34,8 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -40.6, y: 22.2, z: 0}
-  m_LocalScale: {x: 16, y: 16, z: 16}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 8, y: 8, z: 8}
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 5461025017640722352}
   - {fileID: 414291838649195546}
@@ -167,6 +168,18 @@ MonoBehaviour:
   _soundIntensity: 200
   _soundSpeed: 30
   _crySound: {fileID: 0}
+--- !u!114 &662030394830582277
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6845527231419012449}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 51593a35198e36c42a8243e95abb7b68, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BossCameraFollow
 --- !u!114 &947296930590824761
 MonoBehaviour:
   m_ObjectHideFlags: 0
