@@ -208,6 +208,10 @@ public abstract class BaseMapRuleSO : ScriptableObject
                     rule = rule
                 });
                 currentX = chosenLength - 1;
+                if (rule.type == PlatformType.Moving && rule.moveDirection == MoveDirection.Horizontal)
+                {
+                    currentX += rule.moveRange;
+                }
             }
         }
 
@@ -245,6 +249,11 @@ public abstract class BaseMapRuleSO : ScriptableObject
             });
 
             currentX = nextStartX + chosenLength - 1;
+            if (rule.type == PlatformType.Moving && rule.moveDirection == MoveDirection.Horizontal)
+            {
+                currentX += rule.moveRange;
+            }
+
             currentY = nextY;
 
             mainPath.Add(new Vector2Int(nextStartX + chosenLength / 2, nextY));
@@ -253,7 +262,12 @@ public abstract class BaseMapRuleSO : ScriptableObject
         if (pendingPlatforms.Count > 0)
         {
             var lastPlat = pendingPlatforms[pendingPlatforms.Count - 1];
-            return new Vector2Int(lastPlat.localX + lastPlat.chosenLength - 1, lastPlat.localY);
+            int lastX = lastPlat.localX + lastPlat.chosenLength - 1;
+            if (lastPlat.rule.type == PlatformType.Moving && lastPlat.rule.moveDirection == MoveDirection.Horizontal)
+            {
+                lastX += lastPlat.rule.moveRange;
+            }
+            return new Vector2Int(lastX, lastPlat.localY);
         }
         return new Vector2Int(chunkWidth - 1, currentY);
     }
