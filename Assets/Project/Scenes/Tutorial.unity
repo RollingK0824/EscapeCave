@@ -2056,6 +2056,8 @@ MonoBehaviour:
   _focusCamera: {fileID: 712291607}
   _holdDuration: 2
   _tutorialManager: {fileID: 1770987285}
+  _echoIntensity: 10
+  _echoSpeed: 5
 --- !u!61 &471161263
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -2846,7 +2848,7 @@ Transform:
   m_GameObject: {fileID: 754705732}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 3.48, y: -4.31, z: 0}
+  m_LocalPosition: {x: 3.79, y: -4.25, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3651,6 +3653,10 @@ PrefabInstance:
       propertyPath: m_BackGroundColor.r
       value: 0.30588236
       objectReference: {fileID: 0}
+    - target: {fileID: 442363877509734321, guid: 5e97f8b2c1913904dbd00be8a7a6cef2, type: 3}
+      propertyPath: m_CullingMask.m_Bits
+      value: 22399
+      objectReference: {fileID: 0}
     - target: {fileID: 3554002541696047096, guid: 5e97f8b2c1913904dbd00be8a7a6cef2, type: 3}
       propertyPath: m_Name
       value: 'Main Camera '
@@ -3669,11 +3675,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8755674326860140755, guid: 5e97f8b2c1913904dbd00be8a7a6cef2, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -2.6111488
+      value: -2.599533
       objectReference: {fileID: 0}
     - target: {fileID: 8755674326860140755, guid: 5e97f8b2c1913904dbd00be8a7a6cef2, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -1.0179929
+      value: -1.0179828
       objectReference: {fileID: 0}
     - target: {fileID: 8755674326860140755, guid: 5e97f8b2c1913904dbd00be8a7a6cef2, type: 3}
       propertyPath: m_LocalPosition.z
@@ -7739,6 +7745,9 @@ MonoBehaviour:
   _walkDuration: 0.8
   _fadeDuration: 0.5
   _nextSceneName: ProtoType
+  _echoIntensity: 12
+  _echoSpeed: 6
+  _echoPingInterval: 0.9
 --- !u!61 &1582338215
 BoxCollider2D:
   m_ObjectHideFlags: 0
