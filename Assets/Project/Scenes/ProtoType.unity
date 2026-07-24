@@ -2041,6 +2041,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 229110620}
     - target: {fileID: 4061083408376256958, guid: d5e810f06289aeb41bedb1ce818a773c, type: 3}
+      propertyPath: cullingDistance
+      value: 30
+      objectReference: {fileID: 0}
+    - target: {fileID: 4061083408376256958, guid: d5e810f06289aeb41bedb1ce818a773c, type: 3}
       propertyPath: deadZoneController
       value: 
       objectReference: {fileID: 1808580684699890724}
