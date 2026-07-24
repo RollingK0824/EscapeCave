@@ -155,6 +155,3 @@ MonoBehaviour:
   riderLayerMask:
     serializedVersion: 2
     m_Bits: 20745
-  allowTriggerRiderMask:
-    serializedVersion: 2
-    m_Bits: 16384
