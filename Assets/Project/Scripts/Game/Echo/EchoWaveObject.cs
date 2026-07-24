@@ -54,7 +54,8 @@ public class EchoWaveObject : MonoBehaviour
 
     private void Update()
     {
-        _stateTimer += Time.deltaTime;
+        // Time.timeScale이 0인 컷신(예: MonsterRevealTrigger) 중에도 웨이브가 멈추지 않고 재생되도록 unscaled 시간을 사용한다
+        _stateTimer += Time.unscaledDeltaTime;
 
         switch (_state)
         {
@@ -74,7 +75,7 @@ public class EchoWaveObject : MonoBehaviour
 
             case WaveState.Linger:
                 // 2단계: 최대 지름 유지 + 미세 링 진동 (Wiggle)
-                float vibrate = Mathf.Sin(Time.time * 25f) * 0.025f * _maxRadius;
+                float vibrate = Mathf.Sin(Time.unscaledTime * 25f) * 0.025f * _maxRadius;
                 _currentRadius = _maxRadius + vibrate;
                 _waveColor.a = 1f;
 

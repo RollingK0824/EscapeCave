@@ -1,4 +1,5 @@
 using System.Collections;
+using Managers;
 using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -16,6 +17,13 @@ public class TutorialEnding : MonoBehaviour
     [SerializeField] private float _fadeDuration = 1f;
     [SerializeField] private string _nextSceneName = "ProtoType";
 
+    [Header("엔딩 연출 중 플레이어 시야 유지")]
+    [SerializeField] private float _echoIntensity = 12f;
+    [SerializeField] private float _echoSpeed = 6f;
+    [SerializeField] private float _echoPingInterval = 0.9f;
+
+    private Coroutine _visibilityCoroutine;
+
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (!collision.CompareTag("Player")) return;
@@ -30,6 +38,10 @@ public class TutorialEnding : MonoBehaviour
         _playerController.SetAbilityEnabled(PlayerAbility.Jump, false);
         _playerController.SetAbilityEnabled(PlayerAbility.Attack, false);
         _playerController.SetAbilityEnabled(PlayerAbility.Cry, false);
+
+        // Cry 능력을 꺼서 플레이어가 더 이상 스스로 에코를 띄울 수 없으므로,
+        // 엔딩 연출이 끝날 때까지 스크립트가 대신 주기적으로 에코를 띄워 화면이 암전되지 않게 한다
+        _visibilityCoroutine = StartCoroutine(CoKeepPlayerVisible());
 
         CinemachineConfiner2D confiner = null;
         if (_followCamera != null)
@@ -63,7 +75,32 @@ public class TutorialEnding : MonoBehaviour
 
         yield return FadeOutRoutine();
 
+        if (_visibilityCoroutine != null)
+        {
+            StopCoroutine(_visibilityCoroutine);
+            _visibilityCoroutine = null;
+        }
+
         SceneManager.LoadScene(_nextSceneName);
+    }
+
+    private IEnumerator CoKeepPlayerVisible()
+    {
+        while (true)
+        {
+            PingPlayerEcho();
+            yield return new WaitForSeconds(_echoPingInterval);
+        }
+    }
+
+    private void PingPlayerEcho()
+    {
+        if (EchoManager.Instance == null || _playerMovement == null) return;
+
+        Vector3 echoOrigin = _playerMovement.transform.position;
+        echoOrigin.z = 0f;
+
+        EchoManager.Instance.TriggerSound(echoOrigin, _echoIntensity, _echoSpeed);
     }
 
     private IEnumerator FadeOutRoutine()
