@@ -17,6 +17,9 @@ public class MovingPlatform : MonoBehaviour
     [Tooltip("발판을 따라 움직일 대상 레이어 (비트 플래그 다중 선택)")]
     [SerializeField] private LayerMask riderLayerMask;
 
+    [Tooltip("isTrigger여도 발판 탑승을 허용할 레이어 (예: Item)")]
+    [SerializeField] private LayerMask allowTriggerRiderMask;
+
     private BoxCollider2D platformCollider;
 
     private void Awake()
@@ -24,6 +27,10 @@ public class MovingPlatform : MonoBehaviour
         if (riderLayerMask == 0)
         {
             riderLayerMask = LayerMask.GetMask("Player", "Monster", "Item", "MapObject");
+        }
+        if (allowTriggerRiderMask == 0)
+        {
+            allowTriggerRiderMask = LayerMask.GetMask("Item");
         }
     }
 
@@ -97,7 +104,9 @@ public class MovingPlatform : MonoBehaviour
             Collider2D col = passengers[i];
 
             if (col.gameObject == gameObject || col.transform.IsChildOf(transform)) continue;
-            if (col.isTrigger) continue;
+
+            // isTrigger 객체 중 allowTriggerRiderMask(예: Item)에 해당하지 않는 트리거만 제외
+            if (col.isTrigger && ((1 << col.gameObject.layer) & allowTriggerRiderMask) == 0) continue;
 
             Rigidbody2D passengerRb = col.attachedRigidbody;
 

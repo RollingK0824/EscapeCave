@@ -154,4 +154,7 @@ MonoBehaviour:
   detectionMarginY: 0.6
   riderLayerMask:
     serializedVersion: 2
-    m_Bits: 4361
+    m_Bits: 20745
+  allowTriggerRiderMask:
+    serializedVersion: 2
+    m_Bits: 16384
